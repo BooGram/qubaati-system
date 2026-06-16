@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "career_world")
@@ -32,5 +31,5 @@ public class CareerWorld {
 
     // CareerWorld has many Missions (inverse side)
     @OneToMany(mappedBy = "careerWorld", fetch = FetchType.LAZY)
-    private List<Mission> missions = new ArrayList<>();
+    private Set<Mission> missions;
 }

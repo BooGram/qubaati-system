@@ -24,9 +24,13 @@ public class StudentOutDTO {
     private String grade;
     private Integer totalPoints;
     private Integer completedMissionsCount;
-    private String parentPhoneNumber;
-    private String parentEmail;
 
     private Integer classroomId;
     private String classroomName;
+
+    // ----- Safe Parent information (from the Parent and the Parent's linked User) -----
+    private Integer parentId;
+    private String parentName;
+    private String parentEmail;
+    private String parentPhoneNumber;
 }

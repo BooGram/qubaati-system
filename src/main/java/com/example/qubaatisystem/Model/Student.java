@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "student")
@@ -36,16 +35,16 @@ public class Student {
     @Column(nullable = false)
     private Integer completedMissionsCount;
 
-    @Column(length = 30)
-    private String parentPhoneNumber;
-
-    @Column(length = 120)
-    private String parentEmail;
-
-    // Student belongs to one User (owning side)
+    // Student belongs to one User (owning side). The account is created for the child by the Parent;
+    // the student does not create it. The student logs in later with this account.
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
+
+    // Student belongs to one Parent (owning side)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id", nullable = false)
+    private Parent parent;
 
     // Student belongs to one Classroom (owning side, optional)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,7 +53,7 @@ public class Student {
 
     // Student has many StudentSkills (inverse side)
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
-    private List<StudentSkill> studentSkills = new ArrayList<>();
+    private Set<StudentSkill> studentSkills;
 
     // Student has one LearningStyle (inverse side)
     @OneToOne(mappedBy = "student", fetch = FetchType.LAZY)

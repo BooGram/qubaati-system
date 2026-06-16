@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "classroom")
@@ -37,5 +36,5 @@ public class Classroom {
 
     // Classroom has many Students (inverse side)
     @OneToMany(mappedBy = "classroom", fetch = FetchType.LAZY)
-    private List<Student> students = new ArrayList<>();
+    private Set<Student> students;
 }

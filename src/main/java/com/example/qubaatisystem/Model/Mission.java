@@ -8,8 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "mission")
@@ -50,5 +49,5 @@ public class Mission {
 
     // Mission has many MissionSessions (inverse side)
     @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY)
-    private List<MissionSession> missionSessions = new ArrayList<>();
+    private Set<MissionSession> missionSessions;
 }

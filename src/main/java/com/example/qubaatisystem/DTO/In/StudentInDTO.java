@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentInDTO {
 
-    // ----- User account fields (used to create the linked User internally) -----
+    // ----- User account fields (the linked child User is created internally by StudentService) -----
     @NotBlank(message = "username is required")
     @Size(max = 50, message = "username must be at most 50 characters")
     private String username;
@@ -49,11 +49,8 @@ public class StudentInDTO {
     @PositiveOrZero(message = "completedMissionsCount must be zero or positive")
     private Integer completedMissionsCount;
 
-    @Size(max = 30, message = "parentPhoneNumber must be at most 30 characters")
-    private String parentPhoneNumber;
-
-    @Email(message = "parentEmail must be a valid email")
-    private String parentEmail;
+    @NotNull(message = "parentId is required")
+    private Integer parentId;
 
     private Integer classroomId;
 }

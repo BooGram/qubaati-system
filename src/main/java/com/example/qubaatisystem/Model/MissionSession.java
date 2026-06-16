@@ -8,8 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "mission_session")
@@ -43,7 +42,7 @@ public class MissionSession {
 
     // MissionSession has many Decisions (inverse side)
     @OneToMany(mappedBy = "missionSession", fetch = FetchType.LAZY)
-    private List<Decision> decisions = new ArrayList<>();
+    private Set<Decision> decisions;
 
     // MissionSession has one Insight (inverse side)
     @OneToOne(mappedBy = "missionSession", fetch = FetchType.LAZY)

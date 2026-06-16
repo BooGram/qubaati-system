@@ -9,12 +9,12 @@ import lombok.Setter;
 import java.util.Set;
 
 @Entity
-@Table(name = "teacher")
+@Table(name = "parent")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Teacher {
+public class Parent {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,15 +23,15 @@ public class Teacher {
     @Column(nullable = false, length = 120)
     private String fullName;
 
-    @Column(length = 120)
-    private String specialization;
+    @Column(nullable = false, length = 30)
+    private String phoneNumber;
 
-    // Teacher belongs to one User (owning side)
+    // Parent belongs to one User (owning side)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    // Teacher has many Classrooms (inverse side)
-    @OneToMany(mappedBy = "teacher", fetch = FetchType.LAZY)
-    private Set<Classroom> classrooms;
+    // Parent has many Students / children (inverse side)
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    private Set<Student> children;
 }

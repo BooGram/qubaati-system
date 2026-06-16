@@ -5,9 +5,11 @@ import com.example.qubaatisystem.DTO.In.StudentInDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
 import com.example.qubaatisystem.Enum.UserRole;
 import com.example.qubaatisystem.Model.Classroom;
+import com.example.qubaatisystem.Model.Parent;
 import com.example.qubaatisystem.Model.Student;
 import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.ClassroomRepository;
+import com.example.qubaatisystem.Repository.ParentRepository;
 import com.example.qubaatisystem.Repository.StudentRepository;
 import com.example.qubaatisystem.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
+    private final ParentRepository parentRepository;
     private final ClassroomRepository classroomRepository;
     private final ModelMapper modelMapper;
 
@@ -43,7 +46,8 @@ public class StudentService {
 
     @Transactional
     public StudentOutDTO create(StudentInDTO studentInDTO) {
-        // Create the linked User account (the role is assigned internally, never from the DTO).
+        // Create the linked child User account. The role is assigned internally; the parent creates
+        // this account for the child (the student does not create it himself).
         User user = new User();
         user.setUsername(studentInDTO.getUsername());
         user.setEmail(studentInDTO.getEmail());
@@ -51,10 +55,11 @@ public class StudentService {
         user.setRole(UserRole.STUDENT);
         User savedUser = userRepository.save(user);
 
-        // Create the Student profile (ModelMapper copies scalar fields only) and link the saved User.
+        // Create the Student profile (ModelMapper copies scalar fields only) and link the relations.
         Student student = modelMapper.map(studentInDTO, Student.class);
         applyDefaults(student);
         student.setUser(savedUser);
+        student.setParent(resolveParent(studentInDTO.getParentId()));
         student.setClassroom(resolveClassroom(studentInDTO.getClassroomId()));
 
         Student savedStudent = studentRepository.save(student);
@@ -69,8 +74,9 @@ public class StudentService {
         }
         Student student = students.get(0);
 
-        // Update Student profile fields. Clear the classroom first so ModelMapper cannot
-        // mutate the id of the currently-managed Classroom while flattening classroomId.
+        // Clear the owning relations first so ModelMapper only copies scalar fields
+        // (never mutates the ids of the currently-managed Parent/Classroom while flattening).
+        student.setParent(null);
         student.setClassroom(null);
         modelMapper.map(studentInDTO, student);
         applyDefaults(student);
@@ -83,6 +89,7 @@ public class StudentService {
         user.setRole(UserRole.STUDENT);
         userRepository.save(user);
 
+        student.setParent(resolveParent(studentInDTO.getParentId()));
         student.setClassroom(resolveClassroom(studentInDTO.getClassroomId()));
 
         Student savedStudent = studentRepository.save(student);
@@ -98,6 +105,14 @@ public class StudentService {
     }
 
     // ---------- helpers ----------
+
+    private Parent resolveParent(Integer parentId) {
+        List<Parent> parents = parentRepository.findParentById(parentId);
+        if (parents.isEmpty()) {
+            throw new ApiException("Parent with id " + parentId + " not found");
+        }
+        return parents.get(0);
+    }
 
     private Classroom resolveClassroom(Integer classroomId) {
         if (classroomId == null) {
@@ -132,6 +147,15 @@ public class StudentService {
         if (student.getClassroom() != null) {
             dto.setClassroomId(student.getClassroom().getId());
             dto.setClassroomName(student.getClassroom().getName());
+        }
+
+        if (student.getParent() != null) {
+            dto.setParentId(student.getParent().getId());
+            dto.setParentName(student.getParent().getFullName());
+            dto.setParentPhoneNumber(student.getParent().getPhoneNumber());
+            if (student.getParent().getUser() != null) {
+                dto.setParentEmail(student.getParent().getUser().getEmail());
+            }
         }
 
         return dto;

@@ -8,8 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "question")
@@ -47,9 +46,9 @@ public class Question {
 
     // Question has many Options (inverse side)
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<Option> options = new ArrayList<>();
+    private Set<Option> options;
 
     // Question has many StudentAnswers (inverse side)
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)
-    private List<StudentAnswer> studentAnswers = new ArrayList<>();
+    private Set<StudentAnswer> studentAnswers;
 }
