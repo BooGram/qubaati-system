@@ -37,11 +37,11 @@ public class StudentService {
     }
 
     public StudentOutDTO getById(Integer id) {
-        List<Student> students = studentRepository.findStudentById(id);
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(id);
+        if (student == null) {
             throw new ApiException("Student with id " + id + " not found");
         }
-        return mapStudentToOutDTO(students.get(0));
+        return mapStudentToOutDTO(student);
     }
 
     @Transactional
@@ -68,11 +68,10 @@ public class StudentService {
 
     @Transactional
     public StudentOutDTO update(Integer id, StudentInDTO studentInDTO) {
-        List<Student> students = studentRepository.findStudentById(id);
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(id);
+        if (student == null) {
             throw new ApiException("Student with id " + id + " not found");
         }
-        Student student = students.get(0);
 
         // Clear the owning relations first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed Parent/Classroom while flattening).
@@ -97,32 +96,32 @@ public class StudentService {
     }
 
     public void delete(Integer id) {
-        List<Student> students = studentRepository.findStudentById(id);
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(id);
+        if (student == null) {
             throw new ApiException("Student with id " + id + " not found");
         }
-        studentRepository.delete(students.get(0));
+        studentRepository.delete(student);
     }
 
     // ---------- helpers ----------
 
     private Parent resolveParent(Integer parentId) {
-        List<Parent> parents = parentRepository.findParentById(parentId);
-        if (parents.isEmpty()) {
+        Parent parent = parentRepository.findParentById(parentId);
+        if (parent == null) {
             throw new ApiException("Parent with id " + parentId + " not found");
         }
-        return parents.get(0);
+        return parent;
     }
 
     private Classroom resolveClassroom(Integer classroomId) {
         if (classroomId == null) {
             return null;
         }
-        List<Classroom> classrooms = classroomRepository.findClassroomById(classroomId);
-        if (classrooms.isEmpty()) {
+        Classroom classroom = classroomRepository.findClassroomById(classroomId);
+        if (classroom == null) {
             throw new ApiException("Classroom with id " + classroomId + " not found");
         }
-        return classrooms.get(0);
+        return classroom;
     }
 
     private void applyDefaults(Student student) {

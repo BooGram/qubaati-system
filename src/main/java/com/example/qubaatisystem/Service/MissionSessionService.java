@@ -29,11 +29,11 @@ public class MissionSessionService {
     }
 
     public MissionSessionOutDTO getById(Integer id) {
-        List<MissionSession> missionSessions = missionSessionRepository.findMissionSessionById(id);
-        if (missionSessions.isEmpty()) {
+        MissionSession missionSession = missionSessionRepository.findMissionSessionById(id);
+        if (missionSession == null) {
             throw new ApiException("MissionSession with id " + id + " not found");
         }
-        return toOut(missionSessions.get(0));
+        return toOut(missionSession);
     }
 
     public void create(MissionSessionInDTO dto) {
@@ -45,11 +45,10 @@ public class MissionSessionService {
     }
 
     public void update(Integer id, MissionSessionInDTO dto) {
-        List<MissionSession> missionSessions = missionSessionRepository.findMissionSessionById(id);
-        if (missionSessions.isEmpty()) {
+        MissionSession missionSession = missionSessionRepository.findMissionSessionById(id);
+        if (missionSession == null) {
             throw new ApiException("MissionSession with id " + id + " not found");
         }
-        MissionSession missionSession = missionSessions.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class MissionSessionService {
     }
 
     public void delete(Integer id) {
-        List<MissionSession> missionSessions = missionSessionRepository.findMissionSessionById(id);
-        if (missionSessions.isEmpty()) {
+        MissionSession missionSession = missionSessionRepository.findMissionSessionById(id);
+        if (missionSession == null) {
             throw new ApiException("MissionSession with id " + id + " not found");
         }
-        missionSessionRepository.delete(missionSessions.get(0));
+        missionSessionRepository.delete(missionSession);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(MissionSession missionSession, MissionSessionInDTO dto) {
-        List<Mission> missions = missionRepository.findMissionById(dto.getMissionId());
-        if (missions.isEmpty()) {
+        Mission mission = missionRepository.findMissionById(dto.getMissionId());
+        if (mission == null) {
             throw new ApiException("Mission with id " + dto.getMissionId() + " not found");
         }
-        missionSession.setMission(missions.get(0));
+        missionSession.setMission(mission);
     }
 
     private MissionSessionOutDTO toOut(MissionSession missionSession) {

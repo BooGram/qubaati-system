@@ -29,11 +29,11 @@ public class OptionService {
     }
 
     public OptionOutDTO getById(Integer id) {
-        List<Option> options = optionRepository.findOptionById(id);
-        if (options.isEmpty()) {
+        Option option = optionRepository.findOptionById(id);
+        if (option == null) {
             throw new ApiException("Option with id " + id + " not found");
         }
-        return toOut(options.get(0));
+        return toOut(option);
     }
 
     public void create(OptionInDTO optionInDTO) {
@@ -45,11 +45,10 @@ public class OptionService {
     }
 
     public void update(Integer id, OptionInDTO optionInDTO) {
-        List<Option> options = optionRepository.findOptionById(id);
-        if (options.isEmpty()) {
+        Option option = optionRepository.findOptionById(id);
+        if (option == null) {
             throw new ApiException("Option with id " + id + " not found");
         }
-        Option option = options.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class OptionService {
     }
 
     public void delete(Integer id) {
-        List<Option> options = optionRepository.findOptionById(id);
-        if (options.isEmpty()) {
+        Option option = optionRepository.findOptionById(id);
+        if (option == null) {
             throw new ApiException("Option with id " + id + " not found");
         }
-        optionRepository.delete(options.get(0));
+        optionRepository.delete(option);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Option option, OptionInDTO dto) {
-        List<Question> questions = questionRepository.findQuestionById(dto.getQuestionId());
-        if (questions.isEmpty()) {
+        Question question = questionRepository.findQuestionById(dto.getQuestionId());
+        if (question == null) {
             throw new ApiException("Question with id " + dto.getQuestionId() + " not found");
         }
-        option.setQuestion(questions.get(0));
+        option.setQuestion(question);
     }
 
     private OptionOutDTO toOut(Option option) {

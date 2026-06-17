@@ -29,11 +29,11 @@ public class DecisionService {
     }
 
     public DecisionOutDTO getById(Integer id) {
-        List<Decision> decisions = decisionRepository.findDecisionById(id);
-        if (decisions.isEmpty()) {
+        Decision decision = decisionRepository.findDecisionById(id);
+        if (decision == null) {
             throw new ApiException("Decision with id " + id + " not found");
         }
-        return toOut(decisions.get(0));
+        return toOut(decision);
     }
 
     public void create(DecisionInDTO decisionInDTO) {
@@ -45,11 +45,10 @@ public class DecisionService {
     }
 
     public void update(Integer id, DecisionInDTO decisionInDTO) {
-        List<Decision> decisions = decisionRepository.findDecisionById(id);
-        if (decisions.isEmpty()) {
+        Decision decision = decisionRepository.findDecisionById(id);
+        if (decision == null) {
             throw new ApiException("Decision with id " + id + " not found");
         }
-        Decision decision = decisions.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the id of the currently-managed related entity).
@@ -62,22 +61,22 @@ public class DecisionService {
     }
 
     public void delete(Integer id) {
-        List<Decision> decisions = decisionRepository.findDecisionById(id);
-        if (decisions.isEmpty()) {
+        Decision decision = decisionRepository.findDecisionById(id);
+        if (decision == null) {
             throw new ApiException("Decision with id " + id + " not found");
         }
-        decisionRepository.delete(decisions.get(0));
+        decisionRepository.delete(decision);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Decision decision, DecisionInDTO dto) {
-        List<MissionSession> missionSessions = missionSessionRepository.findMissionSessionById(dto.getMissionSessionId());
-        if (missionSessions.isEmpty()) {
+        MissionSession missionSession = missionSessionRepository.findMissionSessionById(dto.getMissionSessionId());
+        if (missionSession == null) {
             throw new ApiException("MissionSession with id " + dto.getMissionSessionId() + " not found");
         }
-        decision.setMissionSession(missionSessions.get(0));
+        decision.setMissionSession(missionSession);
     }
 
     private DecisionOutDTO toOut(Decision decision) {

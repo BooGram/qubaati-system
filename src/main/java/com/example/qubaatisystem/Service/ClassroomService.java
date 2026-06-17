@@ -29,11 +29,11 @@ public class ClassroomService {
     }
 
     public ClassroomOutDTO getById(Integer id) {
-        List<Classroom> classrooms = classroomRepository.findClassroomById(id);
-        if (classrooms.isEmpty()) {
+        Classroom classroom = classroomRepository.findClassroomById(id);
+        if (classroom == null) {
             throw new ApiException("Classroom with id " + id + " not found");
         }
-        return toOut(classrooms.get(0));
+        return toOut(classroom);
     }
 
     public void create(ClassroomInDTO classroomInDTO) {
@@ -45,11 +45,10 @@ public class ClassroomService {
     }
 
     public void update(Integer id, ClassroomInDTO classroomInDTO) {
-        List<Classroom> classrooms = classroomRepository.findClassroomById(id);
-        if (classrooms.isEmpty()) {
+        Classroom classroom = classroomRepository.findClassroomById(id);
+        if (classroom == null) {
             throw new ApiException("Classroom with id " + id + " not found");
         }
-        Classroom classroom = classrooms.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class ClassroomService {
     }
 
     public void delete(Integer id) {
-        List<Classroom> classrooms = classroomRepository.findClassroomById(id);
-        if (classrooms.isEmpty()) {
+        Classroom classroom = classroomRepository.findClassroomById(id);
+        if (classroom == null) {
             throw new ApiException("Classroom with id " + id + " not found");
         }
-        classroomRepository.delete(classrooms.get(0));
+        classroomRepository.delete(classroom);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Classroom classroom, ClassroomInDTO dto) {
-        List<Teacher> teachers = teacherRepository.findTeacherById(dto.getTeacherId());
-        if (teachers.isEmpty()) {
+        Teacher teacher = teacherRepository.findTeacherById(dto.getTeacherId());
+        if (teacher == null) {
             throw new ApiException("Teacher with id " + dto.getTeacherId() + " not found");
         }
-        classroom.setTeacher(teachers.get(0));
+        classroom.setTeacher(teacher);
     }
 
     private ClassroomOutDTO toOut(Classroom classroom) {

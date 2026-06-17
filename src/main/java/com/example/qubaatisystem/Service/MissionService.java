@@ -29,11 +29,11 @@ public class MissionService {
     }
 
     public MissionOutDTO getById(Integer id) {
-        List<Mission> missions = missionRepository.findMissionById(id);
-        if (missions.isEmpty()) {
+        Mission mission = missionRepository.findMissionById(id);
+        if (mission == null) {
             throw new ApiException("Mission with id " + id + " not found");
         }
-        return toOut(missions.get(0));
+        return toOut(mission);
     }
 
     public void create(MissionInDTO dto) {
@@ -45,11 +45,10 @@ public class MissionService {
     }
 
     public void update(Integer id, MissionInDTO dto) {
-        List<Mission> missions = missionRepository.findMissionById(id);
-        if (missions.isEmpty()) {
+        Mission mission = missionRepository.findMissionById(id);
+        if (mission == null) {
             throw new ApiException("Mission with id " + id + " not found");
         }
-        Mission mission = missions.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class MissionService {
     }
 
     public void delete(Integer id) {
-        List<Mission> missions = missionRepository.findMissionById(id);
-        if (missions.isEmpty()) {
+        Mission mission = missionRepository.findMissionById(id);
+        if (mission == null) {
             throw new ApiException("Mission with id " + id + " not found");
         }
-        missionRepository.delete(missions.get(0));
+        missionRepository.delete(mission);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Mission mission, MissionInDTO dto) {
-        List<CareerWorld> careerWorlds = careerWorldRepository.findCareerWorldById(dto.getCareerWorldId());
-        if (careerWorlds.isEmpty()) {
+        CareerWorld careerWorld = careerWorldRepository.findCareerWorldById(dto.getCareerWorldId());
+        if (careerWorld == null) {
             throw new ApiException("CareerWorld with id " + dto.getCareerWorldId() + " not found");
         }
-        mission.setCareerWorld(careerWorlds.get(0));
+        mission.setCareerWorld(careerWorld);
     }
 
     private MissionOutDTO toOut(Mission mission) {

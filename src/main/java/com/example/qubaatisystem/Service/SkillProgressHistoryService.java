@@ -35,11 +35,11 @@ public class SkillProgressHistoryService {
     }
 
     public SkillProgressHistoryOutDTO getById(Integer id) {
-        List<SkillProgressHistory> skillProgressHistories = skillProgressHistoryRepository.findSkillProgressHistoryById(id);
-        if (skillProgressHistories.isEmpty()) {
+        SkillProgressHistory skillProgressHistory = skillProgressHistoryRepository.findSkillProgressHistoryById(id);
+        if (skillProgressHistory == null) {
             throw new ApiException("SkillProgressHistory with id " + id + " not found");
         }
-        return toOut(skillProgressHistories.get(0));
+        return toOut(skillProgressHistory);
     }
 
     public void create(SkillProgressHistoryInDTO dto) {
@@ -51,11 +51,10 @@ public class SkillProgressHistoryService {
     }
 
     public void update(Integer id, SkillProgressHistoryInDTO dto) {
-        List<SkillProgressHistory> skillProgressHistories = skillProgressHistoryRepository.findSkillProgressHistoryById(id);
-        if (skillProgressHistories.isEmpty()) {
+        SkillProgressHistory skillProgressHistory = skillProgressHistoryRepository.findSkillProgressHistoryById(id);
+        if (skillProgressHistory == null) {
             throw new ApiException("SkillProgressHistory with id " + id + " not found");
         }
-        SkillProgressHistory skillProgressHistory = skillProgressHistories.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -70,35 +69,35 @@ public class SkillProgressHistoryService {
     }
 
     public void delete(Integer id) {
-        List<SkillProgressHistory> skillProgressHistories = skillProgressHistoryRepository.findSkillProgressHistoryById(id);
-        if (skillProgressHistories.isEmpty()) {
+        SkillProgressHistory skillProgressHistory = skillProgressHistoryRepository.findSkillProgressHistoryById(id);
+        if (skillProgressHistory == null) {
             throw new ApiException("SkillProgressHistory with id " + id + " not found");
         }
-        skillProgressHistoryRepository.delete(skillProgressHistories.get(0));
+        skillProgressHistoryRepository.delete(skillProgressHistory);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(SkillProgressHistory skillProgressHistory, SkillProgressHistoryInDTO dto) {
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        skillProgressHistory.setStudent(students.get(0));
+        skillProgressHistory.setStudent(student);
 
-        List<Skill> skills = skillRepository.findSkillById(dto.getSkillId());
-        if (skills.isEmpty()) {
+        Skill skill = skillRepository.findSkillById(dto.getSkillId());
+        if (skill == null) {
             throw new ApiException("Skill with id " + dto.getSkillId() + " not found");
         }
-        skillProgressHistory.setSkill(skills.get(0));
+        skillProgressHistory.setSkill(skill);
 
         if (dto.getStudentSkillId() != null) {
-            List<StudentSkill> studentSkills = studentSkillRepository.findStudentSkillById(dto.getStudentSkillId());
-            if (studentSkills.isEmpty()) {
+            StudentSkill studentSkill = studentSkillRepository.findStudentSkillById(dto.getStudentSkillId());
+            if (studentSkill == null) {
                 throw new ApiException("StudentSkill with id " + dto.getStudentSkillId() + " not found");
             }
-            skillProgressHistory.setStudentSkill(studentSkills.get(0));
+            skillProgressHistory.setStudentSkill(studentSkill);
         } else {
             skillProgressHistory.setStudentSkill(null);
         }

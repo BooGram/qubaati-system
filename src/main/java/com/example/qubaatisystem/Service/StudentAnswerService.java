@@ -35,11 +35,11 @@ public class StudentAnswerService {
     }
 
     public StudentAnswerOutDTO getById(Integer id) {
-        List<StudentAnswer> studentAnswers = studentAnswerRepository.findStudentAnswerById(id);
-        if (studentAnswers.isEmpty()) {
+        StudentAnswer studentAnswer = studentAnswerRepository.findStudentAnswerById(id);
+        if (studentAnswer == null) {
             throw new ApiException("StudentAnswer with id " + id + " not found");
         }
-        return toOut(studentAnswers.get(0));
+        return toOut(studentAnswer);
     }
 
     public void create(StudentAnswerInDTO dto) {
@@ -51,11 +51,10 @@ public class StudentAnswerService {
     }
 
     public void update(Integer id, StudentAnswerInDTO dto) {
-        List<StudentAnswer> studentAnswers = studentAnswerRepository.findStudentAnswerById(id);
-        if (studentAnswers.isEmpty()) {
+        StudentAnswer studentAnswer = studentAnswerRepository.findStudentAnswerById(id);
+        if (studentAnswer == null) {
             throw new ApiException("StudentAnswer with id " + id + " not found");
         }
-        StudentAnswer studentAnswer = studentAnswers.get(0);
 
         // Clear owning relations first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -70,34 +69,34 @@ public class StudentAnswerService {
     }
 
     public void delete(Integer id) {
-        List<StudentAnswer> studentAnswers = studentAnswerRepository.findStudentAnswerById(id);
-        if (studentAnswers.isEmpty()) {
+        StudentAnswer studentAnswer = studentAnswerRepository.findStudentAnswerById(id);
+        if (studentAnswer == null) {
             throw new ApiException("StudentAnswer with id " + id + " not found");
         }
-        studentAnswerRepository.delete(studentAnswers.get(0));
+        studentAnswerRepository.delete(studentAnswer);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(StudentAnswer studentAnswer, StudentAnswerInDTO dto) {
-        List<Question> questions = questionRepository.findQuestionById(dto.getQuestionId());
-        if (questions.isEmpty()) {
+        Question question = questionRepository.findQuestionById(dto.getQuestionId());
+        if (question == null) {
             throw new ApiException("Question with id " + dto.getQuestionId() + " not found");
         }
-        studentAnswer.setQuestion(questions.get(0));
+        studentAnswer.setQuestion(question);
 
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        studentAnswer.setStudent(students.get(0));
+        studentAnswer.setStudent(student);
 
-        List<ActivitySubmission> submissions = activitySubmissionRepository.findActivitySubmissionById(dto.getActivitySubmissionId());
-        if (submissions.isEmpty()) {
+        ActivitySubmission submission = activitySubmissionRepository.findActivitySubmissionById(dto.getActivitySubmissionId());
+        if (submission == null) {
             throw new ApiException("ActivitySubmission with id " + dto.getActivitySubmissionId() + " not found");
         }
-        studentAnswer.setActivitySubmission(submissions.get(0));
+        studentAnswer.setActivitySubmission(submission);
     }
 
     private StudentAnswerOutDTO toOut(StudentAnswer studentAnswer) {

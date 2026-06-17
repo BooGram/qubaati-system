@@ -29,11 +29,11 @@ public class NotificationService {
     }
 
     public NotificationOutDTO getById(Integer id) {
-        List<Notification> notifications = notificationRepository.findNotificationById(id);
-        if (notifications.isEmpty()) {
+        Notification notification = notificationRepository.findNotificationById(id);
+        if (notification == null) {
             throw new ApiException("Notification with id " + id + " not found");
         }
-        return toOut(notifications.get(0));
+        return toOut(notification);
     }
 
     public void create(NotificationInDTO dto) {
@@ -45,11 +45,10 @@ public class NotificationService {
     }
 
     public void update(Integer id, NotificationInDTO dto) {
-        List<Notification> notifications = notificationRepository.findNotificationById(id);
-        if (notifications.isEmpty()) {
+        Notification notification = notificationRepository.findNotificationById(id);
+        if (notification == null) {
             throw new ApiException("Notification with id " + id + " not found");
         }
-        Notification notification = notifications.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class NotificationService {
     }
 
     public void delete(Integer id) {
-        List<Notification> notifications = notificationRepository.findNotificationById(id);
-        if (notifications.isEmpty()) {
+        Notification notification = notificationRepository.findNotificationById(id);
+        if (notification == null) {
             throw new ApiException("Notification with id " + id + " not found");
         }
-        notificationRepository.delete(notifications.get(0));
+        notificationRepository.delete(notification);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Notification notification, NotificationInDTO dto) {
-        List<User> recipients = userRepository.findUserById(dto.getRecipientId());
-        if (recipients.isEmpty()) {
+        User recipient = userRepository.findUserById(dto.getRecipientId());
+        if (recipient == null) {
             throw new ApiException("User with id " + dto.getRecipientId() + " not found");
         }
-        notification.setRecipient(recipients.get(0));
+        notification.setRecipient(recipient);
     }
 
     private NotificationOutDTO toOut(Notification notification) {

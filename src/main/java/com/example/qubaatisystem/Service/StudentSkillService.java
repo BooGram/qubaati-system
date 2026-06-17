@@ -32,11 +32,11 @@ public class StudentSkillService {
     }
 
     public StudentSkillOutDTO getById(Integer id) {
-        List<StudentSkill> studentSkills = studentSkillRepository.findStudentSkillById(id);
-        if (studentSkills.isEmpty()) {
+        StudentSkill studentSkill = studentSkillRepository.findStudentSkillById(id);
+        if (studentSkill == null) {
             throw new ApiException("StudentSkill with id " + id + " not found");
         }
-        return toOut(studentSkills.get(0));
+        return toOut(studentSkill);
     }
 
     public void create(StudentSkillInDTO dto) {
@@ -48,11 +48,10 @@ public class StudentSkillService {
     }
 
     public void update(Integer id, StudentSkillInDTO dto) {
-        List<StudentSkill> studentSkills = studentSkillRepository.findStudentSkillById(id);
-        if (studentSkills.isEmpty()) {
+        StudentSkill studentSkill = studentSkillRepository.findStudentSkillById(id);
+        if (studentSkill == null) {
             throw new ApiException("StudentSkill with id " + id + " not found");
         }
-        StudentSkill studentSkill = studentSkills.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -66,28 +65,28 @@ public class StudentSkillService {
     }
 
     public void delete(Integer id) {
-        List<StudentSkill> studentSkills = studentSkillRepository.findStudentSkillById(id);
-        if (studentSkills.isEmpty()) {
+        StudentSkill studentSkill = studentSkillRepository.findStudentSkillById(id);
+        if (studentSkill == null) {
             throw new ApiException("StudentSkill with id " + id + " not found");
         }
-        studentSkillRepository.delete(studentSkills.get(0));
+        studentSkillRepository.delete(studentSkill);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(StudentSkill studentSkill, StudentSkillInDTO dto) {
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        studentSkill.setStudent(students.get(0));
+        studentSkill.setStudent(student);
 
-        List<Skill> skills = skillRepository.findSkillById(dto.getSkillId());
-        if (skills.isEmpty()) {
+        Skill skill = skillRepository.findSkillById(dto.getSkillId());
+        if (skill == null) {
             throw new ApiException("Skill with id " + dto.getSkillId() + " not found");
         }
-        studentSkill.setSkill(skills.get(0));
+        studentSkill.setSkill(skill);
     }
 
     private StudentSkillOutDTO toOut(StudentSkill studentSkill) {

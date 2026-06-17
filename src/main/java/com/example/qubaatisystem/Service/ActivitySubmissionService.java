@@ -32,11 +32,11 @@ public class ActivitySubmissionService {
     }
 
     public ActivitySubmissionOutDTO getById(Integer id) {
-        List<ActivitySubmission> activitySubmissions = activitySubmissionRepository.findActivitySubmissionById(id);
-        if (activitySubmissions.isEmpty()) {
+        ActivitySubmission activitySubmission = activitySubmissionRepository.findActivitySubmissionById(id);
+        if (activitySubmission == null) {
             throw new ApiException("ActivitySubmission with id " + id + " not found");
         }
-        return toOut(activitySubmissions.get(0));
+        return toOut(activitySubmission);
     }
 
     public void create(ActivitySubmissionInDTO dto) {
@@ -48,11 +48,10 @@ public class ActivitySubmissionService {
     }
 
     public void update(Integer id, ActivitySubmissionInDTO dto) {
-        List<ActivitySubmission> activitySubmissions = activitySubmissionRepository.findActivitySubmissionById(id);
-        if (activitySubmissions.isEmpty()) {
+        ActivitySubmission activitySubmission = activitySubmissionRepository.findActivitySubmissionById(id);
+        if (activitySubmission == null) {
             throw new ApiException("ActivitySubmission with id " + id + " not found");
         }
-        ActivitySubmission activitySubmission = activitySubmissions.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -66,28 +65,28 @@ public class ActivitySubmissionService {
     }
 
     public void delete(Integer id) {
-        List<ActivitySubmission> activitySubmissions = activitySubmissionRepository.findActivitySubmissionById(id);
-        if (activitySubmissions.isEmpty()) {
+        ActivitySubmission activitySubmission = activitySubmissionRepository.findActivitySubmissionById(id);
+        if (activitySubmission == null) {
             throw new ApiException("ActivitySubmission with id " + id + " not found");
         }
-        activitySubmissionRepository.delete(activitySubmissions.get(0));
+        activitySubmissionRepository.delete(activitySubmission);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(ActivitySubmission activitySubmission, ActivitySubmissionInDTO dto) {
-        List<ActivityAssignment> activityAssignments = activityAssignmentRepository.findActivityAssignmentById(dto.getActivityAssignmentId());
-        if (activityAssignments.isEmpty()) {
+        ActivityAssignment activityAssignment = activityAssignmentRepository.findActivityAssignmentById(dto.getActivityAssignmentId());
+        if (activityAssignment == null) {
             throw new ApiException("ActivityAssignment with id " + dto.getActivityAssignmentId() + " not found");
         }
-        activitySubmission.setActivityAssignment(activityAssignments.get(0));
+        activitySubmission.setActivityAssignment(activityAssignment);
 
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        activitySubmission.setStudent(students.get(0));
+        activitySubmission.setStudent(student);
     }
 
     private ActivitySubmissionOutDTO toOut(ActivitySubmission activitySubmission) {

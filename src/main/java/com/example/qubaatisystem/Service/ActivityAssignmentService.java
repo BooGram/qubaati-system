@@ -38,11 +38,11 @@ public class ActivityAssignmentService {
     }
 
     public ActivityAssignmentOutDTO getById(Integer id) {
-        List<ActivityAssignment> activityAssignments = activityAssignmentRepository.findActivityAssignmentById(id);
-        if (activityAssignments.isEmpty()) {
+        ActivityAssignment activityAssignment = activityAssignmentRepository.findActivityAssignmentById(id);
+        if (activityAssignment == null) {
             throw new ApiException("ActivityAssignment with id " + id + " not found");
         }
-        return toOut(activityAssignments.get(0));
+        return toOut(activityAssignment);
     }
 
     public void create(ActivityAssignmentInDTO dto) {
@@ -54,11 +54,10 @@ public class ActivityAssignmentService {
     }
 
     public void update(Integer id, ActivityAssignmentInDTO dto) {
-        List<ActivityAssignment> activityAssignments = activityAssignmentRepository.findActivityAssignmentById(id);
-        if (activityAssignments.isEmpty()) {
+        ActivityAssignment activityAssignment = activityAssignmentRepository.findActivityAssignmentById(id);
+        if (activityAssignment == null) {
             throw new ApiException("ActivityAssignment with id " + id + " not found");
         }
-        ActivityAssignment activityAssignment = activityAssignments.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -74,45 +73,45 @@ public class ActivityAssignmentService {
     }
 
     public void delete(Integer id) {
-        List<ActivityAssignment> activityAssignments = activityAssignmentRepository.findActivityAssignmentById(id);
-        if (activityAssignments.isEmpty()) {
+        ActivityAssignment activityAssignment = activityAssignmentRepository.findActivityAssignmentById(id);
+        if (activityAssignment == null) {
             throw new ApiException("ActivityAssignment with id " + id + " not found");
         }
-        activityAssignmentRepository.delete(activityAssignments.get(0));
+        activityAssignmentRepository.delete(activityAssignment);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(ActivityAssignment activityAssignment, ActivityAssignmentInDTO dto) {
-        List<Activity> activities = activityRepository.findActivityById(dto.getActivityId());
-        if (activities.isEmpty()) {
+        Activity activity = activityRepository.findActivityById(dto.getActivityId());
+        if (activity == null) {
             throw new ApiException("Activity with id " + dto.getActivityId() + " not found");
         }
-        activityAssignment.setActivity(activities.get(0));
+        activityAssignment.setActivity(activity);
 
-        List<Teacher> teachers = teacherRepository.findTeacherById(dto.getAssignedByTeacherId());
-        if (teachers.isEmpty()) {
+        Teacher teacher = teacherRepository.findTeacherById(dto.getAssignedByTeacherId());
+        if (teacher == null) {
             throw new ApiException("Teacher with id " + dto.getAssignedByTeacherId() + " not found");
         }
-        activityAssignment.setAssignedByTeacher(teachers.get(0));
+        activityAssignment.setAssignedByTeacher(teacher);
 
         if (dto.getStudentId() != null) {
-            List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-            if (students.isEmpty()) {
+            Student student = studentRepository.findStudentById(dto.getStudentId());
+            if (student == null) {
                 throw new ApiException("Student with id " + dto.getStudentId() + " not found");
             }
-            activityAssignment.setStudent(students.get(0));
+            activityAssignment.setStudent(student);
         } else {
             activityAssignment.setStudent(null);
         }
 
         if (dto.getClassroomId() != null) {
-            List<Classroom> classrooms = classroomRepository.findClassroomById(dto.getClassroomId());
-            if (classrooms.isEmpty()) {
+            Classroom classroom = classroomRepository.findClassroomById(dto.getClassroomId());
+            if (classroom == null) {
                 throw new ApiException("Classroom with id " + dto.getClassroomId() + " not found");
             }
-            activityAssignment.setClassroom(classrooms.get(0));
+            activityAssignment.setClassroom(classroom);
         } else {
             activityAssignment.setClassroom(null);
         }
