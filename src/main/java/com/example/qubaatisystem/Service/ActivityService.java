@@ -26,11 +26,11 @@ public class ActivityService {
     }
 
     public ActivityOutDTO getById(Integer id) {
-        List<Activity> activities = activityRepository.findActivityById(id);
-        if (activities.isEmpty()) {
+        Activity activity = activityRepository.findActivityById(id);
+        if (activity == null) {
             throw new ApiException("Activity with id " + id + " not found");
         }
-        return toOut(activities.get(0));
+        return toOut(activity);
     }
 
     public void create(ActivityInDTO dto) {
@@ -40,11 +40,10 @@ public class ActivityService {
     }
 
     public void update(Integer id, ActivityInDTO dto) {
-        List<Activity> activities = activityRepository.findActivityById(id);
-        if (activities.isEmpty()) {
+        Activity activity = activityRepository.findActivityById(id);
+        if (activity == null) {
             throw new ApiException("Activity with id " + id + " not found");
         }
-        Activity activity = activities.get(0);
 
         modelMapper.map(dto, activity);
 
@@ -52,11 +51,11 @@ public class ActivityService {
     }
 
     public void delete(Integer id) {
-        List<Activity> activities = activityRepository.findActivityById(id);
-        if (activities.isEmpty()) {
+        Activity activity = activityRepository.findActivityById(id);
+        if (activity == null) {
             throw new ApiException("Activity with id " + id + " not found");
         }
-        activityRepository.delete(activities.get(0));
+        activityRepository.delete(activity);
     }
 
     // ---------- helpers ----------

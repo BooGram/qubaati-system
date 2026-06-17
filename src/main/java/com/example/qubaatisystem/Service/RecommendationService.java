@@ -38,11 +38,11 @@ public class RecommendationService {
     }
 
     public RecommendationOutDTO getById(Integer id) {
-        List<Recommendation> recommendations = recommendationRepository.findRecommendationById(id);
-        if (recommendations.isEmpty()) {
+        Recommendation recommendation = recommendationRepository.findRecommendationById(id);
+        if (recommendation == null) {
             throw new ApiException("Recommendation with id " + id + " not found");
         }
-        return toOut(recommendations.get(0));
+        return toOut(recommendation);
     }
 
     public void create(RecommendationInDTO dto) {
@@ -54,11 +54,10 @@ public class RecommendationService {
     }
 
     public void update(Integer id, RecommendationInDTO dto) {
-        List<Recommendation> recommendations = recommendationRepository.findRecommendationById(id);
-        if (recommendations.isEmpty()) {
+        Recommendation recommendation = recommendationRepository.findRecommendationById(id);
+        if (recommendation == null) {
             throw new ApiException("Recommendation with id " + id + " not found");
         }
-        Recommendation recommendation = recommendations.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -74,49 +73,49 @@ public class RecommendationService {
     }
 
     public void delete(Integer id) {
-        List<Recommendation> recommendations = recommendationRepository.findRecommendationById(id);
-        if (recommendations.isEmpty()) {
+        Recommendation recommendation = recommendationRepository.findRecommendationById(id);
+        if (recommendation == null) {
             throw new ApiException("Recommendation with id " + id + " not found");
         }
-        recommendationRepository.delete(recommendations.get(0));
+        recommendationRepository.delete(recommendation);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Recommendation recommendation, RecommendationInDTO dto) {
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        recommendation.setStudent(students.get(0));
+        recommendation.setStudent(student);
 
         if (dto.getSkillId() != null) {
-            List<Skill> skills = skillRepository.findSkillById(dto.getSkillId());
-            if (skills.isEmpty()) {
+            Skill skill = skillRepository.findSkillById(dto.getSkillId());
+            if (skill == null) {
                 throw new ApiException("Skill with id " + dto.getSkillId() + " not found");
             }
-            recommendation.setSkill(skills.get(0));
+            recommendation.setSkill(skill);
         } else {
             recommendation.setSkill(null);
         }
 
         if (dto.getMissionId() != null) {
-            List<Mission> missions = missionRepository.findMissionById(dto.getMissionId());
-            if (missions.isEmpty()) {
+            Mission mission = missionRepository.findMissionById(dto.getMissionId());
+            if (mission == null) {
                 throw new ApiException("Mission with id " + dto.getMissionId() + " not found");
             }
-            recommendation.setMission(missions.get(0));
+            recommendation.setMission(mission);
         } else {
             recommendation.setMission(null);
         }
 
         if (dto.getActivityId() != null) {
-            List<Activity> activities = activityRepository.findActivityById(dto.getActivityId());
-            if (activities.isEmpty()) {
+            Activity activity = activityRepository.findActivityById(dto.getActivityId());
+            if (activity == null) {
                 throw new ApiException("Activity with id " + dto.getActivityId() + " not found");
             }
-            recommendation.setActivity(activities.get(0));
+            recommendation.setActivity(activity);
         } else {
             recommendation.setActivity(null);
         }

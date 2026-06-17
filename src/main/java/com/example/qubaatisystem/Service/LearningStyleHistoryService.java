@@ -32,11 +32,11 @@ public class LearningStyleHistoryService {
     }
 
     public LearningStyleHistoryOutDTO getById(Integer id) {
-        List<LearningStyleHistory> learningStyleHistories = learningStyleHistoryRepository.findLearningStyleHistoryById(id);
-        if (learningStyleHistories.isEmpty()) {
+        LearningStyleHistory learningStyleHistory = learningStyleHistoryRepository.findLearningStyleHistoryById(id);
+        if (learningStyleHistory == null) {
             throw new ApiException("LearningStyleHistory with id " + id + " not found");
         }
-        return toOut(learningStyleHistories.get(0));
+        return toOut(learningStyleHistory);
     }
 
     public void create(LearningStyleHistoryInDTO dto) {
@@ -48,11 +48,10 @@ public class LearningStyleHistoryService {
     }
 
     public void update(Integer id, LearningStyleHistoryInDTO dto) {
-        List<LearningStyleHistory> learningStyleHistories = learningStyleHistoryRepository.findLearningStyleHistoryById(id);
-        if (learningStyleHistories.isEmpty()) {
+        LearningStyleHistory learningStyleHistory = learningStyleHistoryRepository.findLearningStyleHistoryById(id);
+        if (learningStyleHistory == null) {
             throw new ApiException("LearningStyleHistory with id " + id + " not found");
         }
-        LearningStyleHistory learningStyleHistory = learningStyleHistories.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -66,29 +65,29 @@ public class LearningStyleHistoryService {
     }
 
     public void delete(Integer id) {
-        List<LearningStyleHistory> learningStyleHistories = learningStyleHistoryRepository.findLearningStyleHistoryById(id);
-        if (learningStyleHistories.isEmpty()) {
+        LearningStyleHistory learningStyleHistory = learningStyleHistoryRepository.findLearningStyleHistoryById(id);
+        if (learningStyleHistory == null) {
             throw new ApiException("LearningStyleHistory with id " + id + " not found");
         }
-        learningStyleHistoryRepository.delete(learningStyleHistories.get(0));
+        learningStyleHistoryRepository.delete(learningStyleHistory);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(LearningStyleHistory learningStyleHistory, LearningStyleHistoryInDTO dto) {
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        learningStyleHistory.setStudent(students.get(0));
+        learningStyleHistory.setStudent(student);
 
         if (dto.getLearningStyleId() != null) {
-            List<LearningStyle> learningStyles = learningStyleRepository.findLearningStyleById(dto.getLearningStyleId());
-            if (learningStyles.isEmpty()) {
+            LearningStyle learningStyle = learningStyleRepository.findLearningStyleById(dto.getLearningStyleId());
+            if (learningStyle == null) {
                 throw new ApiException("LearningStyle with id " + dto.getLearningStyleId() + " not found");
             }
-            learningStyleHistory.setLearningStyle(learningStyles.get(0));
+            learningStyleHistory.setLearningStyle(learningStyle);
         } else {
             learningStyleHistory.setLearningStyle(null);
         }

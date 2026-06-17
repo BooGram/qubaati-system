@@ -29,11 +29,11 @@ public class InsightService {
     }
 
     public InsightOutDTO getById(Integer id) {
-        List<Insight> insights = insightRepository.findInsightById(id);
-        if (insights.isEmpty()) {
+        Insight insight = insightRepository.findInsightById(id);
+        if (insight == null) {
             throw new ApiException("Insight with id " + id + " not found");
         }
-        return toOut(insights.get(0));
+        return toOut(insight);
     }
 
     public void create(InsightInDTO dto) {
@@ -45,11 +45,10 @@ public class InsightService {
     }
 
     public void update(Integer id, InsightInDTO dto) {
-        List<Insight> insights = insightRepository.findInsightById(id);
-        if (insights.isEmpty()) {
+        Insight insight = insightRepository.findInsightById(id);
+        if (insight == null) {
             throw new ApiException("Insight with id " + id + " not found");
         }
-        Insight insight = insights.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class InsightService {
     }
 
     public void delete(Integer id) {
-        List<Insight> insights = insightRepository.findInsightById(id);
-        if (insights.isEmpty()) {
+        Insight insight = insightRepository.findInsightById(id);
+        if (insight == null) {
             throw new ApiException("Insight with id " + id + " not found");
         }
-        insightRepository.delete(insights.get(0));
+        insightRepository.delete(insight);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Insight insight, InsightInDTO dto) {
-        List<MissionSession> missionSessions = missionSessionRepository.findMissionSessionById(dto.getMissionSessionId());
-        if (missionSessions.isEmpty()) {
+        MissionSession missionSession = missionSessionRepository.findMissionSessionById(dto.getMissionSessionId());
+        if (missionSession == null) {
             throw new ApiException("MissionSession with id " + dto.getMissionSessionId() + " not found");
         }
-        insight.setMissionSession(missionSessions.get(0));
+        insight.setMissionSession(missionSession);
     }
 
     private InsightOutDTO toOut(Insight insight) {

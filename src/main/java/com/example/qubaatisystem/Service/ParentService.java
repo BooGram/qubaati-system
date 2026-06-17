@@ -31,11 +31,11 @@ public class ParentService {
     }
 
     public ParentOutDTO getById(Integer id) {
-        List<Parent> parents = parentRepository.findParentById(id);
-        if (parents.isEmpty()) {
+        Parent parent = parentRepository.findParentById(id);
+        if (parent == null) {
             throw new ApiException("Parent with id " + id + " not found");
         }
-        return mapParentToOutDTO(parents.get(0));
+        return mapParentToOutDTO(parent);
     }
 
     @Transactional
@@ -58,11 +58,10 @@ public class ParentService {
 
     @Transactional
     public ParentOutDTO update(Integer id, ParentInDTO parentInDTO) {
-        List<Parent> parents = parentRepository.findParentById(id);
-        if (parents.isEmpty()) {
+        Parent parent = parentRepository.findParentById(id);
+        if (parent == null) {
             throw new ApiException("Parent with id " + id + " not found");
         }
-        Parent parent = parents.get(0);
 
         // Update Parent profile fields (ModelMapper copies scalar fields only).
         modelMapper.map(parentInDTO, parent);
@@ -80,12 +79,12 @@ public class ParentService {
     }
 
     public void delete(Integer id) {
-        List<Parent> parents = parentRepository.findParentById(id);
-        if (parents.isEmpty()) {
+        Parent parent = parentRepository.findParentById(id);
+        if (parent == null) {
             throw new ApiException("Parent with id " + id + " not found");
         }
         // If the parent still has children, the FK constraint will reject this deletion (no cascade, no orphaning).
-        parentRepository.delete(parents.get(0));
+        parentRepository.delete(parent);
     }
 
     // ---------- helpers ----------

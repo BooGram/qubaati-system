@@ -23,11 +23,11 @@ public class SkillService {
     }
 
     public SkillOutDTO getById(Integer id) {
-        List<Skill> skills = skillRepository.findSkillById(id);
-        if (skills.isEmpty()) {
+        Skill skill = skillRepository.findSkillById(id);
+        if (skill == null) {
             throw new ApiException("Skill with id " + id + " not found");
         }
-        return toOut(skills.get(0));
+        return toOut(skill);
     }
 
     public void create(SkillInDTO dto) {
@@ -37,11 +37,10 @@ public class SkillService {
     }
 
     public void update(Integer id, SkillInDTO dto) {
-        List<Skill> skills = skillRepository.findSkillById(id);
-        if (skills.isEmpty()) {
+        Skill skill = skillRepository.findSkillById(id);
+        if (skill == null) {
             throw new ApiException("Skill with id " + id + " not found");
         }
-        Skill skill = skills.get(0);
 
         modelMapper.map(dto, skill);
 
@@ -49,11 +48,11 @@ public class SkillService {
     }
 
     public void delete(Integer id) {
-        List<Skill> skills = skillRepository.findSkillById(id);
-        if (skills.isEmpty()) {
+        Skill skill = skillRepository.findSkillById(id);
+        if (skill == null) {
             throw new ApiException("Skill with id " + id + " not found");
         }
-        skillRepository.delete(skills.get(0));
+        skillRepository.delete(skill);
     }
 
     // ---------- helpers ----------

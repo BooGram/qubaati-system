@@ -31,11 +31,11 @@ public class TeacherService {
     }
 
     public TeacherOutDTO getById(Integer id) {
-        List<Teacher> teachers = teacherRepository.findTeacherById(id);
-        if (teachers.isEmpty()) {
+        Teacher teacher = teacherRepository.findTeacherById(id);
+        if (teacher == null) {
             throw new ApiException("Teacher with id " + id + " not found");
         }
-        return mapTeacherToOutDTO(teachers.get(0));
+        return mapTeacherToOutDTO(teacher);
     }
 
     @Transactional
@@ -58,11 +58,10 @@ public class TeacherService {
 
     @Transactional
     public TeacherOutDTO update(Integer id, TeacherInDTO teacherInDTO) {
-        List<Teacher> teachers = teacherRepository.findTeacherById(id);
-        if (teachers.isEmpty()) {
+        Teacher teacher = teacherRepository.findTeacherById(id);
+        if (teacher == null) {
             throw new ApiException("Teacher with id " + id + " not found");
         }
-        Teacher teacher = teachers.get(0);
 
         // Update Teacher profile fields (ModelMapper copies scalar fields only).
         modelMapper.map(teacherInDTO, teacher);
@@ -80,11 +79,11 @@ public class TeacherService {
     }
 
     public void delete(Integer id) {
-        List<Teacher> teachers = teacherRepository.findTeacherById(id);
-        if (teachers.isEmpty()) {
+        Teacher teacher = teacherRepository.findTeacherById(id);
+        if (teacher == null) {
             throw new ApiException("Teacher with id " + id + " not found");
         }
-        teacherRepository.delete(teachers.get(0));
+        teacherRepository.delete(teacher);
     }
 
     // ---------- helpers ----------

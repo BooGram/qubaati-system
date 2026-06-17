@@ -29,11 +29,11 @@ public class QuestionService {
     }
 
     public QuestionOutDTO getById(Integer id) {
-        List<Question> questions = questionRepository.findQuestionById(id);
-        if (questions.isEmpty()) {
+        Question question = questionRepository.findQuestionById(id);
+        if (question == null) {
             throw new ApiException("Question with id " + id + " not found");
         }
-        return toOut(questions.get(0));
+        return toOut(question);
     }
 
     public void create(QuestionInDTO dto) {
@@ -45,11 +45,10 @@ public class QuestionService {
     }
 
     public void update(Integer id, QuestionInDTO dto) {
-        List<Question> questions = questionRepository.findQuestionById(id);
-        if (questions.isEmpty()) {
+        Question question = questionRepository.findQuestionById(id);
+        if (question == null) {
             throw new ApiException("Question with id " + id + " not found");
         }
-        Question question = questions.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class QuestionService {
     }
 
     public void delete(Integer id) {
-        List<Question> questions = questionRepository.findQuestionById(id);
-        if (questions.isEmpty()) {
+        Question question = questionRepository.findQuestionById(id);
+        if (question == null) {
             throw new ApiException("Question with id " + id + " not found");
         }
-        questionRepository.delete(questions.get(0));
+        questionRepository.delete(question);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(Question question, QuestionInDTO dto) {
-        List<Activity> activities = activityRepository.findActivityById(dto.getActivityId());
-        if (activities.isEmpty()) {
+        Activity activity = activityRepository.findActivityById(dto.getActivityId());
+        if (activity == null) {
             throw new ApiException("Activity with id " + dto.getActivityId() + " not found");
         }
-        question.setActivity(activities.get(0));
+        question.setActivity(activity);
     }
 
     private QuestionOutDTO toOut(Question question) {

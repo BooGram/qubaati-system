@@ -32,11 +32,11 @@ public class ActivityReviewService {
     }
 
     public ActivityReviewOutDTO getById(Integer id) {
-        List<ActivityReview> activityReviews = activityReviewRepository.findActivityReviewById(id);
-        if (activityReviews.isEmpty()) {
+        ActivityReview activityReview = activityReviewRepository.findActivityReviewById(id);
+        if (activityReview == null) {
             throw new ApiException("ActivityReview with id " + id + " not found");
         }
-        return toOut(activityReviews.get(0));
+        return toOut(activityReview);
     }
 
     public void create(ActivityReviewInDTO dto) {
@@ -48,11 +48,10 @@ public class ActivityReviewService {
     }
 
     public void update(Integer id, ActivityReviewInDTO dto) {
-        List<ActivityReview> activityReviews = activityReviewRepository.findActivityReviewById(id);
-        if (activityReviews.isEmpty()) {
+        ActivityReview activityReview = activityReviewRepository.findActivityReviewById(id);
+        if (activityReview == null) {
             throw new ApiException("ActivityReview with id " + id + " not found");
         }
-        ActivityReview activityReview = activityReviews.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -66,28 +65,28 @@ public class ActivityReviewService {
     }
 
     public void delete(Integer id) {
-        List<ActivityReview> activityReviews = activityReviewRepository.findActivityReviewById(id);
-        if (activityReviews.isEmpty()) {
+        ActivityReview activityReview = activityReviewRepository.findActivityReviewById(id);
+        if (activityReview == null) {
             throw new ApiException("ActivityReview with id " + id + " not found");
         }
-        activityReviewRepository.delete(activityReviews.get(0));
+        activityReviewRepository.delete(activityReview);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(ActivityReview activityReview, ActivityReviewInDTO dto) {
-        List<Activity> activities = activityRepository.findActivityById(dto.getActivityId());
-        if (activities.isEmpty()) {
+        Activity activity = activityRepository.findActivityById(dto.getActivityId());
+        if (activity == null) {
             throw new ApiException("Activity with id " + dto.getActivityId() + " not found");
         }
-        activityReview.setActivity(activities.get(0));
+        activityReview.setActivity(activity);
 
-        List<Teacher> teachers = teacherRepository.findTeacherById(dto.getTeacherId());
-        if (teachers.isEmpty()) {
+        Teacher teacher = teacherRepository.findTeacherById(dto.getTeacherId());
+        if (teacher == null) {
             throw new ApiException("Teacher with id " + dto.getTeacherId() + " not found");
         }
-        activityReview.setTeacher(teachers.get(0));
+        activityReview.setTeacher(teacher);
     }
 
     private ActivityReviewOutDTO toOut(ActivityReview activityReview) {

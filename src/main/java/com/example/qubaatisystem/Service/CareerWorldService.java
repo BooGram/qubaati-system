@@ -26,11 +26,11 @@ public class CareerWorldService {
     }
 
     public CareerWorldOutDTO getById(Integer id) {
-        List<CareerWorld> careerWorlds = careerWorldRepository.findCareerWorldById(id);
-        if (careerWorlds.isEmpty()) {
+        CareerWorld careerWorld = careerWorldRepository.findCareerWorldById(id);
+        if (careerWorld == null) {
             throw new ApiException("CareerWorld with id " + id + " not found");
         }
-        return toOut(careerWorlds.get(0));
+        return toOut(careerWorld);
     }
 
     public void create(CareerWorldInDTO dto) {
@@ -40,11 +40,10 @@ public class CareerWorldService {
     }
 
     public void update(Integer id, CareerWorldInDTO dto) {
-        List<CareerWorld> careerWorlds = careerWorldRepository.findCareerWorldById(id);
-        if (careerWorlds.isEmpty()) {
+        CareerWorld careerWorld = careerWorldRepository.findCareerWorldById(id);
+        if (careerWorld == null) {
             throw new ApiException("CareerWorld with id " + id + " not found");
         }
-        CareerWorld careerWorld = careerWorlds.get(0);
 
         modelMapper.map(dto, careerWorld);
 
@@ -52,11 +51,11 @@ public class CareerWorldService {
     }
 
     public void delete(Integer id) {
-        List<CareerWorld> careerWorlds = careerWorldRepository.findCareerWorldById(id);
-        if (careerWorlds.isEmpty()) {
+        CareerWorld careerWorld = careerWorldRepository.findCareerWorldById(id);
+        if (careerWorld == null) {
             throw new ApiException("CareerWorld with id " + id + " not found");
         }
-        careerWorldRepository.delete(careerWorlds.get(0));
+        careerWorldRepository.delete(careerWorld);
     }
 
     // ---------- helpers ----------

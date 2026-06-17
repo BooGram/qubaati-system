@@ -29,11 +29,11 @@ public class AuditLogService {
     }
 
     public AuditLogOutDTO getById(Integer id) {
-        List<AuditLog> auditLogs = auditLogRepository.findAuditLogById(id);
-        if (auditLogs.isEmpty()) {
+        AuditLog auditLog = auditLogRepository.findAuditLogById(id);
+        if (auditLog == null) {
             throw new ApiException("AuditLog with id " + id + " not found");
         }
-        return toOut(auditLogs.get(0));
+        return toOut(auditLog);
     }
 
     public void create(AuditLogInDTO dto) {
@@ -45,11 +45,10 @@ public class AuditLogService {
     }
 
     public void update(Integer id, AuditLogInDTO dto) {
-        List<AuditLog> auditLogs = auditLogRepository.findAuditLogById(id);
-        if (auditLogs.isEmpty()) {
+        AuditLog auditLog = auditLogRepository.findAuditLogById(id);
+        if (auditLog == null) {
             throw new ApiException("AuditLog with id " + id + " not found");
         }
-        AuditLog auditLog = auditLogs.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,11 +61,11 @@ public class AuditLogService {
     }
 
     public void delete(Integer id) {
-        List<AuditLog> auditLogs = auditLogRepository.findAuditLogById(id);
-        if (auditLogs.isEmpty()) {
+        AuditLog auditLog = auditLogRepository.findAuditLogById(id);
+        if (auditLog == null) {
             throw new ApiException("AuditLog with id " + id + " not found");
         }
-        auditLogRepository.delete(auditLogs.get(0));
+        auditLogRepository.delete(auditLog);
     }
 
     // ---------- helpers ----------
@@ -74,11 +73,11 @@ public class AuditLogService {
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(AuditLog auditLog, AuditLogInDTO dto) {
         if (dto.getActorId() != null) {
-            List<User> users = userRepository.findUserById(dto.getActorId());
-            if (users.isEmpty()) {
+            User user = userRepository.findUserById(dto.getActorId());
+            if (user == null) {
                 throw new ApiException("User with id " + dto.getActorId() + " not found");
             }
-            auditLog.setActor(users.get(0));
+            auditLog.setActor(user);
         } else {
             auditLog.setActor(null);
         }

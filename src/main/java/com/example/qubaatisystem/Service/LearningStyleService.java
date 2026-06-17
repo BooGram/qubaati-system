@@ -29,11 +29,11 @@ public class LearningStyleService {
     }
 
     public LearningStyleOutDTO getById(Integer id) {
-        List<LearningStyle> list = learningStyleRepository.findLearningStyleById(id);
-        if (list.isEmpty()) {
+        LearningStyle learningStyle = learningStyleRepository.findLearningStyleById(id);
+        if (learningStyle == null) {
             throw new ApiException("LearningStyle with id " + id + " not found");
         }
-        return toOut(list.get(0));
+        return toOut(learningStyle);
     }
 
     public void create(LearningStyleInDTO dto) {
@@ -45,11 +45,10 @@ public class LearningStyleService {
     }
 
     public void update(Integer id, LearningStyleInDTO dto) {
-        List<LearningStyle> list = learningStyleRepository.findLearningStyleById(id);
-        if (list.isEmpty()) {
+        LearningStyle learningStyle = learningStyleRepository.findLearningStyleById(id);
+        if (learningStyle == null) {
             throw new ApiException("LearningStyle with id " + id + " not found");
         }
-        LearningStyle learningStyle = list.get(0);
 
         // Clear relationships first so ModelMapper only copies scalar fields
         // (never mutates the ids of the currently-managed related entities).
@@ -62,22 +61,22 @@ public class LearningStyleService {
     }
 
     public void delete(Integer id) {
-        List<LearningStyle> list = learningStyleRepository.findLearningStyleById(id);
-        if (list.isEmpty()) {
+        LearningStyle learningStyle = learningStyleRepository.findLearningStyleById(id);
+        if (learningStyle == null) {
             throw new ApiException("LearningStyle with id " + id + " not found");
         }
-        learningStyleRepository.delete(list.get(0));
+        learningStyleRepository.delete(learningStyle);
     }
 
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
     private void applyRelationships(LearningStyle learningStyle, LearningStyleInDTO dto) {
-        List<Student> students = studentRepository.findStudentById(dto.getStudentId());
-        if (students.isEmpty()) {
+        Student student = studentRepository.findStudentById(dto.getStudentId());
+        if (student == null) {
             throw new ApiException("Student with id " + dto.getStudentId() + " not found");
         }
-        learningStyle.setStudent(students.get(0));
+        learningStyle.setStudent(student);
     }
 
     private LearningStyleOutDTO toOut(LearningStyle learningStyle) {
