@@ -1,13 +1,13 @@
 package com.example.qubaatisystem.Repository;
 
-import com.example.qubaatisystem.Model.User;
+import com.example.qubaatisystem.Model.Option;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Integer> {
+public interface OptionRepository extends JpaRepository<Option, Integer> {
 
-    List<User> findUserById(Integer id);
+    List<Option> findOptionById(Integer id);
 }

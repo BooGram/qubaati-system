@@ -1,7 +1,7 @@
 package com.example.qubaatisystem.Advice;
 
-import com.example.redthreadgame.Api.ApiException;
-import com.example.redthreadgame.Api.ApiResponse;
+import com.example.qubaatisystem.Api.ApiException;
+import com.example.qubaatisystem.Api.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.hibernate.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
