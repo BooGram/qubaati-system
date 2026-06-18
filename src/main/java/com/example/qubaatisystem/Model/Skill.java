@@ -34,4 +34,8 @@ public class Skill {
     // Skill has many StudentSkills (inverse side)
     @OneToMany(mappedBy = "skill", fetch = FetchType.LAZY)
     private Set<StudentSkill> studentSkills;
+
+    // Skill has many AI-generated Missions (inverse side)
+    @OneToMany(mappedBy = "skill", fetch = FetchType.LAZY)
+    private Set<Mission> missions;
 }

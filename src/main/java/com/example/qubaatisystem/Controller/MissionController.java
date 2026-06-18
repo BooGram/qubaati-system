@@ -16,37 +16,47 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/missions")
+@RequestMapping("/api/v1/mission")
 @RequiredArgsConstructor
 public class MissionController {
 
     private final MissionService missionService;
 
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<?> create(@Valid @RequestBody MissionInDTO dto) {
         missionService.create(dto);
         return ResponseEntity.status(200).body(new ApiResponse("Mission created successfully"));
     }
 
-    @GetMapping
+    @GetMapping("/get-all")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.status(200).body(missionService.getAll());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
         return ResponseEntity.status(200).body(missionService.getById(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody MissionInDTO dto) {
         missionService.update(id, dto);
         return ResponseEntity.status(200).body(new ApiResponse("Mission updated successfully"));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
         missionService.delete(id);
         return ResponseEntity.status(200).body(new ApiResponse("Mission deleted successfully"));
+    }
+
+    @GetMapping("/available/{studentId}")
+    public ResponseEntity<?> getAvailableMissions(@PathVariable Integer studentId) {
+        return ResponseEntity.status(200).body(missionService.getAvailableMissions(studentId));
+    }
+
+    @PostMapping("/generate/{studentId}/{worldId}")
+    public ResponseEntity<?> generateMissionForStudent(@PathVariable Integer studentId, @PathVariable Integer worldId) {
+        return ResponseEntity.status(200).body(missionService.generateMissionForStudent(studentId, worldId));
     }
 }
