@@ -5,6 +5,7 @@ import com.example.qubaatisystem.DTO.In.ChildCreateInDTO;
 import com.example.qubaatisystem.DTO.In.ChildUpdateProfileInDTO;
 import com.example.qubaatisystem.DTO.In.ParentInDTO;
 import com.example.qubaatisystem.DTO.In.StudentInDTO;
+import com.example.qubaatisystem.DTO.Out.ParentDashboardOutDTO;
 import com.example.qubaatisystem.DTO.Out.ParentOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
 import com.example.qubaatisystem.Enum.UserRole;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -143,6 +145,38 @@ public class ParentService {
             throw new ApiException("Student with id " + studentId + " does not belong to parent with id " + parentId);
         }
         return studentService.updateProfile(studentId, dto);
+    }
+
+    // ========== Dashboard ==========
+
+    public ParentDashboardOutDTO getDashboard(Integer parentId) {
+        ParentOutDTO parent = getById(parentId);                     // validates existence
+        List<StudentOutDTO> children = studentService.getByParentId(parentId);
+
+        int totalMissions = children.stream()
+                .mapToInt(s -> s.getCompletedMissionsCount() != null ? s.getCompletedMissionsCount() : 0)
+                .sum();
+
+        List<ParentDashboardOutDTO.ChildCard> childCards = children.stream()
+                .map(s -> new ParentDashboardOutDTO.ChildCard(
+                        s.getId(),
+                        s.getFullName(),
+                        s.getGrade(),
+                        s.getAge(),
+                        s.getTotalPoints()            != null ? s.getTotalPoints()            : 0,
+                        s.getCompletedMissionsCount() != null ? s.getCompletedMissionsCount() : 0,
+                        s.getClassroomId(),
+                        s.getClassroomName()
+                ))
+                .collect(Collectors.toList());
+
+        return new ParentDashboardOutDTO(
+                parent.getId(),
+                parent.getFullName(),
+                children.size(),
+                totalMissions,
+                childCards
+        );
     }
 
     // ---------- helpers ----------

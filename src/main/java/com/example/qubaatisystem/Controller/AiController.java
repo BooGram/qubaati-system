@@ -1,5 +1,6 @@
 package com.example.qubaatisystem.Controller;
 
+import com.example.qubaatisystem.Service.AiAnalysisService;
 import com.example.qubaatisystem.DTO.In.AiGenerateActivityInDTO;
 import com.example.qubaatisystem.DTO.In.AiRefineActivityInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivityDetailsOutDTO;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AiController {
 
     private final AiActivityService aiActivityService;
+    private final AiAnalysisService aiAnalysisService;
 
     @PostMapping("/activities/generate")
     public ResponseEntity<ActivityDetailsOutDTO> generateActivity(
@@ -39,11 +41,22 @@ public class AiController {
         return ResponseEntity.status(200).body(aiActivityService.refineActivity(activityId, instruction, language));
     }
 
+    @PostMapping("/classrooms/{classroomId}/summary")
+    public ResponseEntity<?> getClassroomSummary(@PathVariable Integer classroomId) {
+        return ResponseEntity.status(200).body(aiAnalysisService.analyzeClassroom(classroomId));
+    }
+
     @PostMapping("/activity-submissions/{submissionId}/evaluate")
     public ResponseEntity<ActivitySubmissionOutDTO> evaluateSubmission(
             @PathVariable Integer submissionId,
             @RequestParam(defaultValue = "en") String language) {
         return ResponseEntity.status(200).body(aiActivityService.evaluateSubmission(submissionId, language));
+    }
+
+    @PostMapping("/parents/{parentId}/children/{studentId}/summary")
+    public ResponseEntity<?> getStudentSummary(@PathVariable Integer parentId,
+                                               @PathVariable Integer studentId) {
+        return ResponseEntity.status(200).body(aiAnalysisService.analyzeStudent(parentId, studentId));
     }
 
     @PostMapping("/activity-submissions/{submissionId}/generate-feedback")
@@ -52,5 +65,10 @@ public class AiController {
             @RequestParam(defaultValue = "student") String audience,
             @RequestParam(defaultValue = "en") String language) {
         return ResponseEntity.status(200).body(aiActivityService.generateFeedback(submissionId, audience, language));
+    }
+
+    @PostMapping("/parents/{parentId}/dashboard-insight")
+    public ResponseEntity<?> getFamilyDashboardInsight(@PathVariable Integer parentId) {
+        return ResponseEntity.status(200).body(aiAnalysisService.analyzeFamilyInsight(parentId));
     }
 }
