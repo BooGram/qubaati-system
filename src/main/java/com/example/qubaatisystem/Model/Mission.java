@@ -25,7 +25,7 @@ public class Mission {
     @Column(nullable = false, length = 120)
     private String title;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String scenario;
 
     @Enumerated(EnumType.STRING)
@@ -47,7 +47,21 @@ public class Mission {
     @JoinColumn(name = "career_world_id", nullable = false)
     private CareerWorld careerWorld;
 
+    // AI-generated Mission can be personalized for one Student (optional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "generated_for_student_id")
+    private Student generatedForStudent;
+
+    // AI can choose or create the Skill that this Mission targets (optional)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "skill_id")
+    private Skill skill;
+
     // Mission has many MissionSessions (inverse side)
     @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY)
     private Set<MissionSession> missionSessions;
+
+    // Mission has many choices (inverse side)
+    @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY)
+    private Set<MissionChoice> missionChoices;
 }
