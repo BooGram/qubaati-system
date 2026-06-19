@@ -51,6 +51,11 @@ public class ParentController {
         return ResponseEntity.status(200).body(new ApiResponse("Parent deleted successfully"));
     }
 
+    @GetMapping("/{parentId}/dashboard")
+    public ResponseEntity<?> getDashboard(@PathVariable Integer parentId) {
+        return ResponseEntity.status(200).body(parentService.getDashboard(parentId));
+    }
+
     @PostMapping("/{parentId}/children")
     public ResponseEntity<?> createChild(@PathVariable Integer parentId,
                                          @Valid @RequestBody ChildCreateInDTO dto) {
