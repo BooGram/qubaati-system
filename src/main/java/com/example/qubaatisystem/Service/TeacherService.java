@@ -2,6 +2,7 @@ package com.example.qubaatisystem.Service;
 
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.TeacherInDTO;
+import com.example.qubaatisystem.DTO.Out.TeacherDashboardOutDTO;
 import com.example.qubaatisystem.DTO.Out.TeacherOutDTO;
 import com.example.qubaatisystem.Enum.UserRole;
 import com.example.qubaatisystem.Model.Teacher;
@@ -21,6 +22,7 @@ public class TeacherService {
 
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
+    private final StudentService studentService;
     private final ModelMapper modelMapper;
 
     public List<TeacherOutDTO> getAll() {
@@ -52,6 +54,7 @@ public class TeacherService {
         Teacher teacher = modelMapper.map(teacherInDTO, Teacher.class);
         teacher.setUser(savedUser);
 
+        teacher.setId(null);
         Teacher savedTeacher = teacherRepository.save(teacher);
         return mapTeacherToOutDTO(savedTeacher);
     }
@@ -65,6 +68,7 @@ public class TeacherService {
 
         // Update Teacher profile fields (ModelMapper copies scalar fields only).
         modelMapper.map(teacherInDTO, teacher);
+        teacher.setId(id);
 
         // Update the linked User account fields, keeping the role as TEACHER.
         User user = teacher.getUser();
@@ -84,6 +88,28 @@ public class TeacherService {
             throw new ApiException("Teacher with id " + id + " not found");
         }
         teacherRepository.delete(teacher);
+    }
+
+    // ========== Dashboard ==========
+
+    public TeacherDashboardOutDTO getDashboard(Integer teacherId) {
+        Teacher teacher = teacherRepository.findTeacherById(teacherId);
+        if (teacher == null) {
+            throw new ApiException("Teacher with id " + teacherId + " not found");
+        }
+        int classroomCount = teacher.getClassrooms() != null ? teacher.getClassrooms().size() : 0;
+        int totalStudentCount = studentService.getStudentCountByTeacherId(teacherId);
+
+        TeacherDashboardOutDTO out = new TeacherDashboardOutDTO();
+        out.setTeacherId(teacher.getId());
+        out.setFullName(teacher.getFullName());
+        out.setSpecialization(teacher.getSpecialization());
+        if (teacher.getUser() != null) {
+            out.setEmail(teacher.getUser().getEmail());
+        }
+        out.setClassroomCount(classroomCount);
+        out.setTotalStudentCount(totalStudentCount);
+        return out;
     }
 
     // ---------- helpers ----------

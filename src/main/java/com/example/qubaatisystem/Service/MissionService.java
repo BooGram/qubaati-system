@@ -7,8 +7,6 @@ import com.example.qubaatisystem.DTO.In.AiMissionSkillDTO;
 import com.example.qubaatisystem.DTO.In.MissionInDTO;
 import com.example.qubaatisystem.DTO.Out.MissionChoiceOutDTO;
 import com.example.qubaatisystem.DTO.Out.MissionOutDTO;
-import com.example.qubaatisystem.Enum.DifficultyLevel;
-import com.example.qubaatisystem.Enum.SkillType;
 import com.example.qubaatisystem.Model.CareerWorld;
 import com.example.qubaatisystem.Model.Mission;
 import com.example.qubaatisystem.Model.MissionChoice;
@@ -65,6 +63,7 @@ public class MissionService {
         Mission mission = modelMapper.map(dto, Mission.class);
         CareerWorld careerWorld = checkCareerWorld(dto.getCareerWorldId());
         mission.setCareerWorld(careerWorld);
+        mission.setId(null);
         missionRepository.save(mission);
     }
 
