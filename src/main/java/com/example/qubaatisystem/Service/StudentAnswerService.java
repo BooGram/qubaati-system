@@ -50,43 +50,22 @@ public class StudentAnswerService {
         return toOut(studentAnswer);
     }
 
+    // Generic mutation of StudentAnswer is DISABLED: it would let a client set earnedPoints/status directly and
+    // bypass the guarded grading flow. The read endpoints (getAll/getById) stay; use the official flow to mutate.
     public void create(StudentAnswerInDTO dto) {
-        // Map scalar fields manually; relation-id fields (questionId/studentId/activitySubmissionId)
-        // are resolved by applyRelationships, avoiding ModelMapper's ambiguous setId() matching.
-        StudentAnswer studentAnswer = new StudentAnswer();
-        studentAnswer.setAnswerText(dto.getAnswerText());
-        studentAnswer.setEarnedPoints(dto.getEarnedPoints());
-        studentAnswer.setStatus(dto.getStatus());
-
-        applyRelationships(studentAnswer, dto);
-
-        studentAnswer.setId(null);
-        studentAnswerRepository.save(studentAnswer);
+        throw new ApiException("Direct StudentAnswer creation is disabled (it would bypass grading). Save answers "
+                + "via POST /api/v1/activity-submissions/{submissionId}/answers/batch, then submit; teachers grade "
+                + "via PATCH /api/v1/student-answers/{answerId}/grade.");
     }
 
     public void update(Integer id, StudentAnswerInDTO dto) {
-        StudentAnswer studentAnswer = studentAnswerRepository.findStudentAnswerById(id);
-        if (studentAnswer == null) {
-            throw new ApiException("StudentAnswer with id " + id + " not found");
-        }
-
-        // Map scalar fields manually; relations are re-resolved by applyRelationships.
-        studentAnswer.setAnswerText(dto.getAnswerText());
-        studentAnswer.setEarnedPoints(dto.getEarnedPoints());
-        studentAnswer.setStatus(dto.getStatus());
-        studentAnswer.setId(id);
-
-        applyRelationships(studentAnswer, dto);
-
-        studentAnswerRepository.save(studentAnswer);
+        throw new ApiException("Direct StudentAnswer update is disabled (it would bypass grading). Re-save answers "
+                + "while IN_PROGRESS, submit, or use the teacher manual-grade endpoint.");
     }
 
     public void delete(Integer id) {
-        StudentAnswer studentAnswer = studentAnswerRepository.findStudentAnswerById(id);
-        if (studentAnswer == null) {
-            throw new ApiException("StudentAnswer with id " + id + " not found");
-        }
-        studentAnswerRepository.delete(studentAnswer);
+        throw new ApiException("Direct StudentAnswer deletion is disabled. Answers are managed by the activity "
+                + "submission flow (reopen resets them).");
     }
 
     // ====================== FLOW: BATCH ANSWERS ======================

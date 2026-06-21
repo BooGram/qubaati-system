@@ -40,6 +40,11 @@ public class ActivitySubmission {
     @Column(length = 2000)
     private String teacherFeedback;
 
+    // How many activity points this submission has already contributed to Student.totalPoints. Used for safe
+    // delta accounting so re-grading/returning/reopening never double-counts (null == 0 applied so far).
+    @Column
+    private Integer pointsAppliedToStudentTotal;
+
     // ActivitySubmission belongs to one ActivityAssignment (owning side)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "activity_assignment_id", nullable = false)

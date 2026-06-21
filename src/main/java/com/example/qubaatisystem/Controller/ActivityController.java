@@ -4,6 +4,7 @@ import com.example.qubaatisystem.Api.ApiResponse;
 import com.example.qubaatisystem.DTO.In.ActivityInDTO;
 import com.example.qubaatisystem.DTO.In.ActivityReviewActionInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivityDetailsOutDTO;
+import com.example.qubaatisystem.Enum.ActivityStatus;
 import com.example.qubaatisystem.Service.ActivityService;
 import com.example.qubaatisystem.Service.AiActivityService;
 import jakarta.validation.Valid;
@@ -36,9 +37,11 @@ public class ActivityController {
         return ResponseEntity.status(200).body(new ApiResponse("Activity created successfully"));
     }
 
+    // Optional status filter (enum, not free text): GET /activities?status=PENDING_REVIEW serves the review
+    // queue / status views. No param returns all activities (backward compatible).
     @GetMapping
-    public ResponseEntity<?> getAll() {
-        return ResponseEntity.status(200).body(activityService.getAll());
+    public ResponseEntity<?> getAll(@RequestParam(required = false) ActivityStatus status) {
+        return ResponseEntity.status(200).body(activityService.getByStatus(status));
     }
 
     @GetMapping("/{id}")

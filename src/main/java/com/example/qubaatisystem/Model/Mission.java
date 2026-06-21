@@ -1,6 +1,7 @@
 package com.example.qubaatisystem.Model;
 
 import com.example.qubaatisystem.Enum.DifficultyLevel;
+import com.example.qubaatisystem.Enum.MissionSource;
 import com.example.qubaatisystem.Enum.SkillType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -41,6 +43,26 @@ public class Mission {
 
     @Column
     private Integer maxScore;
+
+    // DEFAULT (shared, seeded) vs AI_GENERATED (personalized). A mission is also treated as DEFAULT when
+    // generatedForStudent is null, so legacy rows with a null source keep working.
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private MissionSource source;
+
+    // Whether this (AI_GENERATED) mission is an active, uncompleted slot for its student.
+    @Column
+    private Boolean active;
+
+    // 1 or 2: which personalized slot this generated mission occupies (null for DEFAULT).
+    @Column
+    private Integer generationSlot;
+
+    @Column
+    private LocalDateTime generatedAt;
+
+    @Column
+    private LocalDateTime lastRegeneratedAt;
 
     // Mission belongs to one CareerWorld (owning side)
     @ManyToOne(fetch = FetchType.LAZY)

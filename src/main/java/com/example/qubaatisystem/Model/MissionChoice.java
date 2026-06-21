@@ -27,8 +27,17 @@ public class MissionChoice {
     @Column(nullable = false)
     private Integer scoreImpact;
 
+    // Optional branch target: the stepOrder to jump to when this choice is selected (null => next-in-sequence).
+    @Column
+    private Integer nextStepOrder;
+
     // MissionChoice belongs to one Mission (owning side)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_id", nullable = false)
     private Mission mission;
+
+    // MissionChoice belongs to one MissionStep (nullable for legacy single-step missions until migrated)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mission_step_id")
+    private MissionStep missionStep;
 }

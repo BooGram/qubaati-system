@@ -7,9 +7,12 @@ import com.example.qubaatisystem.DTO.In.ActivityAssignmentBulkInDTO;
 import com.example.qubaatisystem.DTO.In.ActivityAssignmentDeadlineInDTO;
 import com.example.qubaatisystem.DTO.In.ActivityAssignmentInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivityAssignmentOutDTO;
+import com.example.qubaatisystem.DTO.Out.DueSoonNotificationsOutDTO;
+import com.example.qubaatisystem.DTO.Out.ExpireOverdueOutDTO;
 import com.example.qubaatisystem.Enum.ActivityAssignmentStatus;
 import com.example.qubaatisystem.Enum.ActivityStatus;
 import com.example.qubaatisystem.Enum.ActivitySubmissionStatus;
+import com.example.qubaatisystem.Enum.NotificationType;
 import com.example.qubaatisystem.Model.Activity;
 import com.example.qubaatisystem.Model.ActivityAssignment;
 import com.example.qubaatisystem.Model.ActivitySubmission;
@@ -41,7 +44,10 @@ public class ActivityAssignmentService {
     private final ClassroomRepository classroomRepository;
     private final TeacherRepository teacherRepository;
     private final ActivitySubmissionRepository activitySubmissionRepository;
+    private final NotificationService notificationService;
     private final ModelMapper modelMapper;
+
+    private static final int MAX_DUE_SOON_HOURS = 24 * 30; // 30 days
 
     public List<ActivityAssignmentOutDTO> getAll() {
         return activityAssignmentRepository.findAll()
@@ -118,7 +124,10 @@ public class ActivityAssignmentService {
         assignment.setDueDate(dueDate);
         assignment.setStatus(ActivityAssignmentStatus.ASSIGNED);
 
-        return toOut(activityAssignmentRepository.save(assignment));
+        ActivityAssignment saved = activityAssignmentRepository.save(assignment);
+        notifyStudentUser(student, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
+                "You have been assigned a new activity: " + activity.getTitle() + ".");
+        return toOut(saved);
     }
 
     public ActivityAssignmentOutDTO assignToClassroom(Integer activityId, Integer classroomId, ActivityAssignInDTO dto) {
@@ -140,7 +149,13 @@ public class ActivityAssignmentService {
         assignment.setDueDate(dueDate);
         assignment.setStatus(ActivityAssignmentStatus.ASSIGNED);
 
-        return toOut(activityAssignmentRepository.save(assignment));
+        ActivityAssignment saved = activityAssignmentRepository.save(assignment);
+        // Notify every student in the classroom (one notification each).
+        for (Student s : studentRepository.findByClassroomId(classroom.getId())) {
+            notifyStudentUser(s, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
+                    "Your class was assigned a new activity: " + activity.getTitle() + ".");
+        }
+        return toOut(saved);
     }
 
     public ApiResponse assignToBulkStudents(Integer activityId, ActivityAssignmentBulkInDTO dto) {
@@ -174,6 +189,8 @@ public class ActivityAssignmentService {
             assignment.setDueDate(dueDate);
             assignment.setStatus(ActivityAssignmentStatus.ASSIGNED);
             activityAssignmentRepository.save(assignment);
+            notifyStudentUser(student, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
+                    "You have been assigned a new activity: " + activity.getTitle() + ".");
             created++;
         }
 
@@ -242,6 +259,81 @@ public class ActivityAssignmentService {
         }
         assignment.setDueDate(newDueDate);
         activityAssignmentRepository.save(assignment);
+    }
+
+    // ====================== DUE-SOON / OVERDUE AUTOMATION ======================
+
+    /**
+     * Expires every ASSIGNED assignment whose dueDate has already passed (sets status EXPIRED) and notifies the
+     * affected student(s). Assignments with no dueDate are never expired. Returns how many were expired.
+     */
+    public ExpireOverdueOutDTO expireOverdueAssignments() {
+        LocalDateTime now = LocalDateTime.now();
+        List<ActivityAssignment> overdue = activityAssignmentRepository
+                .findActivityAssignmentsByStatusAndDueDateBefore(ActivityAssignmentStatus.ASSIGNED, now);
+        int expired = 0;
+        for (ActivityAssignment a : overdue) {
+            a.setStatus(ActivityAssignmentStatus.EXPIRED);
+            activityAssignmentRepository.save(a);
+            notifyAssignmentStudents(a, NotificationType.ACTIVITY_OVERDUE, "Activity overdue",
+                    "An assigned activity has passed its due date and is now closed: "
+                            + (a.getActivity() != null ? a.getActivity().getTitle() : "") + ".");
+            expired++;
+        }
+        return new ExpireOverdueOutDTO(expired);
+    }
+
+    /**
+     * Sends a due-soon notification for every ASSIGNED assignment whose dueDate falls within the next
+     * {@code hours} hours (default 24). Returns how many student notifications were sent.
+     *
+     * <p>Limitation: there is no per-assignment "due-soon already sent" flag (submission history/audit is out
+     * of scope), so calling this twice within the window will notify the same students again.
+     */
+    public DueSoonNotificationsOutDTO sendDueSoonNotifications(Integer hours) {
+        int window = (hours == null || hours <= 0) ? 24 : hours;
+        if (window > MAX_DUE_SOON_HOURS) {
+            throw new ApiException("hours must be between 1 and " + MAX_DUE_SOON_HOURS);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime until = now.plusHours(window);
+        List<ActivityAssignment> dueSoon = activityAssignmentRepository
+                .findActivityAssignmentsByStatusAndDueDateBetween(ActivityAssignmentStatus.ASSIGNED, now, until);
+        int notified = 0;
+        for (ActivityAssignment a : dueSoon) {
+            notified += notifyAssignmentStudents(a, NotificationType.ACTIVITY_DUE_SOON, "Activity due soon",
+                    "You have an activity due soon"
+                            + (a.getActivity() != null ? ": " + a.getActivity().getTitle() : "")
+                            + ". Please complete it before the deadline.");
+        }
+        return new DueSoonNotificationsOutDTO(notified);
+    }
+
+    /** Notifies the assignment's student (direct) or every student in its classroom; returns notifications sent. */
+    private int notifyAssignmentStudents(ActivityAssignment assignment, NotificationType type,
+                                         String title, String message) {
+        int count = 0;
+        if (assignment.getStudent() != null) {
+            if (notifyStudentUser(assignment.getStudent(), type, title, message)) {
+                count++;
+            }
+        } else if (assignment.getClassroom() != null) {
+            for (Student s : studentRepository.findByClassroomId(assignment.getClassroom().getId())) {
+                if (notifyStudentUser(s, type, title, message)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /** Sends a notification to the student's linked user; returns false (skips) when there is no linked user. */
+    private boolean notifyStudentUser(Student student, NotificationType type, String title, String message) {
+        if (student == null || student.getUser() == null) {
+            return false;
+        }
+        notificationService.notify(student.getUser(), type, title, message);
+        return true;
     }
 
     // ====================== helpers ======================

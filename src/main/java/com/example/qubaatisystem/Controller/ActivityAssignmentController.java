@@ -6,6 +6,8 @@ import com.example.qubaatisystem.DTO.In.ActivityAssignmentBulkInDTO;
 import com.example.qubaatisystem.DTO.In.ActivityAssignmentDeadlineInDTO;
 import com.example.qubaatisystem.DTO.In.ActivityAssignmentInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivityAssignmentOutDTO;
+import com.example.qubaatisystem.DTO.Out.DueSoonNotificationsOutDTO;
+import com.example.qubaatisystem.DTO.Out.ExpireOverdueOutDTO;
 import com.example.qubaatisystem.Service.ActivityAssignmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -106,5 +109,19 @@ public class ActivityAssignmentController {
             @Valid @RequestBody ActivityAssignmentDeadlineInDTO dto) {
         activityAssignmentService.extendDeadline(assignmentId, dto);
         return ResponseEntity.status(200).body(new ApiResponse("ActivityAssignment deadline extended successfully"));
+    }
+
+    // ---------- DUE-SOON / OVERDUE AUTOMATION ----------
+
+    @PatchMapping("/activity-assignments/expire-overdue")
+    public ResponseEntity<ExpireOverdueOutDTO> expireOverdue() {
+        return ResponseEntity.status(200).body(activityAssignmentService.expireOverdueAssignments());
+    }
+
+    // hours is a small numeric filter (default 24), not free text.
+    @PostMapping("/activity-assignments/due-soon-notifications")
+    public ResponseEntity<DueSoonNotificationsOutDTO> sendDueSoonNotifications(
+            @RequestParam(defaultValue = "24") Integer hours) {
+        return ResponseEntity.status(200).body(activityAssignmentService.sendDueSoonNotifications(hours));
     }
 }

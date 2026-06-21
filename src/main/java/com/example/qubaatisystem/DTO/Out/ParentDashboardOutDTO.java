@@ -33,5 +33,11 @@ public class ParentDashboardOutDTO {
         private Integer completedMissionsCount;
         private Integer classroomId;   // null when not enrolled
         private String classroomName;  // null when not enrolled
+
+        // Student 2 activity progress + Student 3 mission progress (read-only).
+        private Integer gradedActivitiesCount;
+        private Double averageActivityScore;
+        private Integer completedMissionSessionsCount;
+        private String latestInsightSummary;
     }
 }

@@ -12,10 +12,12 @@ import com.example.qubaatisystem.Model.Activity;
 import com.example.qubaatisystem.Model.ActivitySubmission;
 import com.example.qubaatisystem.Model.Option;
 import com.example.qubaatisystem.Model.Question;
+import com.example.qubaatisystem.Model.Teacher;
 import com.example.qubaatisystem.Repository.ActivityRepository;
 import com.example.qubaatisystem.Repository.ActivitySubmissionRepository;
 import com.example.qubaatisystem.Repository.OptionRepository;
 import com.example.qubaatisystem.Repository.QuestionRepository;
+import com.example.qubaatisystem.Repository.TeacherRepository;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +53,7 @@ public class AiActivityService {
     private final ActivitySubmissionRepository activitySubmissionRepository;
     private final ActivitySubmissionService activitySubmissionService;
     private final ActivityService activityService;
+    private final TeacherRepository teacherRepository;
 
     // Spring AI client. The API key and model come from spring.ai.openai.* (OPENAI_API_KEY / OPENAI_MODEL)
     // via Spring AI auto-configuration — exactly like Student 3's AiService. No manual key/model handling.
@@ -62,6 +65,7 @@ public class AiActivityService {
                              ActivitySubmissionRepository activitySubmissionRepository,
                              ActivitySubmissionService activitySubmissionService,
                              ActivityService activityService,
+                             TeacherRepository teacherRepository,
                              ChatClient.Builder chatClientBuilder) {
         this.activityRepository = activityRepository;
         this.questionRepository = questionRepository;
@@ -69,6 +73,7 @@ public class AiActivityService {
         this.activitySubmissionRepository = activitySubmissionRepository;
         this.activitySubmissionService = activitySubmissionService;
         this.activityService = activityService;
+        this.teacherRepository = teacherRepository;
         this.chatClient = chatClientBuilder.build();
     }
 
@@ -105,6 +110,17 @@ public class AiActivityService {
         activity.setDifficulty(dto.getDifficulty());
         activity.setMaxScore(dto.getMaxScore());
         activity.setStatus(ActivityStatus.DRAFT);
+        // Optional teacher ownership (Student 1): when a teacherId is supplied, the generated activity is owned
+        // by that teacher.
+        if (dto.getTeacherId() != null) {
+            Teacher owner = teacherRepository.findTeacherById(dto.getTeacherId());
+            if (owner == null) {
+                throw new ApiException("Teacher with id " + dto.getTeacherId() + " not found");
+            }
+            activity.setCreatedByTeacher(owner);
+        }
+        // Optional target skill (reuses ActivityService's resolver: skillId priority, else skillType, else null).
+        activity.setSkill(activityService.resolveActivitySkill(dto.getSkillId(), dto.getSkillType()));
         Activity savedActivity = activityRepository.save(activity);
 
         // Build realistic (non-placeholder) questions/options, stored in canonical English in their own

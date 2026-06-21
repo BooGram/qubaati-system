@@ -18,5 +18,9 @@ public interface ActivitySubmissionRepository extends JpaRepository<ActivitySubm
 
     List<ActivitySubmission> findActivitySubmissionsByActivityAssignmentId(Integer activityAssignmentId);
 
+    // All submissions for an activity, across every assignment of that activity (teacher view).
+    // Explicit nested path (activityAssignment.activity.id) to avoid derived-query ambiguity.
+    List<ActivitySubmission> findActivitySubmissionsByActivityAssignment_Activity_Id(Integer activityId);
+
     List<ActivitySubmission> findActivitySubmissionsByStudentIdAndActivityAssignmentId(Integer studentId, Integer activityAssignmentId);
 }

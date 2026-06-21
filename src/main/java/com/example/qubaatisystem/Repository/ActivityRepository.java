@@ -13,4 +13,9 @@ public interface ActivityRepository extends JpaRepository<Activity, Integer> {
     Activity findActivityById(Integer id);
 
     List<Activity> findActivitiesByStatus(ActivityStatus status);
+
+    // Teacher ownership (Student 1 visibility).
+    List<Activity> findActivitiesByCreatedByTeacherId(Integer teacherId);
+
+    List<Activity> findActivitiesByCreatedByTeacherIdAndStatus(Integer teacherId, ActivityStatus status);
 }

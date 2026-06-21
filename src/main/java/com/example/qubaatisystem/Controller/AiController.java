@@ -68,4 +68,9 @@ public class AiController {
     public ResponseEntity<?> getFamilyDashboardInsight(@PathVariable Integer parentId) {
         return ResponseEntity.status(200).body(aiAnalysisService.analyzeFamilyInsight(parentId));
     }
+
+    @PostMapping("/teachers/{teacherId}/dashboard-insight")
+    public ResponseEntity<?> getTeacherDashboardInsight(@PathVariable Integer teacherId) {
+        return ResponseEntity.status(200).body(aiAnalysisService.analyzeTeacherDashboard(teacherId));
+    }
 }

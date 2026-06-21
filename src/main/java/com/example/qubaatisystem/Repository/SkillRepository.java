@@ -14,5 +14,8 @@ public interface SkillRepository extends JpaRepository<Skill, Integer> {
 
     List<Skill> findSkillsBySkillType(SkillType skillType);
 
+    // Singular: the first existing Skill of a given type (safe even when several skills share that type).
+    Skill findFirstSkillBySkillType(SkillType skillType);
+
     Skill findSkillByNameIgnoreCase(String name);
 }

@@ -6,6 +6,10 @@ import com.example.qubaatisystem.DTO.Out.FamilyInsightOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentProgressOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentSummaryOutDTO;
+import com.example.qubaatisystem.DTO.Out.TeacherDashboardActivitySummaryOutDTO;
+import com.example.qubaatisystem.DTO.Out.TeacherDashboardInsightOutDTO;
+import com.example.qubaatisystem.DTO.Out.TeacherDashboardMissionSummaryOutDTO;
+import com.example.qubaatisystem.DTO.Out.TeacherDashboardOutDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +30,7 @@ public class AiAnalysisService {
 
     private final ClassroomService classroomService;
     private final ParentService parentService;
+    private final TeacherDashboardService teacherDashboardService;
     private final OpenAiService openAiService;
 
     // ── System prompts ───────────────────────────────────────────────────────
@@ -80,6 +85,19 @@ public class AiAnalysisService {
             "\"recommendedActions\": [\"توصية عملية ومشجعة للوالد\"]}. " +
 
             // Data integrity
+            "لا تخترع أرقامًا أو أسماء. استند فقط إلى البيانات المقدّمة. كن مختصراً.";
+
+    private static final String TEACHER_SYSTEM_PROMPT =
+            "أنت مساعد تحليل تعليمي لمنصة سعودية مخصصة للأطفال، تخاطب معلماً. " +
+            "مهمتك تقديم رؤية داعمة وعملية للمعلم حول نشاط فصوله وطلابه على المنصة (الأنشطة والمهام)، بناءً على البيانات المقدّمة فقط. " +
+            "تنبيه مهم: الأرقام تعكس التفاعل مع المنصة فقط وليست حكماً على المستوى الأكاديمي الحقيقي للطلاب. " +
+            "لا تصف أي طالب أو فصل بأنه ضعيف أكاديمياً. إن كانت البيانات قليلة استخدم صياغة حذرة ومشجعة. " +
+            "ركّز على ما يمكن للمعلم فعله: متابعة التصحيح المعلّق، الأنشطة المتأخرة أو القريبة من الموعد، والمهارات التي تحتاج دعماً. " +
+            "يجب أن يكون ردّك بتنسيق JSON بالشكل التالي تمامًا بدون أي نص خارج الـ JSON: " +
+            "{\"summary\": \"فقرة قصيرة تلخص حالة فصول المعلم ونشاط الطلاب\", " +
+            "\"strengths\": [\"نقطة إيجابية\"], " +
+            "\"concerns\": [\"ملاحظة عملية تحتاج انتباه المعلم\"], " +
+            "\"recommendedActions\": [\"إجراء عملي يقوم به المعلم\"]}. " +
             "لا تخترع أرقامًا أو أسماء. استند فقط إلى البيانات المقدّمة. كن مختصراً.";
 
     // ── Classroom summary ────────────────────────────────────────────────────
@@ -371,7 +389,114 @@ public class AiAnalysisService {
             actions.add("خصّص وقتاً يومياً قصيراً لمرافقة أبنائك على المنصة وتشجيعهم على استكشاف المهام المتاحة.");
     }
 
+    // ── Teacher dashboard insight ────────────────────────────────────────────
+
+    public TeacherDashboardInsightOutDTO analyzeTeacherDashboard(Integer teacherId) {
+        TeacherDashboardOutDTO dash = teacherDashboardService.getTeacherDashboard(teacherId);
+
+        OpenAiService.AiAnalysisResult ai = openAiService.analyze(TEACHER_SYSTEM_PROMPT, teacherUserPrompt(dash));
+
+        String summary;
+        List<String> strengths;
+        List<String> concerns;
+        List<String> actions;
+        String source;
+
+        if (ai != null) {
+            summary   = ai.getSummary();
+            strengths = safe(ai.getStrengths());
+            concerns  = safe(ai.getConcerns());
+            actions   = safe(ai.getRecommendedActions());
+            source    = "openai";
+        } else {
+            strengths = new ArrayList<>();
+            concerns  = new ArrayList<>();
+            actions   = new ArrayList<>();
+            teacherFallback(dash, strengths, concerns, actions);
+            summary = teacherFallbackSummary(dash);
+            source  = "fallback";
+        }
+
+        return new TeacherDashboardInsightOutDTO(
+                "رؤية لوحة المعلم: " + safeText(dash.getFullName()),
+                summary, strengths, concerns, actions, now(), source,
+                dash.getTeacherId(), dash.getFullName());
+    }
+
+    private String teacherUserPrompt(TeacherDashboardOutDTO d) {
+        TeacherDashboardActivitySummaryOutDTO a = d.getActivitySummary();
+        TeacherDashboardMissionSummaryOutDTO m = d.getMissionSummary();
+        StringBuilder sb = new StringBuilder();
+        sb.append("بيانات نشاط فصول المعلم على المنصة (تعكس التفاعل فقط):\n");
+        sb.append("- المعلم: ").append(safeText(d.getFullName())).append("\n");
+        sb.append("- عدد الفصول: ").append(nz(d.getClassroomCount())).append("\n");
+        sb.append("- عدد الطلاب: ").append(nz(d.getTotalStudentCount())).append("\n");
+        if (a != null) {
+            sb.append("- الأنشطة التي يملكها: ").append(nz(a.getOwnedActivitiesCount()))
+              .append(" (مسودة ").append(nz(a.getDraftCount()))
+              .append("، بانتظار المراجعة ").append(nz(a.getPendingReviewCount()))
+              .append("، معتمدة ").append(nz(a.getApprovedCount()))
+              .append("، مرفوضة ").append(nz(a.getRejectedCount())).append(")\n");
+            sb.append("- الأنشطة المُسندة: ").append(nz(a.getAssignedActivitiesCount())).append("\n");
+            sb.append("- إجمالي التسليمات: ").append(nz(a.getSubmissionsCount()))
+              .append("، بانتظار التصحيح ").append(nz(a.getPendingGradingCount()))
+              .append("، مُصححة ").append(nz(a.getGradedSubmissionsCount()))
+              .append("، مُعادة للطالب ").append(nz(a.getReturnedSubmissionsCount())).append("\n");
+            if (a.getAverageActivityScore() != null)
+                sb.append("- متوسط درجات الأنشطة: ").append(round1(a.getAverageActivityScore())).append("\n");
+            sb.append("- أنشطة قريبة من الموعد: ").append(nz(a.getDueSoonAssignmentsCount()))
+              .append("، أنشطة متأخرة: ").append(nz(a.getOverdueAssignmentsCount())).append("\n");
+        }
+        if (m != null) {
+            sb.append("- مهام مكتملة لدى الطلاب: ").append(nz(m.getCompletedMissionSessionsCount())).append("\n");
+            if (m.getCommonWeakSkills() != null && !m.getCommonWeakSkills().isEmpty())
+                sb.append("- مهارات تحتاج دعماً: ").append(String.join("، ", m.getCommonWeakSkills())).append("\n");
+        }
+        sb.append("\nقدّم رؤية عملية للمعلم: نقاط القوة، وما يحتاج انتباهاً (التصحيح المعلّق/الأنشطة المتأخرة)، وإجراءات عملية. تجنّب الأحكام الأكاديمية.");
+        return sb.toString();
+    }
+
+    private void teacherFallback(TeacherDashboardOutDTO d, List<String> strengths, List<String> concerns, List<String> actions) {
+        TeacherDashboardActivitySummaryOutDTO a = d.getActivitySummary();
+        if (nz(d.getTotalStudentCount()) == 0) {
+            concerns.add("لا يوجد طلاب في فصول المعلم حتى الآن.");
+            actions.add("أضف طلاباً إلى الفصول للبدء في متابعة نشاطهم.");
+            return;
+        }
+        if (a != null) {
+            if (nz(a.getApprovedCount()) > 0)
+                strengths.add("لدى المعلم " + nz(a.getApprovedCount()) + " نشاطاً معتمداً جاهزاً للإسناد.");
+            if (nz(a.getPendingGradingCount()) > 0)
+                concerns.add("هناك " + nz(a.getPendingGradingCount()) + " تسليماً بانتظار التصحيح.");
+            if (nz(a.getOverdueAssignmentsCount()) > 0)
+                concerns.add("هناك " + nz(a.getOverdueAssignmentsCount()) + " نشاطاً متأخراً عن موعده.");
+            if (nz(a.getPendingReviewCount()) > 0)
+                concerns.add("هناك " + nz(a.getPendingReviewCount()) + " نشاطاً بانتظار المراجعة.");
+        }
+        if (concerns.isEmpty())
+            actions.add("الاستمرار في المتابعة المنتظمة لنشاط الطلاب.");
+        else
+            actions.add("ابدأ بتصحيح التسليمات المعلّقة ومتابعة الأنشطة المتأخرة، ثم راجع الأنشطة المعلّقة.");
+    }
+
+    private String teacherFallbackSummary(TeacherDashboardOutDTO d) {
+        TeacherDashboardActivitySummaryOutDTO a = d.getActivitySummary();
+        int pending = a != null ? nz(a.getPendingGradingCount()) : 0;
+        int overdue = a != null ? nz(a.getOverdueAssignmentsCount()) : 0;
+        return "لدى المعلم " + safeText(d.getFullName()) + " عدد " + nz(d.getClassroomCount())
+                + " فصلاً و" + nz(d.getTotalStudentCount()) + " طالباً. "
+                + "التسليمات بانتظار التصحيح: " + pending + "، والأنشطة المتأخرة: " + overdue + ".";
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private int nz(Integer v) {
+        return v != null ? v : 0;
+    }
+
+    private String safeText(String s) {
+        return s != null ? s : "";
+    }
 
     private List<String> safe(List<String> list) {
         return list != null ? list : new ArrayList<>();

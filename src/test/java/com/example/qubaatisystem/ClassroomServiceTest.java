@@ -8,6 +8,7 @@ import com.example.qubaatisystem.Repository.ClassroomRepository;
 import com.example.qubaatisystem.Repository.TeacherRepository;
 import com.example.qubaatisystem.Service.ClassroomService;
 import com.example.qubaatisystem.Service.StudentService;
+import com.example.qubaatisystem.Service.SubscriptionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +29,7 @@ class ClassroomServiceTest {
     @Mock ClassroomRepository classroomRepository;
     @Mock TeacherRepository teacherRepository;
     @Mock StudentService studentService;
+    @Mock SubscriptionService subscriptionService;
     @Mock ModelMapper modelMapper;
 
     @InjectMocks ClassroomService classroomService;

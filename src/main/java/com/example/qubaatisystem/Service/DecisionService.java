@@ -36,38 +36,20 @@ public class DecisionService {
         return toOut(decision);
     }
 
+    // Generic mutation of Decision is DISABLED: it would let a client inject/alter a mission decision outside the
+    // guarded flow (which validates the choice belongs to the current step and computes the internal scoring).
+    // Read endpoints stay.
     public void create(DecisionInDTO decisionInDTO) {
-        Decision decision = modelMapper.map(decisionInDTO, Decision.class);
-
-        applyRelationships(decision, decisionInDTO);
-
-        decision.setId(null);
-        decisionRepository.save(decision);
+        throw new ApiException("Direct Decision creation is disabled. Submit decisions via "
+                + "POST /api/v1/mission-sessions/{sessionId}/decisions.");
     }
 
     public void update(Integer id, DecisionInDTO decisionInDTO) {
-        Decision decision = decisionRepository.findDecisionById(id);
-        if (decision == null) {
-            throw new ApiException("Decision with id " + id + " not found");
-        }
-
-        // Clear relationships first so ModelMapper only copies scalar fields
-        // (never mutates the id of the currently-managed related entity).
-        decision.setMissionSession(null);
-        modelMapper.map(decisionInDTO, decision);
-        decision.setId(id);
-
-        applyRelationships(decision, decisionInDTO);
-
-        decisionRepository.save(decision);
+        throw new ApiException("Direct Decision update is disabled (it would bypass mission step validation and scoring).");
     }
 
     public void delete(Integer id) {
-        Decision decision = decisionRepository.findDecisionById(id);
-        if (decision == null) {
-            throw new ApiException("Decision with id " + id + " not found");
-        }
-        decisionRepository.delete(decision);
+        throw new ApiException("Direct Decision deletion is disabled (decisions are an immutable record of the mission attempt).");
     }
 
     // ---------- helpers ----------

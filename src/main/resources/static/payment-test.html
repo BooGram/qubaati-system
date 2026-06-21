@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moyasar Sandbox — Local Payment Test</title>
+
+  <!-- Moyasar payment form -->
+  <script src="https://cdn.moyasar.com/mpf/1.14.0/moyasar.js"></script>
+  <link  rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 520px;
+      margin: 48px auto;
+      padding: 0 16px;
+      color: #222;
+    }
+    h2 { margin-bottom: 4px; }
+    .note {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    select, input[type="number"] {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 11px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    #status {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+    .error  { background: #fdecea; color: #c62828; border: 1px solid #ef9a9a; }
+    .info   { background: #e8f0fe; color: #1a237e; border: 1px solid #90caf9; }
+    #form-section { margin-top: 28px; }
+    #checkout-info {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    #checkout-info span { font-weight: 600; color: #1a73e8; }
+  </style>
+</head>
+<body>
+
+  <h2>Moyasar Sandbox — Local Test</h2>
+  <p style="color:#666;font-size:13px;margin-top:0">Development only. Uses the real checkout endpoint.</p>
+
+
+  <!-- ── Step 1: checkout form ─────────────────────────────────────── -->
+  <div id="step-checkout">
+    <label for="subscriberType">Subscriber type</label>
+    <select id="subscriberType">
+      <option value="PARENT">PARENT</option>
+      <option value="TEACHER">TEACHER</option>
+    </select>
+
+    <label for="subscriberId">Subscriber ID</label>
+    <input type="number" id="subscriberId" placeholder="e.g. 1" min="1" />
+
+    <label for="planCode">Plan</label>
+    <select id="planCode">
+      <option value="PARENT_PLUS">PARENT_PLUS</option>
+      <option value="TEACHER_PRO">TEACHER_PRO</option>
+    </select>
+
+    <button id="startBtn" onclick="startCheckout()">Start Sandbox Payment</button>
+  </div>
+
+  <div id="status"></div>
+
+  <!-- ── Step 2: Moyasar form (injected after checkout) ────────────── -->
+  <div id="form-section" style="display:none">
+    <div id="checkout-info"></div>
+    <div class="mysr-form"></div>
+  </div>
+
+  <script>
+    function showStatus(msg, type) {
+      var el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = type;
+      el.style.display = 'block';
+    }
+
+    function startCheckout() {
+      var type = document.getElementById('subscriberType').value;
+      var id   = parseInt(document.getElementById('subscriberId').value, 10);
+      var plan = document.getElementById('planCode').value;
+
+      if (!id || id < 1) {
+        showStatus('Please enter a valid Subscriber ID.', 'error');
+        return;
+      }
+
+      var btn = document.getElementById('startBtn');
+      btn.disabled = true;
+      btn.textContent = 'Calling checkout…';
+      showStatus('Contacting backend…', 'info');
+
+      fetch('/api/v1/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planCode: plan,
+          subscriberType: type,
+          subscriberId: id
+        })
+      })
+      .then(function(res) {
+        if (!res.ok) {
+          return res.text().then(function(t) { throw new Error(t || res.status); });
+        }
+        return res.json();
+      })
+      .then(function(data) {
+        // data = { localReference, publishableKey, planName, amount, currency, callbackUrl }
+        document.getElementById('status').style.display = 'none';
+        document.getElementById('step-checkout').style.display = 'none';
+        document.getElementById('form-section').style.display = 'block';
+
+        document.getElementById('checkout-info').innerHTML =
+          'Plan: <span>' + data.planName + '</span> &nbsp;·&nbsp; ' +
+          'Amount: <span>' + (data.amount / 100).toFixed(2) + ' ' + data.currency + '</span> &nbsp;·&nbsp; ' +
+          'Ref: <span>' + data.localReference + '</span>';
+
+        Moyasar.init({
+          element: '.mysr-form',
+          amount: data.amount,
+          currency: data.currency,
+          description: data.planName,
+          publishable_api_key: data.publishableKey,
+          callback_url: data.callbackUrl,
+          metadata: { localReference: data.localReference },
+          methods: ['creditcard']
+        });
+      })
+      .catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Start Sandbox Payment';
+        showStatus('Checkout failed: ' + err.message, 'error');
+      });
+    }
+  </script>
+
+</body>
+</html>

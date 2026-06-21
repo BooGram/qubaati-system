@@ -43,11 +43,38 @@ public class OpenAiService {
             if (content == null || content.isBlank()) {
                 return null;
             }
-            return objectMapper.readValue(content, AiAnalysisResult.class);
+            return objectMapper.readValue(stripJsonFences(content), AiAnalysisResult.class);
         } catch (Exception e) {
             log.warn("OpenAI call failed — using rule-based fallback: {}", e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Strips Markdown code fences (```json ... ``` or ``` ... ```) and surrounding prose that LLMs sometimes wrap
+     * around JSON, then narrows to the first {...} object so {@link ObjectMapper} sees clean JSON. Mirrors the
+     * cleanup helpers used by the other AI services. Returns the trimmed content unchanged when no fence/object
+     * markers are present; returns {@code null} for {@code null} input.
+     */
+    private String stripJsonFences(String content) {
+        if (content == null) {
+            return null;
+        }
+        String cleaned = content.trim();
+        if (cleaned.startsWith("```json")) {
+            cleaned = cleaned.substring(7).trim();
+        } else if (cleaned.startsWith("```")) {
+            cleaned = cleaned.substring(3).trim();
+        }
+        if (cleaned.endsWith("```")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 3).trim();
+        }
+        int start = cleaned.indexOf('{');
+        int end = cleaned.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            cleaned = cleaned.substring(start, end + 1);
+        }
+        return cleaned;
     }
 
     // ── Inner DTO for the model's JSON output ───────────────────────────────

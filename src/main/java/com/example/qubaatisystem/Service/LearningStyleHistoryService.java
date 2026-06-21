@@ -138,6 +138,41 @@ public class LearningStyleHistoryService {
     // ---------- helpers ----------
 
     // Relationship IDs from the input DTO are resolved manually (ModelMapper maps scalar fields only).
+    /**
+     * Mission variant of the automatic learning-style nudge: if the student has a LearningStyle, raise its
+     * confidence by 0.05 (cap 1.0) and log a history row. Skips cleanly when there is no record or it is
+     * already capped. Not activity-type gated (missions are always behavioural signals).
+     */
+    public void recordMissionLearningStyleUpdate(Student student, String missionTitle) {
+        if (student == null) {
+            return;
+        }
+        LearningStyle learningStyle = learningStyleRepository.findLearningStyleByStudentId(student.getId());
+        if (learningStyle == null || learningStyle.getPrimaryStyle() == null) {
+            return;
+        }
+        double previousConfidence = learningStyle.getConfidence() != null ? learningStyle.getConfidence() : 0.5;
+        double newConfidence = Math.min(1.0, previousConfidence + 0.05);
+        if (newConfidence == previousConfidence) {
+            return;
+        }
+        learningStyle.setConfidence(newConfidence);
+        LearningStyle savedLearningStyle = learningStyleRepository.save(learningStyle);
+
+        LearningStyleHistory history = new LearningStyleHistory();
+        history.setPreviousPrimaryStyle(savedLearningStyle.getPrimaryStyle());
+        history.setNewPrimaryStyle(savedLearningStyle.getPrimaryStyle());
+        history.setPreviousSecondaryStyle(savedLearningStyle.getSecondaryStyle());
+        history.setNewSecondaryStyle(savedLearningStyle.getSecondaryStyle());
+        history.setPreviousConfidence(previousConfidence);
+        history.setNewConfidence(newConfidence);
+        history.setReason("Learning style confidence updated automatically after completing mission: " + missionTitle);
+        history.setChangedAt(LocalDateTime.now());
+        history.setStudent(student);
+        history.setLearningStyle(savedLearningStyle);
+        learningStyleHistoryRepository.save(history);
+    }
+
     private void applyRelationships(LearningStyleHistory learningStyleHistory, LearningStyleHistoryInDTO dto) {
         Student student = studentRepository.findStudentById(dto.getStudentId());
         if (student == null) {

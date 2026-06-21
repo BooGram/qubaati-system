@@ -16,6 +16,7 @@ public class QuestionOutDTO {
     private QuestionType type;
     private Integer points;
     private DifficultyLevel difficulty;
-    private String correctAnswer;
     private Integer activityId;
+    // correctAnswer is intentionally NOT exposed here (student-safe generic DTO). Teachers see it via
+    // ActivityDetailsOutDTO/QuestionDetailsOutDTO (GET /activities/{id}/details) and the teacher submission details.
 }

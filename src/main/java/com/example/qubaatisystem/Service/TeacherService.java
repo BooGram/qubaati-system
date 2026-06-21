@@ -22,7 +22,7 @@ public class TeacherService {
 
     private final TeacherRepository teacherRepository;
     private final UserRepository userRepository;
-    private final StudentService studentService;
+    private final TeacherDashboardService teacherDashboardService;
     private final ModelMapper modelMapper;
 
     public List<TeacherOutDTO> getAll() {
@@ -92,24 +92,10 @@ public class TeacherService {
 
     // ========== Dashboard ==========
 
+    // Delegated to the dashboard aggregator, which now integrates Student-2 (activities) and Student-3
+    // (missions) data in addition to the classroom/student counts. Same endpoint, richer payload.
     public TeacherDashboardOutDTO getDashboard(Integer teacherId) {
-        Teacher teacher = teacherRepository.findTeacherById(teacherId);
-        if (teacher == null) {
-            throw new ApiException("Teacher with id " + teacherId + " not found");
-        }
-        int classroomCount = teacher.getClassrooms() != null ? teacher.getClassrooms().size() : 0;
-        int totalStudentCount = studentService.getStudentCountByTeacherId(teacherId);
-
-        TeacherDashboardOutDTO out = new TeacherDashboardOutDTO();
-        out.setTeacherId(teacher.getId());
-        out.setFullName(teacher.getFullName());
-        out.setSpecialization(teacher.getSpecialization());
-        if (teacher.getUser() != null) {
-            out.setEmail(teacher.getUser().getEmail());
-        }
-        out.setClassroomCount(classroomCount);
-        out.setTotalStudentCount(totalStudentCount);
-        return out;
+        return teacherDashboardService.getTeacherDashboard(teacherId);
     }
 
     // ---------- helpers ----------

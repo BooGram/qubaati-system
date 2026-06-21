@@ -73,6 +73,14 @@ public class ParentController {
         return ResponseEntity.status(200).body(parentService.getChildOverview(parentId, studentId));
     }
 
+    // Combined learning profile: skills, learning style, activity performance, recent mission insight,
+    // recommendations, and activity/mission completion for one child.
+    @GetMapping("/{parentId}/children/{studentId}/learning-profile")
+    public ResponseEntity<?> getChildLearningProfile(@PathVariable Integer parentId,
+                                                     @PathVariable Integer studentId) {
+        return ResponseEntity.status(200).body(parentService.getChildLearningProfile(parentId, studentId));
+    }
+
     @PatchMapping("/{parentId}/children/{studentId}/profile")
     public ResponseEntity<?> updateChildProfile(@PathVariable Integer parentId,
                                                 @PathVariable Integer studentId,

@@ -28,6 +28,21 @@ public class MissionSession {
     @Column
     private LocalDateTime endTime;
 
+    // When the current step began — used to backend-calculate per-decision response time.
+    @Column
+    private LocalDateTime currentStepStartedAt;
+
+    // Multi-step progress.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_step_id")
+    private MissionStep currentStep;
+
+    @Column
+    private Integer currentStepOrder;
+
+    @Column
+    private Boolean missionCompleteReady;
+
     @Column
     private Integer score;
 
@@ -39,6 +54,12 @@ public class MissionSession {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_id", nullable = false)
     private Mission mission;
+
+    // The student attempting this mission. Nullable in the DB so legacy rows still load; always set for new
+    // sessions (needed to track per-student completion of shared DEFAULT missions).
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id")
+    private Student student;
 
     // MissionSession has many Decisions (inverse side)
     @OneToMany(mappedBy = "missionSession", fetch = FetchType.LAZY)

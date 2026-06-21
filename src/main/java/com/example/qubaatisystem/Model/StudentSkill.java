@@ -8,7 +8,9 @@ import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "student_skill")
+@Table(name = "student_skill", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_student_skill_student_skill", columnNames = {"student_id", "skill_id"})
+})
 @Getter
 @Setter
 @NoArgsConstructor

@@ -2,6 +2,8 @@ package com.example.qubaatisystem.Controller;
 
 import com.example.qubaatisystem.Api.ApiResponse;
 import com.example.qubaatisystem.DTO.In.StudentInDTO;
+import com.example.qubaatisystem.DTO.Out.StudentActivityDashboardOutDTO;
+import com.example.qubaatisystem.Service.ActivityDashboardService;
 import com.example.qubaatisystem.Service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class StudentController {
 
     private final StudentService studentService;
+    private final ActivityDashboardService activityDashboardService;
 
     // ---------- CRUD ----------
 
@@ -65,5 +68,12 @@ public class StudentController {
     @GetMapping("/{studentId}/learning-style/history")
     public ResponseEntity<?> getLearningStyleHistory(@PathVariable Integer studentId) {
         return ResponseEntity.status(200).body(studentService.getLearningStyleHistory(studentId));
+    }
+
+    // ---------- ACTIVITY DASHBOARD (Student 2) ----------
+
+    @GetMapping("/{studentId}/activity-dashboard")
+    public ResponseEntity<StudentActivityDashboardOutDTO> getActivityDashboard(@PathVariable Integer studentId) {
+        return ResponseEntity.status(200).body(activityDashboardService.getStudentActivityDashboard(studentId));
     }
 }

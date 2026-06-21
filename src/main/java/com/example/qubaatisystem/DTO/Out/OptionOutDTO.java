@@ -11,6 +11,7 @@ public class OptionOutDTO {
 
     private Integer id;
     private String content;
-    private Boolean isCorrect;
     private Integer questionId;
+    // isCorrect is intentionally NOT exposed here (student-safe generic DTO). Teachers see it via
+    // OptionDetailsOutDTO (GET /activities/{id}/details) and the teacher submission details.
 }

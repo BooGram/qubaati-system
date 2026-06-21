@@ -3,6 +3,8 @@ package com.example.qubaatisystem.Service;
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.NotificationInDTO;
 import com.example.qubaatisystem.DTO.Out.NotificationOutDTO;
+import com.example.qubaatisystem.Enum.NotificationStatus;
+import com.example.qubaatisystem.Enum.NotificationType;
 import com.example.qubaatisystem.Model.Notification;
 import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.NotificationRepository;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -89,5 +92,63 @@ public class NotificationService {
             out.setRecipientEmail(notification.getRecipient().getEmail());
         }
         return out;
+    }
+
+    // ====================== mission flow ======================
+
+    public List<NotificationOutDTO> getByUser(Integer userId) {
+        requireUser(userId);
+        return notificationRepository.findNotificationsByRecipientId(userId)
+                .stream().map(this::toOut).toList();
+    }
+
+    public List<NotificationOutDTO> getUnreadByUser(Integer userId) {
+        requireUser(userId);
+        return notificationRepository.findNotificationsByRecipientIdAndStatus(userId, NotificationStatus.UNREAD)
+                .stream().map(this::toOut).toList();
+    }
+
+    public NotificationOutDTO markRead(Integer notificationId) {
+        Notification notification = notificationRepository.findNotificationById(notificationId);
+        if (notification == null) {
+            throw new ApiException("Notification with id " + notificationId + " not found");
+        }
+        if (notification.getStatus() != NotificationStatus.READ) {
+            notification.setStatus(NotificationStatus.READ);
+            notification.setReadAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+        }
+        return toOut(notification);
+    }
+
+    public void markAllRead(Integer userId) {
+        requireUser(userId);
+        for (Notification notification : notificationRepository.findNotificationsByRecipientIdAndStatus(userId, NotificationStatus.UNREAD)) {
+            notification.setStatus(NotificationStatus.READ);
+            notification.setReadAt(LocalDateTime.now());
+            notificationRepository.save(notification);
+        }
+    }
+
+    /** Internal event helper: create an UNREAD notification for a user (no-op if recipient is null). */
+    public void notify(User recipient, NotificationType type, String title, String message) {
+        if (recipient == null) {
+            return;
+        }
+        Notification notification = new Notification();
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setType(type);
+        notification.setStatus(NotificationStatus.UNREAD);
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setRecipient(recipient);
+        notification.setId(null);
+        notificationRepository.save(notification);
+    }
+
+    private void requireUser(Integer userId) {
+        if (userRepository.findUserById(userId) == null) {
+            throw new ApiException("User with id " + userId + " not found");
+        }
     }
 }

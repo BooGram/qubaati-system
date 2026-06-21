@@ -5,6 +5,7 @@ import com.example.qubaatisystem.DTO.In.ActivitySubmissionInDTO;
 import com.example.qubaatisystem.DTO.In.ActivitySubmissionReturnInDTO;
 import com.example.qubaatisystem.DTO.In.TeacherFeedbackInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivitySubmissionOutDTO;
+import com.example.qubaatisystem.DTO.Out.ActivitySubmissionTeacherDetailsOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentActivityAttemptOutDTO;
 import com.example.qubaatisystem.Service.ActivitySubmissionService;
 import jakarta.validation.Valid;
@@ -121,5 +122,23 @@ public class ActivitySubmissionController {
     @GetMapping("/teachers/{teacherId}/activity-submissions/pending-grading")
     public ResponseEntity<List<ActivitySubmissionOutDTO>> getPendingGradingSubmissions(@PathVariable Integer teacherId) {
         return ResponseEntity.status(200).body(activitySubmissionService.getPendingGradingSubmissions(teacherId));
+    }
+
+    // ---------- TEACHER SUBMISSION LISTS / DETAILS ----------
+
+    @GetMapping("/activity-assignments/{assignmentId}/submissions")
+    public ResponseEntity<List<ActivitySubmissionOutDTO>> getSubmissionsByAssignment(@PathVariable Integer assignmentId) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionsByAssignment(assignmentId));
+    }
+
+    @GetMapping("/activities/{activityId}/submissions")
+    public ResponseEntity<List<ActivitySubmissionOutDTO>> getSubmissionsByActivity(@PathVariable Integer activityId) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionsByActivity(activityId));
+    }
+
+    // Teacher-only: includes answers + correct answers. Never exposed to students.
+    @GetMapping("/activity-submissions/{submissionId}/teacher-details")
+    public ResponseEntity<ActivitySubmissionTeacherDetailsOutDTO> getTeacherSubmissionDetails(@PathVariable Integer submissionId) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getTeacherSubmissionDetails(submissionId));
     }
 }

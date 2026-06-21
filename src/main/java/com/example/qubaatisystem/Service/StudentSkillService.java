@@ -100,4 +100,15 @@ public class StudentSkillService {
         // (studentId <- student.id, skillId <- skill.id, skillName <- skill.name).
         return out;
     }
+
+    /** Current skills (score/level) for a student. */
+    public List<StudentSkillOutDTO> getByStudentId(Integer studentId) {
+        if (studentRepository.findStudentById(studentId) == null) {
+            throw new ApiException("Student with id " + studentId + " not found");
+        }
+        return studentSkillRepository.findStudentSkillsByStudentId(studentId)
+                .stream()
+                .map(this::toOut)
+                .toList();
+    }
 }

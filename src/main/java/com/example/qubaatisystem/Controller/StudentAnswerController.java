@@ -3,13 +3,17 @@ package com.example.qubaatisystem.Controller;
 import com.example.qubaatisystem.Api.ApiResponse;
 import com.example.qubaatisystem.DTO.In.BatchStudentAnswerInDTO;
 import com.example.qubaatisystem.DTO.In.StudentAnswerInDTO;
+import com.example.qubaatisystem.DTO.In.StudentAnswerManualGradeInDTO;
+import com.example.qubaatisystem.DTO.Out.ActivitySubmissionOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentAnswerOutDTO;
+import com.example.qubaatisystem.Service.ActivitySubmissionService;
 import com.example.qubaatisystem.Service.StudentAnswerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -25,6 +29,7 @@ import java.util.List;
 public class StudentAnswerController {
 
     private final StudentAnswerService studentAnswerService;
+    private final ActivitySubmissionService activitySubmissionService;
 
     // ---------- CRUD ----------
 
@@ -63,5 +68,17 @@ public class StudentAnswerController {
             @PathVariable Integer submissionId,
             @Valid @RequestBody BatchStudentAnswerInDTO dto) {
         return ResponseEntity.status(200).body(studentAnswerService.saveBatchAnswers(submissionId, dto));
+    }
+
+    // ---------- TEACHER MANUAL GRADING / SCORE OVERRIDE ----------
+
+    // Returns the full submission because the manual grade recalculates the submission score.
+    @PatchMapping("/student-answers/{answerId}/grade")
+    public ResponseEntity<ActivitySubmissionOutDTO> manualGradeAnswer(
+            @PathVariable Integer answerId,
+            @Valid @RequestBody StudentAnswerManualGradeInDTO request) {
+        return ResponseEntity.status(200).body(activitySubmissionService.manualGradeAnswer(
+                answerId, request.getTeacherId(), request.getEarnedPoints(),
+                request.getStatus(), request.getFeedback()));
     }
 }

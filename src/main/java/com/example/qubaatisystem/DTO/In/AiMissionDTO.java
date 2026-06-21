@@ -15,8 +15,10 @@ import java.util.List;
 public class AiMissionDTO {
 
     private String title;
+    private String description;
     private String scenario;
-    private List<AiMissionChoiceDTO> choices;
+    private List<AiMissionChoiceDTO> choices;      // legacy single-step fallback (old format)
+    private List<AiMissionStepDTO> steps;          // multi-step format
     private AiMissionSkillDTO skill;
     private DifficultyLevel difficulty;
     private Integer estimatedMinutes;
