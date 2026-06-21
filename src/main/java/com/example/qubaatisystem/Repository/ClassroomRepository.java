@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface ClassroomRepository extends JpaRepository<Classroom, Integer> {
 
     Classroom findClassroomById(Integer id);
+
+    int countByTeacherId(Integer teacherId);
 }

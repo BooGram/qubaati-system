@@ -23,6 +23,7 @@ public class ClassroomService {
     private final ClassroomRepository classroomRepository;
     private final TeacherRepository teacherRepository;
     private final StudentService studentService;
+    private final SubscriptionService subscriptionService;
     private final ModelMapper modelMapper;
 
     public List<ClassroomOutDTO> getAll() {
@@ -41,6 +42,8 @@ public class ClassroomService {
     }
 
     public void create(ClassroomInDTO classroomInDTO) {
+        subscriptionService.assertCanCreateClassroom(classroomInDTO.getTeacherId());
+
         // Set scalar fields directly — ModelMapper maps teacherId to Classroom.id via token matching,
         // causing JPA to treat the new entity as an existing row and throw an optimistic lock error.
         Classroom classroom = new Classroom();

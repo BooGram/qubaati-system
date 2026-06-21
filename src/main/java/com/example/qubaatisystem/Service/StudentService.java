@@ -28,6 +28,7 @@ public class StudentService {
     private final UserRepository userRepository;
     private final ParentRepository parentRepository;
     private final ClassroomRepository classroomRepository;
+    private final SubscriptionService subscriptionService;
     private final ModelMapper modelMapper;
 
     public List<StudentOutDTO> getAll() {
@@ -105,6 +106,10 @@ public class StudentService {
 
     @Transactional
     public StudentOutDTO create(StudentInDTO studentInDTO) {
+        // Enforce parent plan child limit before any persistence work
+        // Only checked here — ParentService.createChild() delegates to this method anyway
+        subscriptionService.assertCanAddChild(studentInDTO.getParentId());
+
         // Create the linked child User account. The role is assigned internally; the parent creates
         // this account for the child (the student does not create it himself).
         User user = new User();
