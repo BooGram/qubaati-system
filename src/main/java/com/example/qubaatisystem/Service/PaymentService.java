@@ -43,6 +43,7 @@ public class PaymentService {
     private final TeacherRepository teacherRepository;
     private final SubscriptionService subscriptionService;
     private final MoyasarService moyasarService;
+    private final EmailService emailService;
 
     // ── Checkout ─────────────────────────────────────────────────────────────
 
@@ -214,6 +215,12 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         log.info("Payment activated — ref={} plan={}", localReference, payment.getPlan().getCode());
+
+        try {
+            emailService.sendPaymentConfirmation(payment);
+        } catch (Exception e) {
+            log.warn("Payment confirmation email could not be sent for ref={}: {}", localReference, e.getMessage());
+        }
     }
 
     // ── Status ───────────────────────────────────────────────────────────────

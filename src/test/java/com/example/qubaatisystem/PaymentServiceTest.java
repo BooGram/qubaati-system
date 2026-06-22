@@ -15,6 +15,7 @@ import com.example.qubaatisystem.Model.SubscriptionPlan;
 import com.example.qubaatisystem.Repository.ParentRepository;
 import com.example.qubaatisystem.Repository.PaymentRepository;
 import com.example.qubaatisystem.Repository.TeacherRepository;
+import com.example.qubaatisystem.Service.EmailService;
 import com.example.qubaatisystem.Service.MoyasarService;
 import com.example.qubaatisystem.Service.PaymentService;
 import com.example.qubaatisystem.Service.SubscriptionService;
@@ -48,6 +49,7 @@ class PaymentServiceTest {
     @Mock TeacherRepository teacherRepository;
     @Mock SubscriptionService subscriptionService;
     @Mock MoyasarService moyasarService;
+    @Mock EmailService emailService;
 
     @InjectMocks PaymentService paymentService;
 
@@ -344,6 +346,68 @@ class PaymentServiceTest {
         assertThatThrownBy(() -> paymentService.getStatus("missing-ref"))
                 .isInstanceOf(ApiException.class)
                 .hasMessageContaining("Payment not found");
+    }
+
+    // ── handleCallback — email confirmation ───────────────────────────────────
+
+    @Test
+    void handleCallback_sendsEmailConfirmation_afterSuccessfulPayment() {
+        String localRef  = "ref-email-success-001";
+        String moyasarId = "mysr-id-email-success-001";
+
+        Payment payment = makePayment(localRef, PaymentStatus.PENDING, 5000);
+        when(moyasarService.fetchPayment(moyasarId))
+                .thenReturn(makeMoyasarData(moyasarId, localRef, "paid", 5000, "SAR"));
+        when(paymentRepository.findByLocalReferenceForUpdate(localRef)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByMoyasarPaymentId(moyasarId)).thenReturn(Optional.empty());
+        when(subscriptionService.activateOrExtendSubscription(any(Payment.class)))
+                .thenReturn(new Subscription());
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        paymentService.handleCallback(moyasarId);
+
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(emailService).sendPaymentConfirmation(payment);
+    }
+
+    @Test
+    void handleCallback_doesNotSendEmail_whenPaymentStatusIsFailed() {
+        String localRef  = "ref-email-failed-001";
+        String moyasarId = "mysr-id-email-failed-001";
+
+        Payment payment = makePayment(localRef, PaymentStatus.PENDING, 5000);
+        when(moyasarService.fetchPayment(moyasarId))
+                .thenReturn(makeMoyasarData(moyasarId, localRef, "failed", 5000, "SAR"));
+        when(paymentRepository.findByLocalReferenceForUpdate(localRef)).thenReturn(Optional.of(payment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        paymentService.handleCallback(moyasarId);
+
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        verify(emailService, never()).sendPaymentConfirmation(any());
+    }
+
+    @Test
+    void handleCallback_doesNotFailPayment_whenEmailServiceThrows() {
+        String localRef  = "ref-email-throw-001";
+        String moyasarId = "mysr-id-email-throw-001";
+
+        Payment payment = makePayment(localRef, PaymentStatus.PENDING, 5000);
+        when(moyasarService.fetchPayment(moyasarId))
+                .thenReturn(makeMoyasarData(moyasarId, localRef, "paid", 5000, "SAR"));
+        when(paymentRepository.findByLocalReferenceForUpdate(localRef)).thenReturn(Optional.of(payment));
+        when(paymentRepository.findByMoyasarPaymentId(moyasarId)).thenReturn(Optional.empty());
+        when(subscriptionService.activateOrExtendSubscription(any(Payment.class)))
+                .thenReturn(new Subscription());
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> inv.getArgument(0));
+        doThrow(new RuntimeException("SMTP connection refused"))
+                .when(emailService).sendPaymentConfirmation(any(Payment.class));
+
+        // Must not throw — payment flow is protected from email failures
+        paymentService.handleCallback(moyasarId);
+
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(subscriptionService).activateOrExtendSubscription(payment);
     }
 
     // ── getReceipt ────────────────────────────────────────────────────────────
