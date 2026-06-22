@@ -5,6 +5,7 @@ import com.example.qubaatisystem.DTO.In.ChildCreateInDTO;
 import com.example.qubaatisystem.DTO.In.ChildUpdateProfileInDTO;
 import com.example.qubaatisystem.DTO.In.ParentInDTO;
 import com.example.qubaatisystem.DTO.In.StudentInDTO;
+import com.example.qubaatisystem.DTO.Out.ChildLearningProfileOutDTO;
 import com.example.qubaatisystem.DTO.Out.ParentDashboardOutDTO;
 import com.example.qubaatisystem.DTO.Out.ParentOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
@@ -28,6 +29,7 @@ public class ParentService {
     private final ParentRepository parentRepository;
     private final UserRepository userRepository;
     private final StudentService studentService;
+    private final ChildLearningProfileService childLearningProfileService;
     private final ModelMapper modelMapper;
 
     public List<ParentOutDTO> getAll() {
@@ -59,6 +61,7 @@ public class ParentService {
         Parent parent = modelMapper.map(parentInDTO, Parent.class);
         parent.setUser(savedUser);
 
+        parent.setId(null);
         Parent savedParent = parentRepository.save(parent);
         return mapParentToOutDTO(savedParent);
     }
@@ -72,6 +75,7 @@ public class ParentService {
 
         // Update Parent profile fields (ModelMapper copies scalar fields only).
         modelMapper.map(parentInDTO, parent);
+        parent.setId(id);
 
         // Update the linked User account fields, keeping the role as PARENT.
         User user = parent.getUser();
@@ -155,17 +159,9 @@ public class ParentService {
                 .mapToInt(s -> s.getCompletedMissionsCount() != null ? s.getCompletedMissionsCount() : 0)
                 .sum();
 
+        // Each card now also carries the child's activity progress (Student 2) and mission progress (Student 3).
         List<ParentDashboardOutDTO.ChildCard> childCards = children.stream()
-                .map(s -> new ParentDashboardOutDTO.ChildCard(
-                        s.getId(),
-                        s.getFullName(),
-                        s.getGrade(),
-                        s.getAge(),
-                        s.getTotalPoints()            != null ? s.getTotalPoints()            : 0,
-                        s.getCompletedMissionsCount() != null ? s.getCompletedMissionsCount() : 0,
-                        s.getClassroomId(),
-                        s.getClassroomName()
-                ))
+                .map(childLearningProfileService::buildChildCard)
                 .collect(Collectors.toList());
 
         return new ParentDashboardOutDTO(
@@ -175,6 +171,17 @@ public class ParentService {
                 totalMissions,
                 childCards
         );
+    }
+
+    /**
+     * Parent-facing combined learning profile for one child (skills, learning style, activity performance,
+     * recent mission insight, recommendations). Validates the parent owns the child.
+     */
+    public ChildLearningProfileOutDTO getChildLearningProfile(Integer parentId, Integer studentId) {
+        if (parentRepository.findParentById(parentId) == null) {
+            throw new ApiException("Parent with id " + parentId + " not found");
+        }
+        return childLearningProfileService.getLearningProfile(parentId, studentId);
     }
 
     // ---------- helpers ----------

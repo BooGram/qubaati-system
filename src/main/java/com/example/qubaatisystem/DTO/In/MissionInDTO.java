@@ -26,6 +26,10 @@ public class MissionInDTO {
     @NotNull(message = "skillType is required")
     private SkillType skillType;
 
+    // Optional: pick a specific existing Skill by id. When provided it takes priority over skillType.
+    // The service resolves a managed Skill from the DB (it never builds a new Skill from this DTO).
+    private Integer skillId;
+
     @NotNull(message = "difficulty is required")
     private DifficultyLevel difficulty;
 

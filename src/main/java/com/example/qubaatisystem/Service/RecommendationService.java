@@ -3,6 +3,9 @@ package com.example.qubaatisystem.Service;
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.RecommendationInDTO;
 import com.example.qubaatisystem.DTO.Out.RecommendationOutDTO;
+import com.example.qubaatisystem.Enum.RecommendationPriority;
+import com.example.qubaatisystem.Enum.RecommendationStatus;
+import com.example.qubaatisystem.Enum.RecommendationType;
 import com.example.qubaatisystem.Model.Activity;
 import com.example.qubaatisystem.Model.Mission;
 import com.example.qubaatisystem.Model.Recommendation;
@@ -46,10 +49,20 @@ public class RecommendationService {
     }
 
     public void create(RecommendationInDTO dto) {
-        Recommendation recommendation = modelMapper.map(dto, Recommendation.class);
+        // Map scalar fields manually; relation ids are resolved in applyRelationships.
+        // (ModelMapper can't disambiguate the multiple *Id source fields against setId.)
+        Recommendation recommendation = new Recommendation();
+        recommendation.setTitle(dto.getTitle());
+        recommendation.setDescription(dto.getDescription());
+        recommendation.setType(dto.getType());
+        recommendation.setPriority(dto.getPriority());
+        recommendation.setStatus(dto.getStatus());
+        recommendation.setReason(dto.getReason());
+        recommendation.setGeneratedAt(dto.getGeneratedAt());
 
         applyRelationships(recommendation, dto);
 
+        recommendation.setId(null);
         recommendationRepository.save(recommendation);
     }
 
@@ -59,13 +72,15 @@ public class RecommendationService {
             throw new ApiException("Recommendation with id " + id + " not found");
         }
 
-        // Clear relationships first so ModelMapper only copies scalar fields
-        // (never mutates the ids of the currently-managed related entities).
-        recommendation.setStudent(null);
-        recommendation.setSkill(null);
-        recommendation.setMission(null);
-        recommendation.setActivity(null);
-        modelMapper.map(dto, recommendation);
+        // Map scalar fields manually; applyRelationships re-resolves the relations.
+        recommendation.setTitle(dto.getTitle());
+        recommendation.setDescription(dto.getDescription());
+        recommendation.setType(dto.getType());
+        recommendation.setPriority(dto.getPriority());
+        recommendation.setStatus(dto.getStatus());
+        recommendation.setReason(dto.getReason());
+        recommendation.setGeneratedAt(dto.getGeneratedAt());
+        recommendation.setId(id);
 
         applyRelationships(recommendation, dto);
 
@@ -140,5 +155,79 @@ public class RecommendationService {
             out.setActivityTitle(recommendation.getActivity().getTitle());
         }
         return out;
+    }
+
+    // ====================== mission flow ======================
+
+    public List<RecommendationOutDTO> getByStudent(Integer studentId) {
+        if (studentRepository.findStudentById(studentId) == null) {
+            throw new ApiException("Student with id " + studentId + " not found");
+        }
+        return recommendationRepository.findRecommendationsByStudentId(studentId)
+                .stream()
+                .map(this::toOut)
+                .toList();
+    }
+
+    public RecommendationOutDTO accept(Integer id) {
+        return setStatus(id, RecommendationStatus.ACCEPTED);
+    }
+
+    public RecommendationOutDTO dismiss(Integer id) {
+        return setStatus(id, RecommendationStatus.DISMISSED);
+    }
+
+    public RecommendationOutDTO complete(Integer id) {
+        return setStatus(id, RecommendationStatus.COMPLETED);
+    }
+
+    private RecommendationOutDTO setStatus(Integer id, RecommendationStatus status) {
+        Recommendation recommendation = recommendationRepository.findRecommendationById(id);
+        if (recommendation == null) {
+            throw new ApiException("Recommendation with id " + id + " not found");
+        }
+        recommendation.setStatus(status);
+        return toOut(recommendationRepository.save(recommendation));
+    }
+
+    /** Internal: create an ACTIVE mission-driven recommendation (called from mission completion). */
+    public void recordMissionRecommendation(Student student, Mission mission, Skill skill,
+                                            String title, String description, String reason) {
+        if (student == null) {
+            return;
+        }
+        Recommendation recommendation = new Recommendation();
+        recommendation.setTitle(title);
+        recommendation.setDescription(description);
+        recommendation.setType(RecommendationType.MISSION);
+        recommendation.setPriority(RecommendationPriority.MEDIUM);
+        recommendation.setStatus(RecommendationStatus.ACTIVE);
+        recommendation.setReason(reason);
+        recommendation.setGeneratedAt(java.time.LocalDateTime.now());
+        recommendation.setStudent(student);
+        recommendation.setMission(mission);
+        recommendation.setSkill(skill);
+        recommendation.setId(null);
+        recommendationRepository.save(recommendation);
+    }
+
+    /** Internal: create an ACTIVE AI-generated recommendation with an explicit type/priority. */
+    public void recordAiRecommendation(Student student, Mission mission, String title, String description,
+                                       RecommendationType type, RecommendationPriority priority, String reason) {
+        if (student == null) {
+            return;
+        }
+        Recommendation recommendation = new Recommendation();
+        recommendation.setTitle(title);
+        recommendation.setDescription(description);
+        recommendation.setType(type != null ? type : RecommendationType.MISSION);
+        recommendation.setPriority(priority != null ? priority : RecommendationPriority.MEDIUM);
+        recommendation.setStatus(RecommendationStatus.ACTIVE);
+        recommendation.setReason(reason);
+        recommendation.setGeneratedAt(java.time.LocalDateTime.now());
+        recommendation.setStudent(student);
+        recommendation.setMission(mission);
+        recommendation.setId(null);
+        recommendationRepository.save(recommendation);
     }
 }

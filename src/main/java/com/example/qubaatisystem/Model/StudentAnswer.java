@@ -30,6 +30,11 @@ public class StudentAnswer {
     @Column(length = 20)
     private AnswerStatus status;
 
+    // Per-answer feedback (set by AI-assisted text grading or by a teacher's manual grade). Never exposed to
+    // the student during an attempt; only shown in results/teacher views.
+    @Column(length = 2000)
+    private String feedback;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private java.time.LocalDateTime answeredAt;

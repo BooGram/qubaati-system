@@ -12,7 +12,8 @@ public class DecisionOutDTO {
     private Integer id;
     private String choice;
     private String reason;
-    private Boolean isCorrect;
     private Double responseTimeSeconds;
     private Integer missionSessionId;
+    // isCorrect deliberately omitted: it is a hidden correctness flag and this generic decision DTO is not
+    // gated. The mission flow never sets Decision.isCorrect anyway (scoring uses the internal scoreImpact).
 }

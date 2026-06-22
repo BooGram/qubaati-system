@@ -16,6 +16,7 @@ public class StudentAnswerOutDTO {
     private String answerText;
     private Integer earnedPoints;
     private AnswerStatus status;
+    private String feedback;
     private LocalDateTime answeredAt;
 
     private Integer questionId;

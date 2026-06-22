@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface InsightRepository extends JpaRepository<Insight, Integer> {
 
     Insight findInsightById(Integer id);
+
+    Insight findInsightByMissionSessionId(Integer missionSessionId);
 }

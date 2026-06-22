@@ -51,6 +51,8 @@ public class ClassroomService {
         classroom.setGradeLevel(classroomInDTO.getGradeLevel());
         classroom.setSection(classroomInDTO.getSection());
         applyRelationships(classroom, classroomInDTO);
+
+        classroom.setId(null);
         classroomRepository.save(classroom);
     }
 
@@ -59,6 +61,13 @@ public class ClassroomService {
         if (classroom == null) {
             throw new ApiException("Classroom with id " + id + " not found");
         }
+
+        // Clear relationships first so ModelMapper only copies scalar fields
+        // (never mutates the ids of the currently-managed related entities).
+        classroom.setTeacher(null);
+        modelMapper.map(classroomInDTO, classroom);
+        classroom.setId(id);
+
         // Set scalar fields directly — same reason as create() (ModelMapper ambiguity on teacherId).
         classroom.setName(classroomInDTO.getName());
         classroom.setGradeLevel(classroomInDTO.getGradeLevel());

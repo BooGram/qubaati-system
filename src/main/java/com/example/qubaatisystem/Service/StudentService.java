@@ -3,14 +3,22 @@ package com.example.qubaatisystem.Service;
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.ChildUpdateProfileInDTO;
 import com.example.qubaatisystem.DTO.In.StudentInDTO;
+import com.example.qubaatisystem.DTO.Out.CareerWorldOutDTO;
+import com.example.qubaatisystem.DTO.Out.LearningStyleHistoryOutDTO;
+import com.example.qubaatisystem.DTO.Out.SkillProgressHistoryOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
 import com.example.qubaatisystem.Enum.UserRole;
 import com.example.qubaatisystem.Model.Classroom;
+import com.example.qubaatisystem.Model.LearningStyleHistory;
 import com.example.qubaatisystem.Model.Parent;
+import com.example.qubaatisystem.Model.SkillProgressHistory;
 import com.example.qubaatisystem.Model.Student;
 import com.example.qubaatisystem.Model.User;
+import com.example.qubaatisystem.Repository.CareerWorldRepository;
 import com.example.qubaatisystem.Repository.ClassroomRepository;
+import com.example.qubaatisystem.Repository.LearningStyleHistoryRepository;
 import com.example.qubaatisystem.Repository.ParentRepository;
+import com.example.qubaatisystem.Repository.SkillProgressHistoryRepository;
 import com.example.qubaatisystem.Repository.StudentRepository;
 import com.example.qubaatisystem.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +37,9 @@ public class StudentService {
     private final ParentRepository parentRepository;
     private final ClassroomRepository classroomRepository;
     private final SubscriptionService subscriptionService;
+    private final CareerWorldRepository careerWorldRepository;
+    private final SkillProgressHistoryRepository skillProgressHistoryRepository;
+    private final LearningStyleHistoryRepository learningStyleHistoryRepository;
     private final ModelMapper modelMapper;
 
     public List<StudentOutDTO> getAll() {
@@ -119,8 +130,11 @@ public class StudentService {
         user.setRole(UserRole.STUDENT);
         User savedUser = userRepository.save(user);
 
-        // Build the Student profile by setting scalar fields directly to avoid ModelMapper
-        // token-matching ambiguity (parentId and classroomId both match Student.id).
+        // Build the Student profile with manual scalar mapping. ModelMapper is NOT used for the
+        // InDTO -> Student copy because StudentInDTO carries two relation ids (parentId, classroomId):
+        // ModelMapper's STANDARD matching treats both as candidates for Student.setId() and aborts with
+        // "destination property setId matches multiple source property hierarchies". The relation ids are
+        // resolved explicitly below instead.
         Student student = new Student();
         student.setFullName(studentInDTO.getFullName());
         student.setAge(studentInDTO.getAge());
@@ -128,10 +142,12 @@ public class StudentService {
         student.setTotalPoints(studentInDTO.getTotalPoints());
         student.setCompletedMissionsCount(studentInDTO.getCompletedMissionsCount());
         applyDefaults(student);
+
         student.setUser(savedUser);
         student.setParent(resolveParent(studentInDTO.getParentId()));
         student.setClassroom(resolveClassroom(studentInDTO.getClassroomId()));
 
+        student.setId(null);
         Student savedStudent = studentRepository.save(student);
         return mapStudentToOutDTO(savedStudent);
     }
@@ -143,12 +159,13 @@ public class StudentService {
             throw new ApiException("Student with id " + id + " not found");
         }
 
-        // Set scalar fields directly — same reason as create() (ModelMapper ambiguity on *Id fields).
+        // Manual scalar mapping (no ModelMapper for the InDTO -> Student copy; see create() for why).
         student.setFullName(studentInDTO.getFullName());
         student.setAge(studentInDTO.getAge());
         student.setGrade(studentInDTO.getGrade());
         student.setTotalPoints(studentInDTO.getTotalPoints());
         student.setCompletedMissionsCount(studentInDTO.getCompletedMissionsCount());
+        student.setId(id);
         applyDefaults(student);
 
         // Update the linked User account fields, keeping the role as STUDENT.
@@ -174,7 +191,68 @@ public class StudentService {
         studentRepository.delete(student);
     }
 
-    // ---------- helpers ----------
+    // ====================== AVAILABILITY / HISTORY ======================
+
+    public List<CareerWorldOutDTO> getAvailableCareerWorlds(Integer studentId) {
+        requireStudentExists(studentId);
+        // No advanced availability rule yet: every CareerWorld is available to the student.
+        return careerWorldRepository.findAll()
+                .stream()
+                .map(careerWorld -> modelMapper.map(careerWorld, CareerWorldOutDTO.class))
+                .toList();
+    }
+
+    public List<SkillProgressHistoryOutDTO> getSkillHistory(Integer studentId) {
+        requireStudentExists(studentId);
+        return skillProgressHistoryRepository.findSkillProgressHistoriesByStudentId(studentId)
+                .stream()
+                .map(this::toSkillHistoryOut)
+                .toList();
+    }
+
+    public List<LearningStyleHistoryOutDTO> getLearningStyleHistory(Integer studentId) {
+        requireStudentExists(studentId);
+        return learningStyleHistoryRepository.findLearningStyleHistoriesByStudentId(studentId)
+                .stream()
+                .map(this::toLearningStyleHistoryOut)
+                .toList();
+    }
+
+    // ====================== helpers ======================
+
+    private void requireStudentExists(Integer studentId) {
+        if (studentRepository.findStudentById(studentId) == null) {
+            throw new ApiException("Student with id " + studentId + " not found");
+        }
+    }
+
+    private SkillProgressHistoryOutDTO toSkillHistoryOut(SkillProgressHistory history) {
+        SkillProgressHistoryOutDTO out = modelMapper.map(history, SkillProgressHistoryOutDTO.class);
+        if (history.getStudent() != null) {
+            out.setStudentId(history.getStudent().getId());
+            out.setStudentName(history.getStudent().getFullName());
+        }
+        if (history.getSkill() != null) {
+            out.setSkillId(history.getSkill().getId());
+            out.setSkillName(history.getSkill().getName());
+        }
+        if (history.getStudentSkill() != null) {
+            out.setStudentSkillId(history.getStudentSkill().getId());
+        }
+        return out;
+    }
+
+    private LearningStyleHistoryOutDTO toLearningStyleHistoryOut(LearningStyleHistory history) {
+        LearningStyleHistoryOutDTO out = modelMapper.map(history, LearningStyleHistoryOutDTO.class);
+        if (history.getStudent() != null) {
+            out.setStudentId(history.getStudent().getId());
+            out.setStudentName(history.getStudent().getFullName());
+        }
+        if (history.getLearningStyle() != null) {
+            out.setLearningStyleId(history.getLearningStyle().getId());
+        }
+        return out;
+    }
 
     private Parent resolveParent(Integer parentId) {
         Parent parent = parentRepository.findParentById(parentId);

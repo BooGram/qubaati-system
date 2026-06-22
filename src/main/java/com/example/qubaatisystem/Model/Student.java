@@ -77,4 +77,8 @@ public class Student {
     // Student has many StudentAnswers (inverse side)
     @OneToMany(mappedBy = "student", fetch = FetchType.LAZY)
     private Set<StudentAnswer> studentAnswers;
+
+    // Student has many AI-generated Missions (inverse side)
+    @OneToMany(mappedBy = "generatedForStudent", fetch = FetchType.LAZY)
+    private Set<Mission> generatedMissions;
 }

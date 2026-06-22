@@ -60,4 +60,16 @@ public class Activity {
     // Activity has many ActivityReviews (inverse side)
     @OneToMany(mappedBy = "activity", fetch = FetchType.LAZY)
     private Set<ActivityReview> activityReviews;
+
+    // The teacher who authored/owns this activity (Student 1 ownership). Nullable for backward compatibility
+    // with activities created before ownership existed.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_teacher_id")
+    private Teacher createdByTeacher;
+
+    // The skill this activity targets — used so grading records progress against the RIGHT skill instead of a
+    // hardcoded default. Nullable; when null the analytics fall back to a PROBLEM_SOLVING skill.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "skill_id")
+    private Skill skill;
 }

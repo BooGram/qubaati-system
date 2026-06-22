@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "decision")
 @Getter
@@ -30,8 +32,20 @@ public class Decision {
     @Column
     private Double responseTimeSeconds;
 
+    // Internal scoring of the chosen option (never exposed to the student).
+    @Column
+    private Integer scoreImpact;
+
+    @Column
+    private LocalDateTime submittedAt;
+
     // Decision belongs to one MissionSession (owning side)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mission_session_id", nullable = false)
     private MissionSession missionSession;
+
+    // The step this decision answered (multi-step missions)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mission_step_id")
+    private MissionStep missionStep;
 }

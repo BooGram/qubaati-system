@@ -34,4 +34,12 @@ public class ActivityInDTO {
 
     @PositiveOrZero(message = "maxScore must be zero or positive")
     private Integer maxScore;
+
+    // Optional teacher owner (Student 1 ownership). Null keeps the activity unowned (backward compatible).
+    private Integer teacherId;
+
+    // Optional target skill. skillId has priority; else resolve an existing Skill of skillType; else null
+    // (analytics then fall back to a PROBLEM_SOLVING skill). Resolved manually in ActivityService.
+    private Integer skillId;
+    private com.example.qubaatisystem.Enum.SkillType skillType;
 }

@@ -20,4 +20,12 @@ public class ActivityOutDTO {
     private DifficultyLevel difficulty;
     private Integer maxScore;
     private java.time.LocalDateTime createdAt;
+
+    // Teacher ownership (Student 1). Null for legacy/unowned activities.
+    private Integer createdByTeacherId;
+    private String createdByTeacherName;
+
+    // Target skill (used by grading analytics). Null when the activity has no mapped skill.
+    private Integer skillId;
+    private String skillName;
 }
