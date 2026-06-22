@@ -6,6 +6,7 @@ import com.example.qubaatisystem.DTO.Out.ActivityOutDTO;
 import com.example.qubaatisystem.DTO.Out.TeacherDashboardClassroomOutDTO;
 import com.example.qubaatisystem.DTO.Out.TeacherDashboardStudentOutDTO;
 import com.example.qubaatisystem.Enum.ActivityStatus;
+import com.example.qubaatisystem.Security.SecurityOwnershipService;
 import com.example.qubaatisystem.Service.ActivityService;
 import com.example.qubaatisystem.Service.TeacherDashboardService;
 import com.example.qubaatisystem.Service.TeacherService;
@@ -32,35 +33,43 @@ public class TeacherController {
     private final TeacherService teacherService;
     private final TeacherDashboardService teacherDashboardService;
     private final ActivityService activityService;
+    private final SecurityOwnershipService security;
 
+    // Creating/listing teachers is an admin operation (no public self-registration of teachers).
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody TeacherInDTO dto) {
+        security.assertAdmin();
         return ResponseEntity.status(200).body(teacherService.create(dto));
     }
 
     @GetMapping
     public ResponseEntity<?> getAll() {
+        security.assertAdmin();
         return ResponseEntity.status(200).body(teacherService.getAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable Integer id) {
+        security.assertCurrentTeacherOrAdmin(id);
         return ResponseEntity.status(200).body(teacherService.getById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody TeacherInDTO dto) {
+        security.assertCurrentTeacherOrAdmin(id);
         return ResponseEntity.status(200).body(teacherService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Integer id) {
+        security.assertCurrentTeacherOrAdmin(id);
         teacherService.delete(id);
         return ResponseEntity.status(200).body(new ApiResponse("Teacher deleted successfully"));
     }
 
     @GetMapping("/{teacherId}/dashboard")
     public ResponseEntity<?> getDashboard(@PathVariable Integer teacherId) {
+        security.assertCurrentTeacherOrAdmin(teacherId);
         return ResponseEntity.status(200).body(teacherService.getDashboard(teacherId));
     }
 
@@ -71,16 +80,41 @@ public class TeacherController {
     public ResponseEntity<List<ActivityOutDTO>> getTeacherActivities(
             @PathVariable Integer teacherId,
             @RequestParam(required = false) ActivityStatus status) {
+        security.assertCurrentTeacherOrAdmin(teacherId);
         return ResponseEntity.status(200).body(activityService.getActivitiesByTeacher(teacherId, status));
     }
 
     @GetMapping("/{teacherId}/classrooms")
     public ResponseEntity<List<TeacherDashboardClassroomOutDTO>> getTeacherClassrooms(@PathVariable Integer teacherId) {
+        security.assertCurrentTeacherOrAdmin(teacherId);
         return ResponseEntity.status(200).body(teacherDashboardService.getTeacherClassrooms(teacherId));
     }
 
     @GetMapping("/{teacherId}/students")
     public ResponseEntity<List<TeacherDashboardStudentOutDTO>> getTeacherStudents(@PathVariable Integer teacherId) {
+        security.assertCurrentTeacherOrAdmin(teacherId);
         return ResponseEntity.status(200).body(teacherDashboardService.getTeacherStudents(teacherId));
+    }
+
+    // ---------- current-teacher ("me") endpoints — no teacherId in the path ----------
+
+    @GetMapping("/me/dashboard")
+    public ResponseEntity<?> getMyDashboard() {
+        return ResponseEntity.status(200).body(teacherService.getDashboard(security.getCurrentTeacherId()));
+    }
+
+    @GetMapping("/me/classrooms")
+    public ResponseEntity<List<TeacherDashboardClassroomOutDTO>> getMyClassrooms() {
+        return ResponseEntity.status(200).body(teacherDashboardService.getTeacherClassrooms(security.getCurrentTeacherId()));
+    }
+
+    @GetMapping("/me/students")
+    public ResponseEntity<List<TeacherDashboardStudentOutDTO>> getMyStudents() {
+        return ResponseEntity.status(200).body(teacherDashboardService.getTeacherStudents(security.getCurrentTeacherId()));
+    }
+
+    @GetMapping("/me/activities")
+    public ResponseEntity<List<ActivityOutDTO>> getMyActivities(@RequestParam(required = false) ActivityStatus status) {
+        return ResponseEntity.status(200).body(activityService.getActivitiesByTeacher(security.getCurrentTeacherId(), status));
     }
 }

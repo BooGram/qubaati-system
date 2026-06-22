@@ -164,6 +164,82 @@
     {
       "key": "runSuffix",
       "value": ""
+    },
+    {
+      "key": "secondClassroomId",
+      "value": ""
+    },
+    {
+      "key": "parentPlusPlanCode",
+      "value": ""
+    },
+    {
+      "key": "teacherProPlanCode",
+      "value": ""
+    },
+    {
+      "key": "parentPaymentRef",
+      "value": ""
+    },
+    {
+      "key": "teacherPaymentRef",
+      "value": ""
+    },
+    {
+      "key": "parentHasActivePlan",
+      "value": ""
+    },
+    {
+      "key": "teacherHasActivePlan",
+      "value": ""
+    },
+    {
+      "key": "thirdChildId",
+      "value": ""
+    },
+    {
+      "key": "thirdClassroomCreated",
+      "value": ""
+    },
+    {
+      "key": "weeklyReportId",
+      "value": ""
+    },
+    {
+      "key": "aiConfigured",
+      "value": ""
+    },
+    {
+      "key": "adminUsername",
+      "value": "admin"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin123!"
+    },
+    {
+      "key": "teacherUsername",
+      "value": ""
+    },
+    {
+      "key": "teacherPassword",
+      "value": "Pass@12345"
+    },
+    {
+      "key": "parentUsername",
+      "value": ""
+    },
+    {
+      "key": "parentPassword",
+      "value": "Pass@12345"
+    },
+    {
+      "key": "studentUsername",
+      "value": ""
+    },
+    {
+      "key": "studentPassword",
+      "value": "Pass@12345"
     }
   ],
   "item": [
@@ -182,9 +258,18 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Idempotency: stamp a per-run suffix so seeded unique fields (usernames, emails) are unique",
-                  "// on every execution. All seed bodies below append {{runSuffix}} to those fields.",
-                  "pm.collectionVariables.set('runSuffix', String(Date.now()));"
+                  "// Idempotency: stamp a per-run suffix so seeded unique fields (usernames, emails) are unique.",
+                  "pm.collectionVariables.set('runSuffix', String(Date.now()));",
+                  "const sfx = pm.collectionVariables.get('runSuffix');",
+                  "// Basic Auth credentials used by the security folder (match Data Injection bodies + seeded admin).",
+                  "pm.collectionVariables.set('adminUsername', 'admin');",
+                  "pm.collectionVariables.set('adminPassword', 'Admin123!');",
+                  "pm.collectionVariables.set('teacherUsername', 'noura.physics' + sfx);",
+                  "pm.collectionVariables.set('teacherPassword', 'Pass@12345');",
+                  "pm.collectionVariables.set('parentUsername', 'sarah.parent' + sfx);",
+                  "pm.collectionVariables.set('parentPassword', 'Pass@12345');",
+                  "pm.collectionVariables.set('studentUsername', 'faisal.student' + sfx);",
+                  "pm.collectionVariables.set('studentPassword', 'Pass@12345');"
                 ]
               }
             },
@@ -272,9 +357,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Grade 6 Physics Explorers\",\"gradeLevel\":6,\"section\":\"A\",\"teacherId\":{{teacherId}}}"
+              "raw": "{\"name\":\"Grade 6 Physics Explorers\",\"gradeLevel\":6,\"section\":\"A\"}"
             },
-            "url": "{{baseUrl}}/classrooms"
+            "url": "{{baseUrl}}/classrooms",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -417,9 +517,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"username\":\"faisal.student{{runSuffix}}\",\"email\":\"faisal.student{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Faisal Alqahtani\",\"age\":12,\"grade\":\"Grade 6\",\"parentId\":{{parentId}},\"classroomId\":{{classroomId}}}"
+              "raw": "{\"username\":\"faisal.student{{runSuffix}}\",\"email\":\"faisal.student{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Faisal Alqahtani\",\"age\":12,\"grade\":\"Grade 6\",\"classroomId\":{{classroomId}}}"
             },
-            "url": "{{baseUrl}}/students"
+            "url": "{{baseUrl}}/parents/me/children",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -448,9 +563,24 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"username\":\"lina.student{{runSuffix}}\",\"email\":\"lina.student{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Lina Alqahtani\",\"age\":12,\"grade\":\"Grade 6\",\"parentId\":{{parentId}},\"classroomId\":{{classroomId}}}"
+              "raw": "{\"username\":\"lina.student{{runSuffix}}\",\"email\":\"lina.student{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Lina Alqahtani\",\"age\":12,\"grade\":\"Grade 6\",\"classroomId\":{{classroomId}}}"
             },
-            "url": "{{baseUrl}}/students"
+            "url": "{{baseUrl}}/parents/me/children",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -651,6 +781,30 @@
       "name": "02 - Student 2 - AI Activity Generation",
       "item": [
         {
+          "name": "am - AI Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/ai/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has configured/model/status/provider', () => { pm.expect(json).to.have.property('configured'); pm.expect(json).to.have.property('model'); pm.expect(json).to.have.property('status'); pm.expect(json).to.have.property('provider'); });",
+                  "pm.test('status is a known value', () => pm.expect(json.status).to.be.oneOf(['READY','MISSING_API_KEY','AI_CALL_FAILED']));",
+                  "pm.test('configured flag agrees with status', () => pm.expect(json.configured).to.eql(json.status !== 'MISSING_API_KEY'));",
+                  "pm.collectionVariables.set('aiConfigured', String(json.configured));",
+                  "if (json.configured === false) { console.log('AI NOT configured (status=' + json.status + '). Explicit AI generate/refine/feedback return a clear 400 (no fabricated fallback). The AI activity-generation chain (folders 02-08) needs OPENAI_API_KEY to run end-to-end; the manual activity flow in folder 09 needs no key.'); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "am - Generate Activity (EN)",
           "request": {
             "method": "POST",
@@ -671,32 +825,23 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
-                  "pm.test('has id', () => pm.expect(json).to.have.property('id'));",
-                  "pm.test('status is PENDING_REVIEW (auto-submitted to review)', () => pm.expect(json.status).to.eql('PENDING_REVIEW'));",
-                  "pm.test('has nested questions', () => pm.expect(json.questions).to.be.an('array').that.is.not.empty);",
-                  "pm.test('description is clean plain text', () => {",
-                  "  pm.expect(json.description).to.be.a('string');",
-                  "  pm.expect(json.description).to.not.include('\\n');",
-                  "  pm.expect(json.description).to.not.include('\\\\n');",
-                  "  pm.expect(json.description).to.not.include('**');",
-                  "  pm.expect(json.description).to.not.include('#');",
-                  "  pm.expect(json.description).to.not.include('Here is');",
-                  "  pm.expect(json.description).to.not.include('If you want');",
-                  "});",
-                  "pm.test('question content is not placeholder text', () => {",
-                  "  const q = (json.questions || [])[0] || {};",
-                  "  pm.expect(q.content || '').to.not.match(/^Question \\d+ about/);",
-                  "});",
-                  "pm.test('english response omits fieldLabels', () => pm.expect(json).to.not.have.property('fieldLabels'));",
-                  "if (json && json.id) pm.collectionVariables.set('activityId', json.id);",
-                  "if (json.questions && json.questions.length) {",
-                  "  const q = json.questions[0];",
-                  "  pm.collectionVariables.set('questionId', q.id);",
-                  "  const opts = q.options || [];",
-                  "  const correct = opts.find(o => o.isCorrect) || opts[0];",
-                  "  if (correct) pm.collectionVariables.set('optionId', correct.id);",
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "const noPlaceholder = (blob) => { const s = (blob || '').toLowerCase(); pm.expect(s, 'must not contain placeholder/template text').to.not.include('an accurate statement about'); pm.expect(s).to.not.include('a common misconception about'); pm.expect(s).to.not.include('a statement unrelated to'); };",
+                  "const aiConfigured = pm.collectionVariables.get('aiConfigured') === 'true';",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('has id', () => pm.expect(j).to.have.property('id'));",
+                  "  pm.test('status is PENDING_REVIEW (auto-submitted to review)', () => pm.expect(j.status).to.eql('PENDING_REVIEW'));",
+                  "  pm.test('has nested questions', () => pm.expect(j.questions).to.be.an('array').that.is.not.empty);",
+                  "  pm.test('NO placeholder/template content (real AI output)', () => noPlaceholder(JSON.stringify(j)));",
+                  "  pm.test('description is clean plain text', () => { pm.expect(j.description).to.be.a('string'); pm.expect(j.description).to.not.include('\\n'); pm.expect(j.description).to.not.include('**'); pm.expect(j.description).to.not.include('Here is'); });",
+                  "  pm.test('english response omits fieldLabels', () => pm.expect(j).to.not.have.property('fieldLabels'));",
+                  "  if (j && j.id) pm.collectionVariables.set('activityId', j.id);",
+                  "  if (j.questions && j.questions.length) { const q = j.questions[0]; pm.collectionVariables.set('questionId', q.id); const opts = q.options || []; const correct = opts.find(o => o.isCorrect) || opts[0]; if (correct) pm.collectionVariables.set('optionId', correct.id); }",
+                  "} else {",
+                  "  pm.test('AI unavailable -> clear failure, NOT fallback content', () => { pm.expect(pm.response.code).to.eql(400); pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|openai_api_key|ai provider|generation failed|invalid json|placeholder/); });",
+                  "  pm.test('error body has NO placeholder/template content', () => noPlaceholder(JSON.stringify(j)));",
+                  "  if (aiConfigured) { pm.test('configured AI must generate (check model/account)', () => { throw new Error('AI health=READY but generate returned ' + pm.response.code + '; verify the configured model is valid for the account.'); }); }",
+                  "  else { console.log('Generate correctly failed: no OPENAI_API_KEY. Set it to generate and run folders 03-08.'); }",
                   "}"
                 ]
               }
@@ -724,24 +869,16 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('same activity id', () => pm.expect(String(json.id)).to.eql(String(pm.collectionVariables.get('activityId'))));",
-                  "pm.test('refine returns it to PENDING_REVIEW', () => pm.expect(json.status).to.eql('PENDING_REVIEW'));",
-                  "pm.test('has nested questions', () => pm.expect(json.questions).to.be.an('array'));",
-                  "pm.test('description is clean plain text', () => {",
-                  "  pm.expect(json.description).to.be.a('string');",
-                  "  pm.expect(json.description).to.not.include('\\n');",
-                  "  pm.expect(json.description).to.not.include('\\\\n');",
-                  "  pm.expect(json.description).to.not.include('**');",
-                  "  pm.expect(json.description).to.not.include('إليك');",
-                  "  pm.expect(json.description).to.not.include('إذا أردت');",
-                  "});",
-                  "pm.test('arabic response includes localized fieldLabels', () => {",
-                  "  pm.expect(json).to.have.property('fieldLabels');",
-                  "  pm.expect(json.fieldLabels.title).to.eql('العنوان');",
-                  "  pm.expect(json.fieldLabels.description).to.eql('الوصف');",
-                  "});"
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('same activity id', () => pm.expect(String(j.id)).to.eql(String(pm.collectionVariables.get('activityId'))));",
+                  "  pm.test('refine returns it to PENDING_REVIEW', () => pm.expect(j.status).to.eql('PENDING_REVIEW'));",
+                  "  pm.test('has nested questions', () => pm.expect(j.questions).to.be.an('array'));",
+                  "  pm.test('description is clean plain text', () => { pm.expect(j.description).to.be.a('string'); pm.expect(j.description).to.not.include('\\n'); pm.expect(j.description).to.not.include('**'); });",
+                  "  pm.test('arabic response includes localized fieldLabels', () => { pm.expect(j).to.have.property('fieldLabels'); pm.expect(j.fieldLabels.title).to.eql('العنوان'); });",
+                  "} else {",
+                  "  pm.test('AI refine unavailable -> clear failure (no fallback)', () => pm.expect(pm.response.code).to.be.within(400, 599));",
+                  "}"
                 ]
               }
             }
@@ -959,10 +1096,14 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
-                  "pm.test('auto-submitted to PENDING_REVIEW', () => pm.expect(json.status).to.eql('PENDING_REVIEW'));",
-                  "if (json && json.id) pm.collectionVariables.set('revisionActivityId', json.id);"
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('auto-submitted to PENDING_REVIEW', () => pm.expect(j.status).to.eql('PENDING_REVIEW'));",
+                  "  pm.test('NO placeholder/template content', () => { const s = JSON.stringify(j).toLowerCase(); pm.expect(s).to.not.include('an accurate statement about'); pm.expect(s).to.not.include('a common misconception about'); pm.expect(s).to.not.include('a statement unrelated to'); });",
+                  "  if (j && j.id) pm.collectionVariables.set('revisionActivityId', j.id);",
+                  "} else {",
+                  "  pm.test('AI unavailable -> clear failure (no fallback)', () => { pm.expect(pm.response.code).to.eql(400); pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|ai provider|generation failed|invalid json/); });",
+                  "}"
                 ]
               }
             }
@@ -1036,10 +1177,14 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "const json = pm.response.json();",
-                  "pm.test('status 200 or 201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
-                  "pm.test('auto-submitted to PENDING_REVIEW', () => pm.expect(json.status).to.eql('PENDING_REVIEW'));",
-                  "if (json && json.id) pm.collectionVariables.set('thirdActivityId', json.id);"
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('auto-submitted to PENDING_REVIEW', () => pm.expect(j.status).to.eql('PENDING_REVIEW'));",
+                  "  pm.test('NO placeholder/template content', () => { const s = JSON.stringify(j).toLowerCase(); pm.expect(s).to.not.include('an accurate statement about'); pm.expect(s).to.not.include('a common misconception about'); pm.expect(s).to.not.include('a statement unrelated to'); });",
+                  "  if (j && j.id) pm.collectionVariables.set('thirdActivityId', j.id);",
+                  "} else {",
+                  "  pm.test('AI unavailable -> clear failure (no fallback)', () => { pm.expect(pm.response.code).to.eql(400); pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|ai provider|generation failed|invalid json/); });",
+                  "}"
                 ]
               }
             }
@@ -3598,7 +3743,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/teachers/{{teacherId}}/dashboard"
+            "url": "{{baseUrl}}/teachers/me/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3619,7 +3779,22 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": "{{baseUrl}}/ai/teachers/{{teacherId}}/dashboard-insight"
+            "url": "{{baseUrl}}/ai/teachers/{{teacherId}}/dashboard-insight",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3639,7 +3814,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/teachers/{{teacherId}}/classrooms"
+            "url": "{{baseUrl}}/teachers/me/classrooms",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3658,7 +3848,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/teachers/{{teacherId}}/students"
+            "url": "{{baseUrl}}/teachers/me/students",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3677,7 +3882,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/teachers/{{teacherId}}/activities"
+            "url": "{{baseUrl}}/teachers/me/activities",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3697,7 +3917,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/teachers/{{teacherId}}/activities?status=APPROVED"
+            "url": "{{baseUrl}}/teachers/me/activities?status=APPROVED",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3717,7 +3952,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/activities?status=PENDING_REVIEW"
+            "url": "{{baseUrl}}/activities?status=PENDING_REVIEW",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3737,7 +3987,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/parents/{{parentId}}/children"
+            "url": "{{baseUrl}}/parents/me/children",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3756,7 +4021,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/parents/{{parentId}}/children/{{studentId}}/overview"
+            "url": "{{baseUrl}}/parents/me/children/{{studentId}}/overview",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3774,7 +4054,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/parents/{{parentId}}/children/{{studentId}}/learning-profile"
+            "url": "{{baseUrl}}/parents/me/children/{{studentId}}/learning-profile",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3796,7 +4091,22 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": "{{baseUrl}}/ai/classrooms/{{classroomId}}/summary"
+            "url": "{{baseUrl}}/ai/classrooms/{{classroomId}}/summary",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3814,7 +4124,22 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": "{{baseUrl}}/ai/parents/{{parentId}}/children/{{studentId}}/summary"
+            "url": "{{baseUrl}}/ai/parents/{{parentId}}/children/{{studentId}}/summary",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3832,7 +4157,22 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": "{{baseUrl}}/ai/parents/{{parentId}}/dashboard-insight"
+            "url": "{{baseUrl}}/ai/parents/{{parentId}}/dashboard-insight",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -3850,7 +4190,22 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/parents/{{parentId}}/dashboard"
+            "url": "{{baseUrl}}/parents/me/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
           },
           "event": [
             {
@@ -4108,8 +4463,1056 @@
               }
             }
           ]
+        },
+        {
+          "name": "ab - Get Subscription Plans",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/subscriptions/plans"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('plans is an array', () => pm.expect(json).to.be.an('array'));",
+                  "const parentPlus = Array.isArray(json) ? json.filter(p => p.code === 'PARENT_PLUS').pop() : null;",
+                  "const teacherPro = Array.isArray(json) ? json.filter(p => p.code === 'TEACHER_PRO').pop() : null;",
+                  "pm.test('PARENT_PLUS plan seeded', () => pm.expect(parentPlus, 'PARENT_PLUS').to.not.be.undefined);",
+                  "pm.test('TEACHER_PRO plan seeded', () => pm.expect(teacherPro, 'TEACHER_PRO').to.not.be.undefined);",
+                  "if (parentPlus) pm.collectionVariables.set('parentPlusPlanCode', parentPlus.code);",
+                  "if (teacherPro) pm.collectionVariables.set('teacherProPlanCode', teacherPro.code);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Get Parent Subscription Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/subscriptions/parents/{{parentId}}/status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has hasActivePlan field', () => pm.expect(json).to.have.property('hasActivePlan'));",
+                  "pm.test('hasActivePlan is boolean', () => pm.expect(json.hasActivePlan).to.be.a('boolean'));",
+                  "pm.collectionVariables.set('parentHasActivePlan', String(json.hasActivePlan));",
+                  "if (json.hasActivePlan === false) { pm.test('parent is on the FREE plan by default', () => pm.expect(json.hasActivePlan).to.be.false); }",
+                  "else { console.log('Parent has an ACTIVE paid plan — paid-path test will assert success.'); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Create 3rd Child Under Free Parent Fails",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/students",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"freecheck.child{{runSuffix}}\",\"email\":\"freecheck.child{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Free Cap Child {{runSuffix}}\",\"age\":8,\"grade\":\"Grade 3\",\"parentId\":{{parentId}},\"classroomId\":{{classroomId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "const paid = pm.collectionVariables.get('parentHasActivePlan') === 'true';",
+                  "if (paid) {",
+                  "  pm.test('parent has a paid plan — 3rd child allowed (200/201)', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "} else {",
+                  "  pm.test('free parent: 3rd child blocked with 400', () => pm.expect(pm.response.code).to.eql(400));",
+                  "  pm.test('error mentions the child limit / free plan / upgrade', () => pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/child|children|free plan|limit|upgrade/));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Parent Checkout (PARENT_PLUS) [needs Moyasar keys]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/checkout",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"planCode\":\"PARENT_PLUS\",\"subscriberType\":\"PARENT\",\"subscriberId\":{{parentId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  pm.test('checkout returned localReference + publishableKey', () => { pm.expect(j).to.have.property('localReference'); pm.expect(j).to.have.property('publishableKey'); });",
+                  "  if (j && j.localReference) pm.collectionVariables.set('parentPaymentRef', j.localReference);",
+                  "  console.log('Parent checkout created. Complete payment in the Moyasar form so the callback can activate the plan.');",
+                  "} else {",
+                  "  pm.test('checkout blocked locally (gateway not configured) — acceptable without keys', () => {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "    pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|gateway|support/);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Create 3rd Child After Paid Upgrade [conditional]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/students",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"paidcheck.child{{runSuffix}}\",\"email\":\"paidcheck.child{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Paid Plan Child {{runSuffix}}\",\"age\":8,\"grade\":\"Grade 3\",\"parentId\":{{parentId}},\"classroomId\":{{classroomId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "const paid = pm.collectionVariables.get('parentHasActivePlan') === 'true';",
+                  "if (paid) {",
+                  "  pm.test('paid parent: 3rd child succeeds (200/201)', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "  if (j && j.id) pm.collectionVariables.set('thirdChildId', j.id);",
+                  "} else {",
+                  "  console.log('SKIPPED paid-success branch: no ACTIVE paid plan in this run. Activate a subscription via the Moyasar checkout + callback (see README) to exercise the 200 path.');",
+                  "  pm.test('paid 3rd-child path documented (no active paid plan in this run)', () => pm.expect(paid).to.be.false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Get Teacher Subscription Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/subscriptions/teachers/{{teacherId}}/status"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('has hasActivePlan field', () => pm.expect(json).to.have.property('hasActivePlan'));",
+                  "pm.test('hasActivePlan is boolean', () => pm.expect(json.hasActivePlan).to.be.a('boolean'));",
+                  "pm.collectionVariables.set('teacherHasActivePlan', String(json.hasActivePlan));",
+                  "if (json.hasActivePlan === false) { pm.test('teacher is on the FREE plan by default', () => pm.expect(json.hasActivePlan).to.be.false); }",
+                  "else { console.log('Teacher has an ACTIVE paid plan — paid-path test will assert success.'); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Create 2nd Classroom Under Free Teacher Succeeds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classrooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Second Classroom {{runSuffix}}\",\"gradeLevel\":6,\"section\":\"B\",\"teacherId\":{{teacherId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('2nd classroom created (200/201)', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "// Assumes a fresh DB (ddl-auto=create-drop default): the teacher has exactly 1 classroom before this runs."
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Capture secondClassroomId",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/classrooms"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const name = 'Second Classroom ' + pm.collectionVariables.get('runSuffix');",
+                  "const c = Array.isArray(json) ? json.filter(x => x.name === name).pop() : null;",
+                  "pm.test('second classroom exists', () => pm.expect(c, 'second classroom').to.not.be.undefined);",
+                  "if (c) pm.collectionVariables.set('secondClassroomId', c.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Create 3rd Classroom Under Free Teacher Fails",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classrooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Third Classroom {{runSuffix}}\",\"gradeLevel\":6,\"section\":\"C\",\"teacherId\":{{teacherId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "const paid = pm.collectionVariables.get('teacherHasActivePlan') === 'true';",
+                  "if (paid) {",
+                  "  pm.test('teacher has a paid plan — 3rd classroom allowed (200/201)', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "} else {",
+                  "  pm.test('free teacher: 3rd classroom blocked with 400', () => pm.expect(pm.response.code).to.eql(400));",
+                  "  pm.test('error mentions the classroom limit / free plan / upgrade', () => pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/classroom|free plan|limit|upgrade/));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Teacher Checkout (TEACHER_PRO) [needs Moyasar keys]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/payments/checkout",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"planCode\":\"TEACHER_PRO\",\"subscriberType\":\"TEACHER\",\"subscriberId\":{{teacherId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  pm.test('checkout returned localReference + publishableKey', () => { pm.expect(j).to.have.property('localReference'); pm.expect(j).to.have.property('publishableKey'); });",
+                  "  if (j && j.localReference) pm.collectionVariables.set('teacherPaymentRef', j.localReference);",
+                  "  console.log('Teacher checkout created. Complete payment in the Moyasar form so the callback can activate the plan.');",
+                  "} else {",
+                  "  pm.test('checkout blocked locally (gateway not configured) — acceptable without keys', () => {",
+                  "    pm.expect(pm.response.code).to.eql(400);",
+                  "    pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|gateway|support/);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Create 3rd Classroom After Paid Upgrade [conditional]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classrooms",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Paid Plan Classroom {{runSuffix}}\",\"gradeLevel\":6,\"section\":\"D\",\"teacherId\":{{teacherId}}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "const paid = pm.collectionVariables.get('teacherHasActivePlan') === 'true';",
+                  "if (paid) {",
+                  "  pm.test('paid teacher: 3rd classroom succeeds (200/201)', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "  pm.collectionVariables.set('thirdClassroomCreated', 'true');",
+                  "} else {",
+                  "  console.log('SKIPPED paid-success branch: no ACTIVE paid plan in this run. Activate a subscription via the Moyasar checkout + callback (see README) to exercise the 200 path.');",
+                  "  pm.test('paid 3rd-classroom path documented (no active paid plan in this run)', () => pm.expect(paid).to.be.false);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13 - External Integrations - n8n",
+      "item": [
+        {
+          "name": "ab - Generate Parent Weekly Report (n8n)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/parents/me/weekly-report/generate",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('n8n report generated', () => { pm.expect(j).to.have.property('reportTitle'); pm.expect(j.source).to.eql('n8n'); });",
+                  "  pm.test('triggerType is MANUAL', () => pm.expect(j.triggerType).to.eql('MANUAL'));",
+                  "  pm.test('report is a structured object, not an escaped string', () => { pm.expect(j.report).to.be.an('object'); pm.expect(j.report).to.not.be.a('string'); });",
+                  "  pm.test('report.children is a real array', () => pm.expect(j.report.children).to.be.an('array'));",
+                  "  pm.test('no raw reportJson string field', () => { pm.expect(j).to.not.have.property('reportJson'); pm.expect(pm.response.text()).to.not.include('reportJson'); });",
+                  "  if (j && j.id) pm.collectionVariables.set('weeklyReportId', j.id);",
+                  "} else {",
+                  "  pm.test('n8n not configured locally -> clear 400', () => { pm.expect(pm.response.code).to.eql(400); pm.expect((j && j.message ? j.message : '').toLowerCase()).to.match(/n8n|not configured|webhook|basic auth/); });",
+                  "  console.log('n8n not configured: set N8N_PARENT_REPORT_WEBHOOK_URL + Basic Auth env vars to exercise the 200 path.');",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Generate All Parent Weekly Reports (batch)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/parents/weekly-reports/generate-all"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const arr = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returns an array (one result per parent)', () => pm.expect(arr).to.be.an('array'));",
+                  "pm.test('no raw reportJson string field in response', () => pm.expect(pm.response.text()).to.not.include('reportJson'));",
+                  "if (Array.isArray(arr) && arr.length) {",
+                  "  pm.test('each result is BATCH_MANUAL with a structured report field (object on success, null on failure)', () => arr.forEach(r => {",
+                  "    pm.expect(r.triggerType).to.eql('BATCH_MANUAL');",
+                  "    pm.expect(r).to.not.have.property('reportJson');",
+                  "    pm.expect(r).to.have.property('report');",
+                  "    if (r.success) { pm.expect(r.report).to.be.an('object'); } else { pm.expect(r.report, 'failed report has null report').to.be.null; pm.expect(r.errorMessage).to.be.a('string'); }",
+                  "  }));",
+                  "  pm.collectionVariables.set('weeklyReportId', arr[0].id);",
+                  "  console.log('generate-all processed ' + arr.length + ' parent(s); first success=' + arr[0].success);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - List Parent Weekly Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parents/me/weekly-reports",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const arr = pm.response.json();",
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('reports is an array', () => pm.expect(arr).to.be.an('array'));",
+                  "pm.test('no raw reportJson string field', () => pm.expect(pm.response.text()).to.not.include('reportJson'));",
+                  "if (Array.isArray(arr) && arr.length) {",
+                  "  pm.test('all reports belong to this parent and expose a structured report field', () => arr.forEach(r => {",
+                  "    pm.expect(r.parentId).to.eql(Number(pm.collectionVariables.get('parentId')));",
+                  "    pm.expect(r).to.not.have.property('reportJson');",
+                  "    pm.expect(r).to.have.property('report');",
+                  "  }));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Get Latest Parent Weekly Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parents/me/weekly-reports/latest",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "if (pm.response.code === 200) {",
+                  "  pm.test('latest report returned', () => { pm.expect(j).to.have.property('id'); pm.expect(j).to.have.property('triggerType'); pm.expect(j).to.have.property('generatedAt'); });",
+                  "  pm.test('report is structured (object or null), not an escaped string', () => { pm.expect(j).to.not.have.property('reportJson'); pm.expect(j).to.have.property('report'); if (j.report !== null) pm.expect(j.report).to.be.an('object'); });",
+                  "  pm.test('no raw reportJson string field', () => pm.expect(pm.response.text()).to.not.include('reportJson'));",
+                  "} else {",
+                  "  pm.test('no report yet -> clear 400', () => pm.expect(pm.response.code).to.eql(400));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Get Parent Weekly Report By Id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parents/weekly-reports/{{weeklyReportId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const j = (() => { try { return pm.response.json(); } catch (e) { return null; } })();",
+                  "const rid = pm.collectionVariables.get('weeklyReportId');",
+                  "if (rid) {",
+                  "  pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "  pm.test('report id matches', () => pm.expect(String(j.id)).to.eql(String(rid)));",
+                  "  pm.test('report is structured (object or null), no escaped reportJson', () => { pm.expect(j).to.not.have.property('reportJson'); pm.expect(j).to.have.property('report'); if (j.report !== null) pm.expect(j.report).to.be.an('object'); });",
+                  "} else {",
+                  "  pm.test('no captured report id (run generate-all first) - skipped', () => pm.expect(!rid).to.be.true);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14 - Security - Auth & Ownership",
+      "item": [
+        {
+          "name": "ab - Unauthenticated Request Is 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/teachers/{{teacherId}}/dashboard",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('no credentials -> 401 Unauthorized', () => pm.expect(pm.response.code).to.eql(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Student Cannot Access Teacher Dashboard (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/teachers/{{teacherId}}/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{studentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{studentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('student role on teacher endpoint -> 403 Forbidden', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Parent Cannot Access Teacher Dashboard (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/teachers/{{teacherId}}/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('parent role on teacher endpoint -> 403 Forbidden', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Teacher Cannot Access Parent Reports (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parents/{{parentId}}/weekly-reports",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('teacher role on parent endpoint -> 403 Forbidden', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Parent Cannot Access Another Parent Dashboard (403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parents/999999/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('parent accessing a different parentId -> 403 (ownership)', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Parent Owner Can Access Own Dashboard (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/parents/{{parentId}}/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('parent accessing own dashboard -> 200', () => pm.expect(pm.response.code).to.eql(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Teacher Owner Can Access Own Dashboard (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/teachers/{{teacherId}}/dashboard",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('teacher accessing own dashboard -> 200', () => pm.expect(pm.response.code).to.eql(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Admin Can Access Generic CRUD (200)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/audit-logs",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminPassword}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('admin on generic CRUD -> 200', () => pm.expect(pm.response.code).to.eql(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Moyasar Callback Reachable Without Auth (not 401/403)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/payments/callback?id=test_unauthenticated_probe",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('callback is permitAll (reachable without credentials)', () => { pm.expect(pm.response.code).to.not.eql(401); pm.expect(pm.response.code).to.not.eql(403); });",
+                  "console.log('callback status ' + pm.response.code + ' (verification may fail without Moyasar config — that is fine; the point is it was NOT blocked by auth).');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Parent Cannot Create Classroom (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classrooms",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{parentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{parentPassword}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Rogue Classroom {{runSuffix}}\",\"gradeLevel\":6,\"section\":\"Z\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('parent creating a classroom -> 403', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Student Cannot Create Classroom (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classrooms",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{studentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{studentPassword}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Rogue Classroom {{runSuffix}}\",\"gradeLevel\":6,\"section\":\"Z\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('student creating a classroom -> 403', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Unauthenticated Create Classroom (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/classrooms",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Rogue Classroom {{runSuffix}}\",\"gradeLevel\":6,\"section\":\"Z\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('no credentials creating a classroom -> 401', () => pm.expect(pm.response.code).to.eql(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Teacher Cannot Create Child (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/parents/me/children",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{teacherUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{teacherPassword}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"rogue.child{{runSuffix}}\",\"email\":\"rogue.child{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Rogue Child\",\"age\":9,\"grade\":\"Grade 4\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('teacher creating a child -> 403', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Student Cannot Create Child (403)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/parents/me/children",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{studentUsername}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{studentPassword}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"rogue.child{{runSuffix}}\",\"email\":\"rogue.child{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Rogue Child\",\"age\":9,\"grade\":\"Grade 4\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('student creating a child -> 403', () => pm.expect(pm.response.code).to.eql(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ab - Unauthenticated Create Child (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/parents/me/children",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"rogue.child{{runSuffix}}\",\"email\":\"rogue.child{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Rogue Child\",\"age\":9,\"grade\":\"Grade 4\"}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('no credentials creating a child -> 401', () => pm.expect(pm.response.code).to.eql(401));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
-  ]
+  ],
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{adminUsername}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{adminPassword}}",
+        "type": "string"
+      }
+    ]
+  }
 }

@@ -14,6 +14,7 @@ import com.example.qubaatisystem.DTO.Out.NotificationOutDTO;
 import com.example.qubaatisystem.DTO.Out.RecommendationOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentMissionAttemptOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentSkillOutDTO;
+import com.example.qubaatisystem.Security.SecurityOwnershipService;
 import com.example.qubaatisystem.Service.MissionService;
 import com.example.qubaatisystem.Service.MissionSessionService;
 import com.example.qubaatisystem.Service.NotificationService;
@@ -49,6 +50,7 @@ public class MissionFlowController {
     private final RecommendationService recommendationService;
     private final NotificationService notificationService;
     private final StudentSkillService studentSkillService;
+    private final SecurityOwnershipService security;
 
     // ---------- available / default missions ----------
 
@@ -56,7 +58,15 @@ public class MissionFlowController {
     public ResponseEntity<AvailableMissionsOutDTO> getAvailableMissions(
             @PathVariable Integer studentId,
             @RequestParam Integer careerWorldId) {
+        security.assertCurrentStudentOrAdmin(studentId);
         return ResponseEntity.status(200).body(missionService.getAvailableMissions(studentId, careerWorldId));
+    }
+
+    // Current-student alias — no studentId in the path.
+    @GetMapping("/students/me/missions/available")
+    public ResponseEntity<AvailableMissionsOutDTO> getMyAvailableMissions(@RequestParam Integer careerWorldId) {
+        return ResponseEntity.status(200)
+                .body(missionService.getAvailableMissions(security.getCurrentStudentId(), careerWorldId));
     }
 
     @GetMapping("/career-worlds/{careerWorldId}/missions")
@@ -69,6 +79,7 @@ public class MissionFlowController {
             @PathVariable Integer studentId,
             @PathVariable Integer missionId,
             @Valid @RequestBody(required = false) MissionRegenerateInDTO request) {
+        security.assertCurrentStudentOrAdmin(studentId);
         String reason = request == null ? null : request.getReason();
         return ResponseEntity.status(200).body(missionService.regenerateMission(studentId, missionId, reason));
     }
@@ -141,12 +152,14 @@ public class MissionFlowController {
 
     @GetMapping("/students/{studentId}/recommendations")
     public ResponseEntity<List<RecommendationOutDTO>> getStudentRecommendations(@PathVariable Integer studentId) {
+        security.assertCurrentStudentOrAdmin(studentId);
         return ResponseEntity.status(200).body(recommendationService.getByStudent(studentId));
     }
 
     /** OPTIONAL manual re-run of the AI-first recommendations (the normal flow generates them on completion). */
     @PostMapping("/students/{studentId}/recommendations/regenerate")
     public ResponseEntity<List<RecommendationOutDTO>> regenerateRecommendations(@PathVariable Integer studentId) {
+        security.assertCurrentStudentOrAdmin(studentId);
         return ResponseEntity.status(200).body(missionSessionService.regenerateRecommendations(studentId));
     }
 
@@ -192,6 +205,7 @@ public class MissionFlowController {
 
     @GetMapping("/students/{studentId}/skills")
     public ResponseEntity<List<StudentSkillOutDTO>> getStudentSkills(@PathVariable Integer studentId) {
+        security.assertCurrentStudentOrAdmin(studentId);
         return ResponseEntity.status(200).body(studentSkillService.getByStudentId(studentId));
     }
 }
