@@ -2,10 +2,16 @@ package com.example.qubaatisystem.Security;
 
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.Enum.UserRole;
+import com.example.qubaatisystem.Model.Activity;
+import com.example.qubaatisystem.Model.Classroom;
+import com.example.qubaatisystem.Model.Notification;
 import com.example.qubaatisystem.Model.Parent;
 import com.example.qubaatisystem.Model.Student;
 import com.example.qubaatisystem.Model.Teacher;
 import com.example.qubaatisystem.Model.User;
+import com.example.qubaatisystem.Repository.ActivityRepository;
+import com.example.qubaatisystem.Repository.ClassroomRepository;
+import com.example.qubaatisystem.Repository.NotificationRepository;
 import com.example.qubaatisystem.Repository.ParentRepository;
 import com.example.qubaatisystem.Repository.StudentRepository;
 import com.example.qubaatisystem.Repository.TeacherRepository;
@@ -30,8 +36,15 @@ public class SecurityOwnershipService {
     private final ParentRepository parentRepository;
     private final TeacherRepository teacherRepository;
     private final StudentRepository studentRepository;
+    private final NotificationRepository notificationRepository;
+    private final ClassroomRepository classroomRepository;
+    private final ActivityRepository activityRepository;
 
     // ---- current principal ----
+
+    public Integer getCurrentUserId() {
+        return getCurrentUser().getId();
+    }
 
     public User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -145,6 +158,61 @@ public class SecurityOwnershipService {
         Student student = studentRepository.findStudentById(studentId);
         if (student == null || student.getParent() == null || !student.getParent().getId().equals(parentId)) {
             throw new AccessDeniedException("That child does not belong to this parent");
+        }
+    }
+
+    /** Convenience: the CURRENT parent (from Basic Auth) must own the given child (ADMIN bypasses). */
+    public void assertCurrentParentOwnsChildOrAdmin(Integer studentId) {
+        if (isAdmin()) {
+            return;
+        }
+        assertParentOwnsStudentOrAdmin(getCurrentParentId(), studentId);
+    }
+
+    /** The given userId must be the authenticated user (ADMIN bypasses) — userId ownership, not profile id. */
+    public void assertCurrentUserOrAdmin(Integer userId) {
+        if (isAdmin()) {
+            return;
+        }
+        if (userId == null || !getCurrentUser().getId().equals(userId)) {
+            throw new AccessDeniedException("You may only access your own user data");
+        }
+    }
+
+    /** The notification's recipient must be the authenticated user (ADMIN bypasses). */
+    public void assertCurrentUserOwnsNotificationOrAdmin(Integer notificationId) {
+        if (isAdmin()) {
+            return;
+        }
+        Notification notification = notificationRepository.findNotificationById(notificationId);
+        if (notification == null || notification.getRecipient() == null
+                || !notification.getRecipient().getId().equals(getCurrentUser().getId())) {
+            throw new AccessDeniedException("That notification does not belong to you");
+        }
+    }
+
+    /** The classroom must be owned by the current teacher (ADMIN bypasses). */
+    public void assertCurrentTeacherOwnsClassroomOrAdmin(Integer classroomId) {
+        if (isAdmin()) {
+            return;
+        }
+        Integer teacherId = getCurrentTeacherId();
+        Classroom classroom = classroomRepository.findClassroomById(classroomId);
+        if (classroom == null || classroom.getTeacher() == null || !classroom.getTeacher().getId().equals(teacherId)) {
+            throw new AccessDeniedException("That classroom does not belong to you");
+        }
+    }
+
+    /** The activity must be owned (createdByTeacher) by the current teacher (ADMIN bypasses). */
+    public void assertCurrentTeacherOwnsActivityOrAdmin(Integer activityId) {
+        if (isAdmin()) {
+            return;
+        }
+        Integer teacherId = getCurrentTeacherId();
+        Activity activity = activityRepository.findActivityById(activityId);
+        if (activity == null || activity.getCreatedByTeacher() == null
+                || !activity.getCreatedByTeacher().getId().equals(teacherId)) {
+            throw new AccessDeniedException("That activity does not belong to you");
         }
     }
 }

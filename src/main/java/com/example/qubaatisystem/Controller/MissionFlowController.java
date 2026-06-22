@@ -178,25 +178,53 @@ public class MissionFlowController {
         return ResponseEntity.status(200).body(recommendationService.complete(recommendationId));
     }
 
-    // ---------- notifications ----------
+    // ---------- notifications (userId ownership: a user only sees their OWN notifications) ----------
 
+    // Current-user ("me") notification endpoints — no userId in the path.
+    @GetMapping("/users/me/notifications")
+    public ResponseEntity<List<NotificationOutDTO>> getMyNotifications() {
+        return ResponseEntity.status(200).body(notificationService.getByUser(security.getCurrentUserId()));
+    }
+
+    @GetMapping("/users/me/notifications/unread")
+    public ResponseEntity<List<NotificationOutDTO>> getMyUnreadNotifications() {
+        return ResponseEntity.status(200).body(notificationService.getUnreadByUser(security.getCurrentUserId()));
+    }
+
+    @PatchMapping("/users/me/notifications/{notificationId}/read")
+    public ResponseEntity<NotificationOutDTO> markMyNotificationRead(@PathVariable Integer notificationId) {
+        security.assertCurrentUserOwnsNotificationOrAdmin(notificationId);
+        return ResponseEntity.status(200).body(notificationService.markRead(notificationId));
+    }
+
+    @PatchMapping("/users/me/notifications/read-all")
+    public ResponseEntity<ApiResponse> markAllMyNotificationsRead() {
+        notificationService.markAllRead(security.getCurrentUserId());
+        return ResponseEntity.status(200).body(new ApiResponse("All notifications marked as read"));
+    }
+
+    // Legacy userId endpoints — now ownership-protected (the userId must be the authenticated user, or admin).
     @GetMapping("/users/{userId}/notifications")
     public ResponseEntity<List<NotificationOutDTO>> getUserNotifications(@PathVariable Integer userId) {
+        security.assertCurrentUserOrAdmin(userId);
         return ResponseEntity.status(200).body(notificationService.getByUser(userId));
     }
 
     @GetMapping("/users/{userId}/notifications/unread")
     public ResponseEntity<List<NotificationOutDTO>> getUserUnreadNotifications(@PathVariable Integer userId) {
+        security.assertCurrentUserOrAdmin(userId);
         return ResponseEntity.status(200).body(notificationService.getUnreadByUser(userId));
     }
 
     @PatchMapping("/notifications/{notificationId}/read")
     public ResponseEntity<NotificationOutDTO> markNotificationRead(@PathVariable Integer notificationId) {
+        security.assertCurrentUserOwnsNotificationOrAdmin(notificationId);
         return ResponseEntity.status(200).body(notificationService.markRead(notificationId));
     }
 
     @PatchMapping("/users/{userId}/notifications/read-all")
     public ResponseEntity<ApiResponse> markAllNotificationsRead(@PathVariable Integer userId) {
+        security.assertCurrentUserOrAdmin(userId);
         notificationService.markAllRead(userId);
         return ResponseEntity.status(200).body(new ApiResponse("All notifications marked as read"));
     }

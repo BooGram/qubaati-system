@@ -283,4 +283,24 @@ The API is now protected with **stateless HTTP Basic Auth** (no JWT, no session,
 - **Public (no auth):** `GET /api/v1/payments/callback` (Moyasar webhook — still verified server-side) and `GET /api/v1/subscriptions/plans`.
 - **Role + ownership:** parents only touch their own `parentId`, teachers their own `teacherId`, students their own `studentId`; ADMIN bypasses all. Wrong role → **403**; wrong owner → **403**; missing/invalid credentials → **401**.
 
-**Postman:** the collection sends **Basic Auth as the seeded admin** by default (`{{adminUsername}}`/`{{adminPassword}}` declared as variables), so admin bypasses every rule and the whole existing suite stays green. `ab - Initialize Run Variables` also derives `parentUsername` / `teacherUsername` / `studentUsername` (from `runSuffix`, matching the Data Injection bodies) for the new **folder 14 - Security - Auth & Ownership**, which proves: 401 (no auth), 403 (student→teacher, parent→teacher role; parent→another parent ownership), owner-success (parent/teacher own dashboard), admin-success (generic CRUD), and the Moyasar callback reachable without auth. To act as a specific role, override a request's auth with the matching `*Username`/`*Password` variables.
+### Current-user (`/me`) endpoints — normal flows carry no profile id
+
+Normal owner-scoped flows use the **authenticated user** (Basic Auth), never a profile id in the path/body:
+- **Teacher:** `/teachers/me/dashboard|classrooms|students|activities`, `/ai/teachers/me/dashboard-insight`. Classroom create derives the owner from auth (no `teacherId` in body); `/ai/classrooms/{id}/summary` requires the teacher to own that classroom.
+- **Parent:** `/parents/me/dashboard|children|children/{childId}/overview|learning-profile`, `/parents/me/weekly-report/generate`, `/parents/me/weekly-reports[/latest]`, `/ai/parents/me/dashboard-insight`, `/ai/parents/me/children/{childId}/summary`. Child create = `POST /parents/me/children` (no `parentId`). A child id is allowed only to *select* one of the parent's own children (ownership checked).
+- **Student:** `/students/me/activity-dashboard|career-worlds/available|missions/available`; notifications via `/users/me/notifications[/unread]`, `PATCH /users/me/notifications/{id}/read`, `/users/me/notifications/read-all`.
+- **Notifications are userId-owned:** legacy `/users/{userId}/notifications*` and `PATCH /notifications/{id}/read` now require the userId/recipient to be the authenticated user (or admin).
+- **Legacy `{id}` endpoints remain** for back-compat but are **ownership-protected** (a same-role user cannot reach another's data) — prefer the `/me` versions.
+
+### Postman actor model (no admin for business flows)
+
+Each request carries **explicit per-request Basic Auth** for its real actor — the suite no longer relies on an admin default:
+- **Admin:** career worlds, missions, mission steps, skills, generic/debug CRUD, blocked-CRUD checks, batch report generate-all.
+- **Teacher:** classroom create, activity generate/refine/review/approve/assign/grade/feedback, teacher dashboards, teacher AI insight, classroom AI summary.
+- **Parent:** create children, parent dashboard/children/learning-profile, n8n weekly reports, parent AI insight/child summary, subscription status, checkout.
+- **Student:** start/save/submit activities, mission start/decide/complete, student dashboards, own notifications.
+- **No auth:** Moyasar callback, subscription plans.
+
+A **collection-level pre-request** sets `runSuffix` (once) and all role credentials (`teacher/parent/studentUsername` from `runSuffix`, matching the Data Injection bodies; `admin`/`Admin123!`), so credentials are never empty even on a standalone send — the earlier "teacher 401 because the username was blank" cannot recur. Run the whole collection top-to-bottom starting at `ab - Initialize Run Variables`.
+
+**Folder 14 - Security - Auth & Ownership** (23 requests) proves: 401 (no auth on protected/AI/notification endpoints), 403 (cross-role: student→teacher, parent→teacher, teacher→parent AI; cross-owner: parent→another parent, teacher→another teacher, user→another user's notifications, parent→non-owned child AI summary, classroom create by parent/student, child create by teacher/student), and owner/admin success (own dashboard, own notifications → 200).
