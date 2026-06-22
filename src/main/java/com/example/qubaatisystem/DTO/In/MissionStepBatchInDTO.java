@@ -2,6 +2,7 @@ package com.example.qubaatisystem.DTO.In;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MissionStepBatchInDTO {
+
+    @NotNull(message = "missionId is required")
+    private Integer missionId;
 
     @Valid
     @NotEmpty(message = "steps must not be empty")

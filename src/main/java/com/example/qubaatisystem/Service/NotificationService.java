@@ -23,6 +23,7 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     public List<NotificationOutDTO> getAll() {
         return notificationRepository.findAll()
@@ -128,6 +129,30 @@ public class NotificationService {
             notification.setReadAt(LocalDateTime.now());
             notificationRepository.save(notification);
         }
+    }
+
+    // ---------- current-user ("me") wrappers ----------
+
+    /** Current-user wrapper: derives the acting user from Basic Auth, then delegates. */
+    public List<NotificationOutDTO> getMyNotifications(User user) {
+        return getByUser(security.getCurrentUserId(user));
+    }
+
+    /** Current-user wrapper: derives the acting user from Basic Auth, then delegates. */
+    public List<NotificationOutDTO> getMyUnreadNotifications(User user) {
+        return getUnreadByUser(security.getCurrentUserId(user));
+    }
+
+    /** Owner-guarded mark-read: the notification must belong to the acting user. */
+    public NotificationOutDTO markMyNotificationRead(User user,
+                                                     com.example.qubaatisystem.DTO.In.IdInDTO request) {
+        security.assertUserOwnsNotification(user, request.getId());
+        return markRead(request.getId());
+    }
+
+    /** Current-user wrapper: derives the acting user from Basic Auth, then delegates. */
+    public void markAllMyNotificationsRead(User user) {
+        markAllRead(security.getCurrentUserId(user));
     }
 
     /** Internal event helper: create an UNREAD notification for a user (no-op if recipient is null). */

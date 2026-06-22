@@ -2,17 +2,19 @@ package com.example.qubaatisystem.Controller;
 
 import com.example.qubaatisystem.Api.ApiResponse;
 import com.example.qubaatisystem.DTO.In.ChildCreateInDTO;
+import com.example.qubaatisystem.DTO.In.ChildTargetInDTO;
 import com.example.qubaatisystem.DTO.In.ChildUpdateProfileInDTO;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
 import com.example.qubaatisystem.DTO.In.ParentInDTO;
-import com.example.qubaatisystem.Security.SecurityOwnershipService;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Service.ParentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,121 +27,69 @@ import org.springframework.web.bind.annotation.RestController;
 public class ParentController {
 
     private final ParentService parentService;
-    private final SecurityOwnershipService security;
 
     // Creating/listing parents is an admin operation (no public self-registration of parents).
-    @PostMapping
-    public ResponseEntity<?> create(@Valid @RequestBody ParentInDTO dto) {
-        security.assertAdmin();
-        return ResponseEntity.status(200).body(parentService.create(dto));
+    @PostMapping("/add")
+    public ResponseEntity<?> create(@AuthenticationPrincipal User user, @Valid @RequestBody ParentInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.createForUser(user, dto));
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAll() {
-        security.assertAdmin();
-        return ResponseEntity.status(200).body(parentService.getAll());
+    @GetMapping("/get-all")
+    public ResponseEntity<?> getAll(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(parentService.getAllForUser(user));
     }
 
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) {
-        security.assertCurrentParentOrAdmin(id);
-        return ResponseEntity.status(200).body(parentService.getById(id));
+    @PostMapping("/get")
+    public ResponseEntity<?> getById(@AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.getByIdForUser(user, dto));
     }
 
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody ParentInDTO dto) {
-        security.assertCurrentParentOrAdmin(id);
-        return ResponseEntity.status(200).body(parentService.update(id, dto));
+    @PutMapping("/update")
+    public ResponseEntity<?> update(@AuthenticationPrincipal User user, @Valid @RequestBody ParentInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.updateForUser(user, dto));
     }
 
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id) {
-        security.assertCurrentParentOrAdmin(id);
-        parentService.delete(id);
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> delete(@AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO dto) {
+        parentService.deleteForUser(user, dto);
         return ResponseEntity.status(200).body(new ApiResponse("Parent deleted successfully"));
     }
 
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @GetMapping("/{parentId}/dashboard")
-    public ResponseEntity<?> getDashboard(@PathVariable Integer parentId) {
-        security.assertCurrentParentOrAdmin(parentId);
-        return ResponseEntity.status(200).body(parentService.getDashboard(parentId));
-    }
-
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @PostMapping("/{parentId}/children")
-    public ResponseEntity<?> createChild(@PathVariable Integer parentId,
-                                         @Valid @RequestBody ChildCreateInDTO dto) {
-        security.assertCurrentParentOrAdmin(parentId);
-        return ResponseEntity.status(200).body(parentService.createChild(parentId, dto));
-    }
-
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @GetMapping("/{parentId}/children")
-    public ResponseEntity<?> getChildren(@PathVariable Integer parentId) {
-        security.assertCurrentParentOrAdmin(parentId);
-        return ResponseEntity.status(200).body(parentService.getChildren(parentId));
-    }
-
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @GetMapping("/{parentId}/children/{studentId}/overview")
-    public ResponseEntity<?> getChildOverview(@PathVariable Integer parentId,
-                                              @PathVariable Integer studentId) {
-        security.assertParentOwnsStudentOrAdmin(parentId, studentId);
-        return ResponseEntity.status(200).body(parentService.getChildOverview(parentId, studentId));
-    }
-
-    // Combined learning profile: skills, learning style, activity performance, recent mission insight,
-    // recommendations, and activity/mission completion for one child.
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @GetMapping("/{parentId}/children/{studentId}/learning-profile")
-    public ResponseEntity<?> getChildLearningProfile(@PathVariable Integer parentId,
-                                                     @PathVariable Integer studentId) {
-        security.assertParentOwnsStudentOrAdmin(parentId, studentId);
-        return ResponseEntity.status(200).body(parentService.getChildLearningProfile(parentId, studentId));
-    }
-
-    @Deprecated // legacy profile-id route — prefer the /me equivalent
-    @PatchMapping("/{parentId}/children/{studentId}/profile")
-    public ResponseEntity<?> updateChildProfile(@PathVariable Integer parentId,
-                                                @PathVariable Integer studentId,
-                                                @Valid @RequestBody ChildUpdateProfileInDTO dto) {
-        security.assertParentOwnsStudentOrAdmin(parentId, studentId);
-        return ResponseEntity.status(200).body(parentService.updateChildProfile(parentId, studentId, dto));
-    }
-
-    // ---------- current-parent ("me") endpoints — no parentId in the path ----------
+    // ---------- current-parent ("me") endpoints — parent derived from Basic Auth ----------
 
     @GetMapping("/me/dashboard")
-    public ResponseEntity<?> getMyDashboard() {
-        return ResponseEntity.status(200).body(parentService.getDashboard(security.getCurrentParentId()));
+    public ResponseEntity<?> getMyDashboard(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(parentService.getMyDashboard(user));
     }
 
     // A parent creates their own child account (the parent is derived from Basic Auth; no parentId in the body).
     @PostMapping("/me/children")
-    public ResponseEntity<?> createMyChild(@Valid @RequestBody ChildCreateInDTO dto) {
-        return ResponseEntity.status(200).body(parentService.createChild(security.getCurrentParentId(), dto));
+    public ResponseEntity<?> createMyChild(@AuthenticationPrincipal User user, @Valid @RequestBody ChildCreateInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.createMyChild(user, dto));
     }
 
     @GetMapping("/me/children")
-    public ResponseEntity<?> getMyChildren() {
-        return ResponseEntity.status(200).body(parentService.getChildren(security.getCurrentParentId()));
+    public ResponseEntity<?> getMyChildren(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(parentService.getMyChildren(user));
     }
 
-    @GetMapping("/me/children/{studentId}/overview")
-    public ResponseEntity<?> getMyChildOverview(@PathVariable Integer studentId) {
-        Integer parentId = security.getCurrentParentId();
-        security.assertParentOwnsStudentOrAdmin(parentId, studentId);
-        return ResponseEntity.status(200).body(parentService.getChildOverview(parentId, studentId));
+    @PostMapping("/me/children/overview")
+    public ResponseEntity<?> getMyChildOverview(@AuthenticationPrincipal User user,
+                                                @Valid @RequestBody ChildTargetInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.getMyChildOverview(user, dto));
     }
 
-    @GetMapping("/me/children/{studentId}/learning-profile")
-    public ResponseEntity<?> getMyChildLearningProfile(@PathVariable Integer studentId) {
-        Integer parentId = security.getCurrentParentId();
-        security.assertParentOwnsStudentOrAdmin(parentId, studentId);
-        return ResponseEntity.status(200).body(parentService.getChildLearningProfile(parentId, studentId));
+    // Combined learning profile: skills, learning style, activity performance, recent mission insight,
+    // recommendations, and activity/mission completion for one child.
+    @PostMapping("/me/children/learning-profile")
+    public ResponseEntity<?> getMyChildLearningProfile(@AuthenticationPrincipal User user,
+                                                       @Valid @RequestBody ChildTargetInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.getMyChildLearningProfile(user, dto));
+    }
+
+    @PatchMapping("/me/children/profile")
+    public ResponseEntity<?> updateMyChildProfile(@AuthenticationPrincipal User user,
+                                                  @Valid @RequestBody ChildUpdateProfileInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.updateMyChildProfile(user, dto));
     }
 }

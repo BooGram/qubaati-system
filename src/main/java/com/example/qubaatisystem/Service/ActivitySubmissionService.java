@@ -1,8 +1,15 @@
 package com.example.qubaatisystem.Service;
 
 import com.example.qubaatisystem.Api.ApiException;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
 import com.example.qubaatisystem.DTO.In.ActivitySubmissionInDTO;
+import com.example.qubaatisystem.DTO.In.ActivitySubmissionReturnInDTO;
 import com.example.qubaatisystem.DTO.In.AiAnswerGradeResult;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
+import com.example.qubaatisystem.DTO.In.StartAssignmentInDTO;
+import com.example.qubaatisystem.DTO.In.StudentAnswerManualGradeInDTO;
+import com.example.qubaatisystem.DTO.In.SubmissionTargetInDTO;
+import com.example.qubaatisystem.DTO.In.TeacherFeedbackInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivitySubmissionOutDTO;
 import com.example.qubaatisystem.DTO.Out.ActivitySubmissionTeacherDetailsOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentActivityAttemptOutDTO;
@@ -23,6 +30,7 @@ import com.example.qubaatisystem.Model.Skill;
 import com.example.qubaatisystem.Model.Student;
 import com.example.qubaatisystem.Model.StudentAnswer;
 import com.example.qubaatisystem.Model.Teacher;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.ActivityAssignmentRepository;
 import com.example.qubaatisystem.Repository.ActivityRepository;
 import com.example.qubaatisystem.Repository.ActivitySubmissionRepository;
@@ -59,6 +67,7 @@ public class ActivitySubmissionService {
     private final NotificationService notificationService;
     private final AiAnswerGradingService aiAnswerGradingService;
     private final ModelMapper modelMapper;
+    private final SecurityOwnershipService security;
 
     public List<ActivitySubmissionOutDTO> getAll() {
         return activitySubmissionRepository.findAll()
@@ -120,6 +129,82 @@ public class ActivitySubmissionService {
             throw new ApiException("ActivitySubmission with id " + id + " not found");
         }
         activitySubmissionRepository.delete(activitySubmission);
+    }
+
+    // ====================== FLOW: SUBMISSION (User-based thin-controller wrappers) ======================
+    // These (User, dto) methods own the security/derivation that used to live in the controller, then delegate
+    // to the existing lower-level methods (unchanged) so behavior is preserved exactly.
+
+    public StudentActivityAttemptOutDTO startAssignment(User user, StartAssignmentInDTO body) {
+        Integer studentId = security.getCurrentStudentId(user);
+        return startAssignment(body.getAssignmentId(), studentId);
+    }
+
+    public ActivitySubmissionOutDTO getCurrentSubmission(User user, SubmissionTargetInDTO body) {
+        security.assertStudentOwnsSubmission(user, body.getSubmissionId());
+        return getCurrentSubmission(body.getSubmissionId());
+    }
+
+    public ActivitySubmissionOutDTO submitActivity(User user, SubmissionTargetInDTO body, String language) {
+        security.assertStudentOwnsSubmission(user, body.getSubmissionId());
+        return submitActivity(body.getSubmissionId(), language);
+    }
+
+    public ActivitySubmissionOutDTO getSubmissionResult(User user, SubmissionTargetInDTO body) {
+        security.assertStudentOwnsSubmission(user, body.getSubmissionId());
+        return getSubmissionResult(body.getSubmissionId());
+    }
+
+    public ActivitySubmissionOutDTO getSubmissionFeedback(User user, SubmissionTargetInDTO body) {
+        security.assertStudentOwnsSubmission(user, body.getSubmissionId());
+        return getSubmissionFeedback(body.getSubmissionId());
+    }
+
+    public List<ActivitySubmissionOutDTO> getMyActivityResults(User user) {
+        return getStudentActivityResults(security.getCurrentStudentId(user));
+    }
+
+    public void returnToStudent(User user, ActivitySubmissionReturnInDTO request) {
+        security.assertTeacherOwnsSubmission(user, request.getSubmissionId());
+        Integer actingTeacherId = security.resolveOwningTeacherId(user, request.getTeacherId());
+        returnToStudent(request.getSubmissionId(), actingTeacherId, request.getTeacherFeedback());
+    }
+
+    public ActivitySubmissionOutDTO addTeacherFeedback(User user, TeacherFeedbackInDTO request) {
+        security.assertTeacherOwnsSubmission(user, request.getSubmissionId());
+        Integer actingTeacherId = security.resolveOwningTeacherId(user, request.getTeacherId());
+        return addTeacherFeedback(request.getSubmissionId(), actingTeacherId, request.getTeacherFeedback());
+    }
+
+    public StudentActivityAttemptOutDTO reopenSubmission(User user, SubmissionTargetInDTO body) {
+        security.assertTeacherOwnsSubmission(user, body.getSubmissionId());
+        return reopenSubmission(body.getSubmissionId());
+    }
+
+    public List<ActivitySubmissionOutDTO> getMyPendingGradingSubmissions(User user) {
+        return getPendingGradingSubmissions(security.getCurrentTeacherId(user));
+    }
+
+    public List<ActivitySubmissionOutDTO> getSubmissionsByAssignment(User user, StartAssignmentInDTO body) {
+        security.assertTeacher(user);
+        return getSubmissionsByAssignment(body.getAssignmentId());
+    }
+
+    public List<ActivitySubmissionOutDTO> getSubmissionsByActivity(User user, IdInDTO dto) {
+        security.assertTeacherOwnsActivity(user, dto.getId());
+        return getSubmissionsByActivity(dto.getId());
+    }
+
+    public ActivitySubmissionTeacherDetailsOutDTO getTeacherSubmissionDetails(User user, SubmissionTargetInDTO body) {
+        security.assertTeacherOwnsSubmission(user, body.getSubmissionId());
+        return getTeacherSubmissionDetails(body.getSubmissionId());
+    }
+
+    public ActivitySubmissionOutDTO manualGradeAnswer(User user, StudentAnswerManualGradeInDTO request) {
+        security.assertTeacherOwnsAnswerSubmission(user, request.getAnswerId());
+        Integer actingTeacherId = security.resolveOwningTeacherId(user, request.getTeacherId());
+        return manualGradeAnswer(request.getAnswerId(), actingTeacherId, request.getEarnedPoints(),
+                request.getStatus(), request.getFeedback());
     }
 
     // ====================== FLOW: SUBMISSION ======================
@@ -365,7 +450,17 @@ public class ActivitySubmissionService {
                 + ". Score: " + finalScore + "/" + officialMax + ".";
 
         submission.setScore(finalScore);
-        submission.setAiFeedback(englishFeedback);
+        // Real AI feedback when a provider is configured; otherwise a clearly-marked deterministic SYSTEM summary.
+        // generateSubmissionFeedback returns null when AI is unavailable, so a template is never labelled "AI".
+        String aiFeedbackText = aiAnswerGradingService.generateSubmissionFeedback(
+                activity.getTitle(), totalQuestions, answeredQuestions, correctCount, finalScore, officialMax, language);
+        if (aiFeedbackText != null && !aiFeedbackText.isBlank()) {
+            submission.setAiFeedback(aiFeedbackText);
+            submission.setFeedbackSource("AI");
+        } else {
+            submission.setAiFeedback(englishFeedback);
+            submission.setFeedbackSource("SYSTEM");
+        }
         submission.setStatus(ActivitySubmissionStatus.GRADED);
         ActivitySubmission graded = activitySubmissionRepository.save(submission);
 
@@ -379,7 +474,8 @@ public class ActivitySubmissionService {
                 "Your activity \"" + activity.getTitle() + "\" was graded. Score: " + finalScore + "/" + officialMax + ".");
 
         ActivitySubmissionOutDTO out = toOut(graded);
-        if (arabic) {
+        // Only the deterministic SYSTEM summary is localized here; AI feedback is already in the requested language.
+        if (arabic && "SYSTEM".equals(graded.getFeedbackSource())) {
             out.setAiFeedback("إجمالي الأسئلة: " + totalQuestions
                     + ". تمت الإجابة عن: " + answeredQuestions + "/" + totalQuestions
                     + ". الإجابات الصحيحة: " + correctCount + "/" + totalQuestions

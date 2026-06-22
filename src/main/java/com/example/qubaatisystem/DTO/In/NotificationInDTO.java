@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class NotificationInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "title is required")
     @Size(max = 150, message = "title must be at most 150 characters")
     private String title;

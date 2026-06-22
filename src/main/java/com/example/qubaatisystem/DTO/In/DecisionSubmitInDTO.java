@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DecisionSubmitInDTO {
 
+    @NotNull(message = "sessionId is required")
+    private Integer sessionId;
+
     @NotNull(message = "choiceId is required")
     private Integer choiceId;
 

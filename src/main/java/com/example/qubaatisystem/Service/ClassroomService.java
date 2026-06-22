@@ -2,12 +2,15 @@ package com.example.qubaatisystem.Service;
 
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.ClassroomInDTO;
+import com.example.qubaatisystem.DTO.In.EnrollStudentInDTO;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
 import com.example.qubaatisystem.DTO.Out.ClassroomDashboardOutDTO;
 import com.example.qubaatisystem.DTO.Out.ClassroomOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentProgressOutDTO;
 import com.example.qubaatisystem.Model.Classroom;
 import com.example.qubaatisystem.Model.Teacher;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.ClassroomRepository;
 import com.example.qubaatisystem.Repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,39 @@ public class ClassroomService {
     private final StudentService studentService;
     private final SubscriptionService subscriptionService;
     private final ModelMapper modelMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
+
+    // ========== Security-aware wrappers (own ownership/role checks + actor derivation) ==========
+
+    public void create(User user, ClassroomInDTO dto) {
+        dto.setTeacherId(security.resolveOwningTeacherId(user, dto.getTeacherId()));
+        create(dto);
+    }
+
+    public void enrollStudent(User user, EnrollStudentInDTO dto) {
+        security.assertTeacherOwnsClassroom(user, dto.getClassroomId());
+        enrollStudent(dto.getClassroomId(), dto.getStudentId());
+    }
+
+    public void removeStudent(User user, EnrollStudentInDTO dto) {
+        security.assertTeacherOwnsClassroom(user, dto.getClassroomId());
+        removeStudent(dto.getClassroomId(), dto.getStudentId());
+    }
+
+    public List<StudentOutDTO> getStudents(User user, IdInDTO dto) {
+        security.assertTeacherOwnsClassroom(user, dto.getId());
+        return getStudents(dto.getId());
+    }
+
+    public ClassroomDashboardOutDTO getDashboard(User user, IdInDTO dto) {
+        security.assertTeacherOwnsClassroom(user, dto.getId());
+        return getDashboard(dto.getId());
+    }
+
+    public List<StudentProgressOutDTO> getProgress(User user, IdInDTO dto) {
+        security.assertTeacherOwnsClassroom(user, dto.getId());
+        return getProgress(dto.getId());
+    }
 
     public List<ClassroomOutDTO> getAll() {
         return classroomRepository.findAll()

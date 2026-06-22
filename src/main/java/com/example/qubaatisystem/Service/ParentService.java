@@ -33,6 +33,7 @@ public class ParentService {
     private final ChildLearningProfileService childLearningProfileService;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     public List<ParentOutDTO> getAll() {
         return parentRepository.findAll()
@@ -116,7 +117,8 @@ public class ParentService {
         studentInDTO.setFullName(dto.getFullName());
         studentInDTO.setAge(dto.getAge());
         studentInDTO.setGrade(dto.getGrade());
-        studentInDTO.setClassroomId(dto.getClassroomId());
+        // A parent only creates the child account — the child starts with NO classroom. A teacher enrolls the
+        // student later via POST /api/v1/classrooms/students/enroll. The DTO classroomId is ignored here.
         studentInDTO.setParentId(parentId);
         return studentService.create(studentInDTO);
     }
@@ -184,6 +186,64 @@ public class ParentService {
             throw new ApiException("Parent with id " + parentId + " not found");
         }
         return childLearningProfileService.getLearningProfile(parentId, studentId);
+    }
+
+    // ========== Security-aware wrapper methods (called by ParentController) ==========
+
+    // Creating/listing parents is an admin operation (no public self-registration of parents).
+    public ParentOutDTO createForUser(User user, ParentInDTO dto) {
+        security.assertAdmin(user);
+        return create(dto);
+    }
+
+    public List<ParentOutDTO> getAllForUser(User user) {
+        security.assertAdmin(user);
+        return getAll();
+    }
+
+    public ParentOutDTO getByIdForUser(User user, com.example.qubaatisystem.DTO.In.IdInDTO dto) {
+        security.assertParent(user);
+        return getById(dto.getId());
+    }
+
+    public ParentOutDTO updateForUser(User user, ParentInDTO dto) {
+        security.assertParent(user);
+        return update(dto.getId(), dto);
+    }
+
+    public void deleteForUser(User user, com.example.qubaatisystem.DTO.In.IdInDTO dto) {
+        security.assertParent(user);
+        delete(dto.getId());
+    }
+
+    public ParentDashboardOutDTO getMyDashboard(User user) {
+        return getDashboard(security.getCurrentParentId(user));
+    }
+
+    public StudentOutDTO createMyChild(User user, ChildCreateInDTO dto) {
+        return createChild(security.getCurrentParentId(user), dto);
+    }
+
+    public List<StudentOutDTO> getMyChildren(User user) {
+        return getChildren(security.getCurrentParentId(user));
+    }
+
+    public StudentOutDTO getMyChildOverview(User user, com.example.qubaatisystem.DTO.In.ChildTargetInDTO dto) {
+        Integer parentId = security.getCurrentParentId(user);
+        security.assertParentOwnsChild(user, dto.getStudentId());
+        return getChildOverview(parentId, dto.getStudentId());
+    }
+
+    public ChildLearningProfileOutDTO getMyChildLearningProfile(User user, com.example.qubaatisystem.DTO.In.ChildTargetInDTO dto) {
+        Integer parentId = security.getCurrentParentId(user);
+        security.assertParentOwnsChild(user, dto.getStudentId());
+        return getChildLearningProfile(parentId, dto.getStudentId());
+    }
+
+    public StudentOutDTO updateMyChildProfile(User user, ChildUpdateProfileInDTO dto) {
+        Integer parentId = security.getCurrentParentId(user);
+        security.assertParentOwnsChild(user, dto.getStudentId());
+        return updateChildProfile(parentId, dto.getStudentId(), dto);
     }
 
     // ---------- helpers ----------

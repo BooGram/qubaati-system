@@ -37,6 +37,10 @@ public class ActivitySubmission {
     @Column(length = 2000)
     private String aiFeedback;
 
+    // Provenance of aiFeedback so the client never mistakes a template for real AI: "AI" = Spring AI ChatClient,
+    // "SYSTEM" = deterministic score summary used when no AI provider is configured. Null for manual/teacher grades.
+    private String feedbackSource;
+
     @Column(length = 2000)
     private String teacherFeedback;
 

@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LearningStyleHistoryInDTO {
 
+    private Integer id;
+
     private LearningStyleType previousPrimaryStyle;
 
     @NotNull(message = "newPrimaryStyle is required")

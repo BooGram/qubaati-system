@@ -14,6 +14,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentAnswerInDTO {
 
+    // Nullable target id used only by the body-based update endpoint; ignored on create.
+    private Integer id;
+
     @NotBlank(message = "answerText is required")
     @Size(max = 2000, message = "answerText must be at most 2000 characters")
     private String answerText;

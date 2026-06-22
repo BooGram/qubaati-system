@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ActivitySubmissionInDTO {
 
+    // Nullable target id used only by the body-based update endpoint; ignored on create.
+    private Integer id;
+
     private java.time.LocalDateTime startedAt;
 
     private java.time.LocalDateTime submittedAt;

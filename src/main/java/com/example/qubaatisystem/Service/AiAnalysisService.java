@@ -32,6 +32,31 @@ public class AiAnalysisService {
     private final ParentService parentService;
     private final TeacherDashboardService teacherDashboardService;
     private final OpenAiService openAiService;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
+
+    // ── Auth-derived ("me") + ownership-checked wrappers ─────────────────────
+
+    /** classroomId is an ENTITY id — a teacher may summarize only their own classroom. */
+    public ClassroomSummaryOutDTO analyzeClassroom(com.example.qubaatisystem.Model.User user,
+                                                   com.example.qubaatisystem.DTO.In.ClassroomSummaryInDTO body) {
+        security.assertTeacherOwnsClassroom(user, body.getClassroomId());
+        return analyzeClassroom(body.getClassroomId());
+    }
+
+    public TeacherDashboardInsightOutDTO analyzeMyTeacherDashboard(com.example.qubaatisystem.Model.User user) {
+        return analyzeTeacherDashboard(security.getCurrentTeacherId(user));
+    }
+
+    public FamilyInsightOutDTO analyzeMyFamilyInsight(com.example.qubaatisystem.Model.User user) {
+        return analyzeFamilyInsight(security.getCurrentParentId(user));
+    }
+
+    /** Body-based child summary: the parent comes from Basic Auth and must own the child. */
+    public StudentSummaryOutDTO analyzeMyChild(com.example.qubaatisystem.Model.User user,
+                                               com.example.qubaatisystem.DTO.In.ChildSummaryInDTO body) {
+        security.assertParentOwnsChild(user, body.getStudentId());
+        return analyzeStudent(security.getCurrentParentId(user), body.getStudentId());
+    }
 
     // ── System prompts ───────────────────────────────────────────────────────
 

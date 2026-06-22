@@ -67,6 +67,7 @@ public class MissionSessionService {
     private final RecommendationService recommendationService;
     private final NotificationService notificationService;
     private final ModelMapper modelMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     // ====================== CRUD ======================
 
@@ -130,6 +131,19 @@ public class MissionSessionService {
         session.setId(null);
         MissionSession saved = missionSessionRepository.save(session);
         return buildAttempt(saved, mission, student);
+    }
+
+    /**
+     * Current-actor wrapper: a student starts as themselves (derived from Basic Auth); an admin may target
+     * another student by passing studentId. Asserts the actor is a student, then delegates.
+     */
+    @Transactional
+    public StudentMissionAttemptOutDTO startSession(User user,
+                                                    com.example.qubaatisystem.DTO.In.StartMissionSessionInDTO request) {
+        Integer effectiveStudentId = (request.getStudentId() != null)
+                ? request.getStudentId() : security.getCurrentStudentId(user);
+        security.assertStudent(user);
+        return startSession(request.getMissionId(), effectiveStudentId);
     }
 
     /** Current session state for reload (student-safe attempt view). */
@@ -370,6 +384,12 @@ public class MissionSessionService {
         Student student = requireStudent(studentId);
         generateRecommendationsForStudent(student, null);
         return recommendationService.getByStudent(studentId);
+    }
+
+    /** Current-student wrapper: derives the acting student from Basic Auth, then delegates. */
+    @Transactional
+    public List<RecommendationOutDTO> regenerateMyRecommendations(User user) {
+        return regenerateRecommendations(security.getCurrentStudentId(user));
     }
 
     // ====================== helpers ======================

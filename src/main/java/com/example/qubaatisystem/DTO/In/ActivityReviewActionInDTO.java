@@ -15,6 +15,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ActivityReviewActionInDTO {
 
+    // Target activity for the review action (moved off the path in the path-variable-free style).
+    @NotNull(message = "activityId is required")
+    private Integer activityId;
+
     // DEPRECATED actor id — IGNORED for the authenticated TEACHER (derived from Basic Auth);
     // only an ADMIN may supply it to act on a teacher behalf. Optional; do not send it as a teacher.
     private Integer teacherId;

@@ -1,4 +1,4 @@
-package com.example.qubaatisystem.Security;
+package com.example.qubaatisystem.Config;
 
 import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.UserRepository;

@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class QuestionInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "content is required")
     @Size(max = 2000, message = "content must be at most 2000 characters")
     private String content;

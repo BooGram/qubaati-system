@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuditLogInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "action is required")
     @Size(max = 150, message = "action must be at most 150 characters")
     private String action;

@@ -33,6 +33,7 @@ public class SubscriptionService {
     private final StudentRepository studentRepository;
     private final ClassroomRepository classroomRepository;
     private final ModelMapper modelMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     // ── Plans ────────────────────────────────────────────────────────────────
 
@@ -58,6 +59,16 @@ public class SubscriptionService {
     public SubscriptionStatusOutDTO getTeacherStatus(Integer teacherId) {
         Optional<Subscription> sub = findActiveTeacherSubscription(teacherId);
         return toStatusDTO(sub);
+    }
+
+    /** Current-user parent subscription status — derives the parent id from the caller. */
+    public SubscriptionStatusOutDTO getMyParentStatus(com.example.qubaatisystem.Model.User user) {
+        return getParentStatus(security.getCurrentParentId(user));
+    }
+
+    /** Current-user teacher subscription status — derives the teacher id from the caller. */
+    public SubscriptionStatusOutDTO getMyTeacherStatus(com.example.qubaatisystem.Model.User user) {
+        return getTeacherStatus(security.getCurrentTeacherId(user));
     }
 
     // ── Limit checks (called from StudentService and ClassroomService) ────────

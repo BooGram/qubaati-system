@@ -4,6 +4,7 @@ import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.TeacherInDTO;
 import com.example.qubaatisystem.DTO.Out.TeacherDashboardOutDTO;
 import com.example.qubaatisystem.DTO.Out.TeacherOutDTO;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
 import com.example.qubaatisystem.Enum.UserRole;
 import com.example.qubaatisystem.Model.Teacher;
 import com.example.qubaatisystem.Model.User;
@@ -26,6 +27,22 @@ public class TeacherService {
     private final TeacherDashboardService teacherDashboardService;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityOwnershipService security;
+
+    // Creating/listing teachers is an admin operation (no public self-registration of teachers).
+    public TeacherOutDTO create(User user, TeacherInDTO dto) {
+        security.assertAdmin(user);
+        return create(dto);
+    }
+
+    public List<TeacherOutDTO> getAll(User user) {
+        security.assertAdmin(user);
+        return getAll();
+    }
+
+    public TeacherDashboardOutDTO getMyDashboard(User user) {
+        return getDashboard(security.getCurrentTeacherId(user));
+    }
 
     public List<TeacherOutDTO> getAll() {
         return teacherRepository.findAll()

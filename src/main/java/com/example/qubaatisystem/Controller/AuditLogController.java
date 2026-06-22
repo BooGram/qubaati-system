@@ -2,13 +2,13 @@ package com.example.qubaatisystem.Controller;
 
 import com.example.qubaatisystem.Api.ApiResponse;
 import com.example.qubaatisystem.DTO.In.AuditLogInDTO;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
 import com.example.qubaatisystem.Service.AuditLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,31 +22,31 @@ public class AuditLogController {
 
     private final AuditLogService auditLogService;
 
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<?> create(@Valid @RequestBody AuditLogInDTO dto) {
         auditLogService.create(dto);
         return ResponseEntity.status(200).body(new ApiResponse("AuditLog created successfully"));
     }
 
-    @GetMapping
+    @GetMapping("/get-all")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.status(200).body(auditLogService.getAll());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) {
-        return ResponseEntity.status(200).body(auditLogService.getById(id));
+    @PostMapping("/get")
+    public ResponseEntity<?> getById(@Valid @RequestBody IdInDTO dto) {
+        return ResponseEntity.status(200).body(auditLogService.getById(dto.getId()));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody AuditLogInDTO dto) {
-        auditLogService.update(id, dto);
+    @PutMapping("/update")
+    public ResponseEntity<?> update(@Valid @RequestBody AuditLogInDTO dto) {
+        auditLogService.update(dto.getId(), dto);
         return ResponseEntity.status(200).body(new ApiResponse("AuditLog updated successfully"));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id) {
-        auditLogService.delete(id);
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> delete(@Valid @RequestBody IdInDTO dto) {
+        auditLogService.delete(dto.getId());
         return ResponseEntity.status(200).body(new ApiResponse("AuditLog deleted successfully"));
     }
 }

@@ -1,9 +1,14 @@
 package com.example.qubaatisystem.Controller;
 
 import com.example.qubaatisystem.Api.ApiResponse;
+import com.example.qubaatisystem.DTO.In.CareerWorldTargetInDTO;
 import com.example.qubaatisystem.DTO.In.DecisionSubmitInDTO;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
 import com.example.qubaatisystem.DTO.In.MissionRegenerateInDTO;
+import com.example.qubaatisystem.DTO.In.MissionSessionTargetInDTO;
 import com.example.qubaatisystem.DTO.In.MissionStepBatchInDTO;
+import com.example.qubaatisystem.DTO.In.MissionTargetInDTO;
+import com.example.qubaatisystem.DTO.In.StartMissionSessionInDTO;
 import com.example.qubaatisystem.DTO.Out.AvailableMissionOutDTO;
 import com.example.qubaatisystem.DTO.Out.AvailableMissionsOutDTO;
 import com.example.qubaatisystem.DTO.Out.DecisionSubmitOutDTO;
@@ -14,7 +19,7 @@ import com.example.qubaatisystem.DTO.Out.NotificationOutDTO;
 import com.example.qubaatisystem.DTO.Out.RecommendationOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentMissionAttemptOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentSkillOutDTO;
-import com.example.qubaatisystem.Security.SecurityOwnershipService;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Service.MissionService;
 import com.example.qubaatisystem.Service.MissionSessionService;
 import com.example.qubaatisystem.Service.NotificationService;
@@ -23,10 +28,10 @@ import com.example.qubaatisystem.Service.StudentSkillService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -50,227 +55,159 @@ public class MissionFlowController {
     private final RecommendationService recommendationService;
     private final NotificationService notificationService;
     private final StudentSkillService studentSkillService;
-    private final SecurityOwnershipService security;
 
     // ---------- available / default missions ----------
 
-    @Deprecated // prefer GET /students/me/missions/available
-    @GetMapping("/students/{studentId}/missions/available")
-    public ResponseEntity<AvailableMissionsOutDTO> getAvailableMissions(
-            @PathVariable Integer studentId,
-            @RequestParam Integer careerWorldId) {
-        security.assertCurrentStudentOrAdmin(studentId);
-        return ResponseEntity.status(200).body(missionService.getAvailableMissions(studentId, careerWorldId));
-    }
-
-    // Current-student alias — no studentId in the path.
+    // Current-student alias — the student comes from Basic Auth. careerWorldId is a non-id OPTION (RequestParam).
     @GetMapping("/students/me/missions/available")
-    public ResponseEntity<AvailableMissionsOutDTO> getMyAvailableMissions(@RequestParam Integer careerWorldId) {
+    public ResponseEntity<AvailableMissionsOutDTO> getMyAvailableMissions(
+            @AuthenticationPrincipal User user,
+            @RequestParam Integer careerWorldId) {
         return ResponseEntity.status(200)
-                .body(missionService.getAvailableMissions(security.getCurrentStudentId(), careerWorldId));
+                .body(missionService.getMyAvailableMissions(user, careerWorldId));
     }
 
-    @GetMapping("/career-worlds/{careerWorldId}/missions")
-    public ResponseEntity<List<AvailableMissionOutDTO>> getCareerWorldDefaultMissions(@PathVariable Integer careerWorldId) {
-        return ResponseEntity.status(200).body(missionService.getCareerWorldDefaultMissions(careerWorldId));
+    @PostMapping("/career-worlds/missions")
+    public ResponseEntity<List<AvailableMissionOutDTO>> getCareerWorldDefaultMissions(
+            @Valid @RequestBody CareerWorldTargetInDTO request) {
+        return ResponseEntity.status(200).body(missionService.getCareerWorldDefaultMissions(request.getCareerWorldId()));
     }
 
-    // Current-student regenerate — no studentId in the path.
-    @PatchMapping("/students/me/missions/{missionId}/regenerate")
+    // Current-student regenerate — the student comes from Basic Auth; the target missionId is in the body.
+    @PatchMapping("/students/me/missions/regenerate")
     public ResponseEntity<AvailableMissionOutDTO> regenerateMyMission(
-            @PathVariable Integer missionId,
-            @Valid @RequestBody(required = false) MissionRegenerateInDTO request) {
-        String reason = request == null ? null : request.getReason();
-        return ResponseEntity.status(200).body(missionService.regenerateMission(security.getCurrentStudentId(), missionId, reason));
-    }
-
-    @Deprecated // prefer PATCH /students/me/missions/{missionId}/regenerate
-    @PatchMapping("/students/{studentId}/missions/{missionId}/regenerate")
-    public ResponseEntity<AvailableMissionOutDTO> regenerateMission(
-            @PathVariable Integer studentId,
-            @PathVariable Integer missionId,
-            @Valid @RequestBody(required = false) MissionRegenerateInDTO request) {
-        security.assertCurrentStudentOrAdmin(studentId);
-        String reason = request == null ? null : request.getReason();
-        return ResponseEntity.status(200).body(missionService.regenerateMission(studentId, missionId, reason));
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody MissionRegenerateInDTO request) {
+        return ResponseEntity.status(200).body(missionService.regenerateMyMission(user, request));
     }
 
     // ---------- step authoring / seeding (teacher/admin) ----------
 
-    @PostMapping("/missions/{missionId}/steps/batch")
+    @PostMapping("/missions/steps/batch")
     public ResponseEntity<MissionStepsAdminOutDTO> replaceMissionSteps(
-            @PathVariable Integer missionId,
             @Valid @RequestBody MissionStepBatchInDTO request) {
-        return ResponseEntity.status(200).body(missionService.replaceSteps(missionId, request));
+        return ResponseEntity.status(200).body(missionService.replaceSteps(request.getMissionId(), request));
     }
 
-    @GetMapping("/missions/{missionId}/steps")
-    public ResponseEntity<MissionStepsAdminOutDTO> getMissionSteps(@PathVariable Integer missionId) {
-        return ResponseEntity.status(200).body(missionService.getSteps(missionId));
+    @PostMapping("/missions/steps")
+    public ResponseEntity<MissionStepsAdminOutDTO> getMissionSteps(@Valid @RequestBody MissionTargetInDTO request) {
+        return ResponseEntity.status(200).body(missionService.getSteps(request.getMissionId()));
     }
 
-    @DeleteMapping("/missions/{missionId}/steps")
-    public ResponseEntity<ApiResponse> deleteMissionSteps(@PathVariable Integer missionId) {
-        missionService.deleteSteps(missionId);
+    @DeleteMapping("/missions/steps")
+    public ResponseEntity<ApiResponse> deleteMissionSteps(@Valid @RequestBody MissionTargetInDTO request) {
+        missionService.deleteSteps(request.getMissionId());
         return ResponseEntity.status(200).body(new ApiResponse("Mission steps deleted"));
     }
 
     // ---------- mission session lifecycle ----------
 
     // studentId is OPTIONAL: a student starts as themselves (derived from Basic Auth); an admin may pass studentId.
-    @PostMapping("/missions/{missionId}/sessions/start")
+    @PostMapping("/missions/sessions/start")
     public ResponseEntity<StudentMissionAttemptOutDTO> startSession(
-            @PathVariable Integer missionId,
-            @RequestParam(required = false) Integer studentId) {
-        Integer effectiveStudentId = (studentId != null) ? studentId : security.getCurrentStudentId();
-        security.assertCurrentStudentOrAdmin(effectiveStudentId);
-        return ResponseEntity.status(200).body(missionSessionService.startSession(missionId, effectiveStudentId));
-    }
-
-    @GetMapping("/mission-sessions/{sessionId}/current")
-    public ResponseEntity<StudentMissionAttemptOutDTO> getCurrentSession(@PathVariable Integer sessionId) {
-        return ResponseEntity.status(200).body(missionSessionService.getCurrentSession(sessionId));
-    }
-
-    @PostMapping("/mission-sessions/{sessionId}/decisions")
-    public ResponseEntity<DecisionSubmitOutDTO> submitDecision(
-            @PathVariable Integer sessionId,
-            @Valid @RequestBody DecisionSubmitInDTO request) {
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody StartMissionSessionInDTO request) {
         return ResponseEntity.status(200)
-                .body(missionSessionService.submitDecision(sessionId, request.getChoiceId(), request.getReason()));
+                .body(missionSessionService.startSession(user, request));
     }
 
-    @PatchMapping("/mission-sessions/{sessionId}/complete")
-    public ResponseEntity<MissionCompletionOutDTO> completeSession(@PathVariable Integer sessionId) {
-        return ResponseEntity.status(200).body(missionSessionService.completeSession(sessionId));
+    @PostMapping("/mission-sessions/current")
+    public ResponseEntity<StudentMissionAttemptOutDTO> getCurrentSession(
+            @Valid @RequestBody MissionSessionTargetInDTO request) {
+        return ResponseEntity.status(200).body(missionSessionService.getCurrentSession(request.getSessionId()));
     }
 
-    @PatchMapping("/mission-sessions/{sessionId}/abandon")
-    public ResponseEntity<ApiResponse> abandonSession(@PathVariable Integer sessionId) {
-        missionSessionService.abandonSession(sessionId);
+    @PostMapping("/mission-sessions/decisions")
+    public ResponseEntity<DecisionSubmitOutDTO> submitDecision(@Valid @RequestBody DecisionSubmitInDTO request) {
+        return ResponseEntity.status(200)
+                .body(missionSessionService.submitDecision(request.getSessionId(), request.getChoiceId(), request.getReason()));
+    }
+
+    @PatchMapping("/mission-sessions/complete")
+    public ResponseEntity<MissionCompletionOutDTO> completeSession(
+            @Valid @RequestBody MissionSessionTargetInDTO request) {
+        return ResponseEntity.status(200).body(missionSessionService.completeSession(request.getSessionId()));
+    }
+
+    @PatchMapping("/mission-sessions/abandon")
+    public ResponseEntity<ApiResponse> abandonSession(@Valid @RequestBody MissionSessionTargetInDTO request) {
+        missionSessionService.abandonSession(request.getSessionId());
         return ResponseEntity.status(200).body(new ApiResponse("Mission session abandoned"));
     }
 
-    @GetMapping("/mission-sessions/{sessionId}/insight")
-    public ResponseEntity<InsightOutDTO> getInsight(@PathVariable Integer sessionId) {
-        return ResponseEntity.status(200).body(missionSessionService.getInsight(sessionId));
+    @PostMapping("/mission-sessions/insight")
+    public ResponseEntity<InsightOutDTO> getInsight(@Valid @RequestBody MissionSessionTargetInDTO request) {
+        return ResponseEntity.status(200).body(missionSessionService.getInsight(request.getSessionId()));
     }
 
     /** OPTIONAL manual re-run of the AI-first insight (the normal flow generates it on completion). */
-    @PatchMapping("/mission-sessions/{sessionId}/insight/regenerate")
-    public ResponseEntity<InsightOutDTO> regenerateInsight(@PathVariable Integer sessionId) {
-        return ResponseEntity.status(200).body(missionSessionService.regenerateInsight(sessionId));
+    @PatchMapping("/mission-sessions/insight/regenerate")
+    public ResponseEntity<InsightOutDTO> regenerateInsight(@Valid @RequestBody MissionSessionTargetInDTO request) {
+        return ResponseEntity.status(200).body(missionSessionService.regenerateInsight(request.getSessionId()));
     }
 
     // ---------- recommendations ----------
 
-    // Current-student recommendation endpoints (no studentId in the path).
+    // Current-student recommendation endpoints (the student comes from Basic Auth).
     @GetMapping("/students/me/recommendations")
-    public ResponseEntity<List<RecommendationOutDTO>> getMyRecommendations() {
-        return ResponseEntity.status(200).body(recommendationService.getByStudent(security.getCurrentStudentId()));
+    public ResponseEntity<List<RecommendationOutDTO>> getMyRecommendations(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(recommendationService.getMyRecommendations(user));
     }
 
     @PostMapping("/students/me/recommendations/regenerate")
-    public ResponseEntity<List<RecommendationOutDTO>> regenerateMyRecommendations() {
-        return ResponseEntity.status(200).body(missionSessionService.regenerateRecommendations(security.getCurrentStudentId()));
-    }
-
-    @Deprecated // prefer GET /students/me/recommendations
-    @GetMapping("/students/{studentId}/recommendations")
-    public ResponseEntity<List<RecommendationOutDTO>> getStudentRecommendations(@PathVariable Integer studentId) {
-        security.assertCurrentStudentOrAdmin(studentId);
-        return ResponseEntity.status(200).body(recommendationService.getByStudent(studentId));
-    }
-
-    /** OPTIONAL manual re-run of the AI-first recommendations (the normal flow generates them on completion). */
-    @Deprecated // prefer POST /students/me/recommendations/regenerate
-    @PostMapping("/students/{studentId}/recommendations/regenerate")
-    public ResponseEntity<List<RecommendationOutDTO>> regenerateRecommendations(@PathVariable Integer studentId) {
-        security.assertCurrentStudentOrAdmin(studentId);
-        return ResponseEntity.status(200).body(missionSessionService.regenerateRecommendations(studentId));
+    public ResponseEntity<List<RecommendationOutDTO>> regenerateMyRecommendations(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200)
+                .body(missionSessionService.regenerateMyRecommendations(user));
     }
 
     // accept / dismiss / complete are STUDENT-or-ADMIN actions, restricted to the owning student.
-    @PatchMapping("/recommendations/{recommendationId}/accept")
-    public ResponseEntity<RecommendationOutDTO> acceptRecommendation(@PathVariable Integer recommendationId) {
-        security.assertCurrentStudentOwnsRecommendationOrAdmin(recommendationId);
-        return ResponseEntity.status(200).body(recommendationService.accept(recommendationId));
+    @PatchMapping("/recommendations/accept")
+    public ResponseEntity<RecommendationOutDTO> acceptRecommendation(
+            @AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO request) {
+        return ResponseEntity.status(200).body(recommendationService.acceptOwned(user, request));
     }
 
-    @PatchMapping("/recommendations/{recommendationId}/dismiss")
-    public ResponseEntity<RecommendationOutDTO> dismissRecommendation(@PathVariable Integer recommendationId) {
-        security.assertCurrentStudentOwnsRecommendationOrAdmin(recommendationId);
-        return ResponseEntity.status(200).body(recommendationService.dismiss(recommendationId));
+    @PatchMapping("/recommendations/dismiss")
+    public ResponseEntity<RecommendationOutDTO> dismissRecommendation(
+            @AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO request) {
+        return ResponseEntity.status(200).body(recommendationService.dismissOwned(user, request));
     }
 
-    @PatchMapping("/recommendations/{recommendationId}/complete")
-    public ResponseEntity<RecommendationOutDTO> completeRecommendation(@PathVariable Integer recommendationId) {
-        security.assertCurrentStudentOwnsRecommendationOrAdmin(recommendationId);
-        return ResponseEntity.status(200).body(recommendationService.complete(recommendationId));
+    @PatchMapping("/recommendations/complete")
+    public ResponseEntity<RecommendationOutDTO> completeRecommendation(
+            @AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO request) {
+        return ResponseEntity.status(200).body(recommendationService.completeOwned(user, request));
     }
 
     // ---------- notifications (userId ownership: a user only sees their OWN notifications) ----------
 
-    // Current-user ("me") notification endpoints — no userId in the path.
+    // Current-user ("me") notification endpoints — the user comes from Basic Auth.
     @GetMapping("/users/me/notifications")
-    public ResponseEntity<List<NotificationOutDTO>> getMyNotifications() {
-        return ResponseEntity.status(200).body(notificationService.getByUser(security.getCurrentUserId()));
+    public ResponseEntity<List<NotificationOutDTO>> getMyNotifications(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(notificationService.getMyNotifications(user));
     }
 
     @GetMapping("/users/me/notifications/unread")
-    public ResponseEntity<List<NotificationOutDTO>> getMyUnreadNotifications() {
-        return ResponseEntity.status(200).body(notificationService.getUnreadByUser(security.getCurrentUserId()));
+    public ResponseEntity<List<NotificationOutDTO>> getMyUnreadNotifications(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(notificationService.getMyUnreadNotifications(user));
     }
 
-    @PatchMapping("/users/me/notifications/{notificationId}/read")
-    public ResponseEntity<NotificationOutDTO> markMyNotificationRead(@PathVariable Integer notificationId) {
-        security.assertCurrentUserOwnsNotificationOrAdmin(notificationId);
-        return ResponseEntity.status(200).body(notificationService.markRead(notificationId));
+    @PatchMapping("/users/me/notifications/read")
+    public ResponseEntity<NotificationOutDTO> markMyNotificationRead(
+            @AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO request) {
+        return ResponseEntity.status(200).body(notificationService.markMyNotificationRead(user, request));
     }
 
     @PatchMapping("/users/me/notifications/read-all")
-    public ResponseEntity<ApiResponse> markAllMyNotificationsRead() {
-        notificationService.markAllRead(security.getCurrentUserId());
-        return ResponseEntity.status(200).body(new ApiResponse("All notifications marked as read"));
-    }
-
-    // Legacy userId endpoints — now ownership-protected (the userId must be the authenticated user, or admin).
-    @GetMapping("/users/{userId}/notifications")
-    public ResponseEntity<List<NotificationOutDTO>> getUserNotifications(@PathVariable Integer userId) {
-        security.assertCurrentUserOrAdmin(userId);
-        return ResponseEntity.status(200).body(notificationService.getByUser(userId));
-    }
-
-    @GetMapping("/users/{userId}/notifications/unread")
-    public ResponseEntity<List<NotificationOutDTO>> getUserUnreadNotifications(@PathVariable Integer userId) {
-        security.assertCurrentUserOrAdmin(userId);
-        return ResponseEntity.status(200).body(notificationService.getUnreadByUser(userId));
-    }
-
-    @PatchMapping("/notifications/{notificationId}/read")
-    public ResponseEntity<NotificationOutDTO> markNotificationRead(@PathVariable Integer notificationId) {
-        security.assertCurrentUserOwnsNotificationOrAdmin(notificationId);
-        return ResponseEntity.status(200).body(notificationService.markRead(notificationId));
-    }
-
-    @PatchMapping("/users/{userId}/notifications/read-all")
-    public ResponseEntity<ApiResponse> markAllNotificationsRead(@PathVariable Integer userId) {
-        security.assertCurrentUserOrAdmin(userId);
-        notificationService.markAllRead(userId);
+    public ResponseEntity<ApiResponse> markAllMyNotificationsRead(@AuthenticationPrincipal User user) {
+        notificationService.markAllMyNotificationsRead(user);
         return ResponseEntity.status(200).body(new ApiResponse("All notifications marked as read"));
     }
 
     // ---------- skills ----------
 
     @GetMapping("/students/me/skills")
-    public ResponseEntity<List<StudentSkillOutDTO>> getMySkills() {
-        return ResponseEntity.status(200).body(studentSkillService.getByStudentId(security.getCurrentStudentId()));
-    }
-
-    @Deprecated // prefer GET /students/me/skills
-    @GetMapping("/students/{studentId}/skills")
-    public ResponseEntity<List<StudentSkillOutDTO>> getStudentSkills(@PathVariable Integer studentId) {
-        security.assertCurrentStudentOrAdmin(studentId);
-        return ResponseEntity.status(200).body(studentSkillService.getByStudentId(studentId));
+    public ResponseEntity<List<StudentSkillOutDTO>> getMySkills(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(studentSkillService.getMySkills(user));
     }
 }

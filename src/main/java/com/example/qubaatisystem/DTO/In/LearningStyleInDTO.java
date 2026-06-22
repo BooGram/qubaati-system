@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LearningStyleInDTO {
 
+    private Integer id;
+
     @NotNull(message = "primaryStyle is required")
     private LearningStyleType primaryStyle;
 

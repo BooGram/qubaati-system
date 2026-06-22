@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InsightInDTO {
 
+    private Integer id;
+
     @PositiveOrZero(message = "focusScore must be zero or positive")
     @Max(value = 100, message = "focusScore must be at most 100")
     private Integer focusScore;

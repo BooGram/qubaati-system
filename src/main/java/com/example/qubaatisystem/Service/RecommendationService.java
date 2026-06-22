@@ -32,6 +32,7 @@ public class RecommendationService {
     private final MissionRepository missionRepository;
     private final ActivityRepository activityRepository;
     private final ModelMapper modelMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     public List<RecommendationOutDTO> getAll() {
         return recommendationRepository.findAll()
@@ -179,6 +180,32 @@ public class RecommendationService {
 
     public RecommendationOutDTO complete(Integer id) {
         return setStatus(id, RecommendationStatus.COMPLETED);
+    }
+
+    /** Current-student wrapper: derives the acting student from Basic Auth, then delegates. */
+    public List<RecommendationOutDTO> getMyRecommendations(com.example.qubaatisystem.Model.User user) {
+        return getByStudent(security.getCurrentStudentId(user));
+    }
+
+    /** Owner-guarded accept: the recommendation must belong to the acting student (or actor is admin). */
+    public RecommendationOutDTO acceptOwned(com.example.qubaatisystem.Model.User user,
+                                            com.example.qubaatisystem.DTO.In.IdInDTO request) {
+        security.assertStudentOwnsRecommendation(user, request.getId());
+        return accept(request.getId());
+    }
+
+    /** Owner-guarded dismiss: the recommendation must belong to the acting student (or actor is admin). */
+    public RecommendationOutDTO dismissOwned(com.example.qubaatisystem.Model.User user,
+                                             com.example.qubaatisystem.DTO.In.IdInDTO request) {
+        security.assertStudentOwnsRecommendation(user, request.getId());
+        return dismiss(request.getId());
+    }
+
+    /** Owner-guarded complete: the recommendation must belong to the acting student (or actor is admin). */
+    public RecommendationOutDTO completeOwned(com.example.qubaatisystem.Model.User user,
+                                              com.example.qubaatisystem.DTO.In.IdInDTO request) {
+        security.assertStudentOwnsRecommendation(user, request.getId());
+        return complete(request.getId());
     }
 
     private RecommendationOutDTO setStatus(Integer id, RecommendationStatus status) {

@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MissionSessionInDTO {
 
+    // Nullable: used only by the body-based update endpoint (PUT /update) to carry the target id.
+    private Integer id;
+
     @NotNull(message = "startTime is required")
     private LocalDateTime startTime;
 

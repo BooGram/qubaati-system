@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ParentInDTO {
 
+    // Nullable: present only on update (target parent id); ignored on create.
+    private Integer id;
+
     // ----- User account fields (used to create the linked User internally) -----
     @NotBlank(message = "username is required")
     @Size(max = 50, message = "username must be at most 50 characters")

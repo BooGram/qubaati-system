@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentSkillInDTO {
 
+    private Integer id;
+
     @PositiveOrZero(message = "score must be zero or positive")
     private Double score;
 

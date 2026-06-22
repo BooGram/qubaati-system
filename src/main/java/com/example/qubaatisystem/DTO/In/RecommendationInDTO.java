@@ -15,6 +15,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RecommendationInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "title is required")
     @Size(max = 150, message = "title must not exceed 150 characters")
     private String title;

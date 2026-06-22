@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SkillProgressHistoryInDTO {
 
+    private Integer id;
+
     @PositiveOrZero(message = "previousScore must be zero or positive")
     private Double previousScore;
 

@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OptionInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "content is required")
     @Size(max = 500, message = "content must be at most 500 characters")
     private String content;

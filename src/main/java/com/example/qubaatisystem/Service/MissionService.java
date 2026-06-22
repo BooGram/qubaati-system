@@ -67,6 +67,7 @@ public class MissionService {
     private final ModelMapper modelMapper;
     private final ObjectMapper objectMapper;
     private final AiService aiService;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     //BASIC CRUD
     public List<MissionOutDTO> getAll() {
@@ -406,6 +407,11 @@ public class MissionService {
         return new AvailableMissionsOutDTO(studentId, careerWorldId, completed, unlocked, remaining, rows);
     }
 
+    /** Current-student wrapper: derives the acting student from Basic Auth, then delegates. */
+    public AvailableMissionsOutDTO getMyAvailableMissions(com.example.qubaatisystem.Model.User user, Integer careerWorldId) {
+        return getAvailableMissions(security.getCurrentStudentId(user), careerWorldId);
+    }
+
     /** Default (shared) missions of a career world only — never personalized/generated missions. */
     public List<AvailableMissionOutDTO> getCareerWorldDefaultMissions(Integer careerWorldId) {
         checkCareerWorld(careerWorldId);
@@ -445,6 +451,13 @@ public class MissionService {
         }
         regenerateInPlace(mission, student, careerWorld);
         return toAvailableOut(mission, studentId, MissionSource.AI_GENERATED);
+    }
+
+    /** Current-student wrapper: derives the acting student from Basic Auth, then delegates. */
+    @Transactional
+    public AvailableMissionOutDTO regenerateMyMission(com.example.qubaatisystem.Model.User user,
+                                                      com.example.qubaatisystem.DTO.In.MissionRegenerateInDTO request) {
+        return regenerateMission(security.getCurrentStudentId(user), request.getMissionId(), request.getReason());
     }
 
     /** Whether the student has completed >= 4 DEFAULT missions in this career world. */

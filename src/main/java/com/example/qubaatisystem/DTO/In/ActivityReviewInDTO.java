@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ActivityReviewInDTO {
 
+    // Nullable target id used only by the body-based update endpoint (path-variable-free style); ignored on create.
+    private Integer id;
+
     @NotNull(message = "decision is required")
     private ActivityReviewDecision decision;
 

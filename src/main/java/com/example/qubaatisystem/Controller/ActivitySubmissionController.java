@@ -3,19 +3,22 @@ package com.example.qubaatisystem.Controller;
 import com.example.qubaatisystem.Api.ApiResponse;
 import com.example.qubaatisystem.DTO.In.ActivitySubmissionInDTO;
 import com.example.qubaatisystem.DTO.In.ActivitySubmissionReturnInDTO;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
+import com.example.qubaatisystem.DTO.In.StartAssignmentInDTO;
+import com.example.qubaatisystem.DTO.In.SubmissionTargetInDTO;
 import com.example.qubaatisystem.DTO.In.TeacherFeedbackInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivitySubmissionOutDTO;
 import com.example.qubaatisystem.DTO.Out.ActivitySubmissionTeacherDetailsOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentActivityAttemptOutDTO;
 import com.example.qubaatisystem.Service.ActivitySubmissionService;
 import jakarta.validation.Valid;
-import com.example.qubaatisystem.Security.SecurityOwnershipService;
+import com.example.qubaatisystem.Model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,138 +34,124 @@ import java.util.List;
 public class ActivitySubmissionController {
 
     private final ActivitySubmissionService activitySubmissionService;
-    private final SecurityOwnershipService security;
 
     // ---------- CRUD ----------
 
-    @PostMapping("/activity-submissions")
+    @PostMapping("/activity-submissions/add")
     public ResponseEntity<?> create(@Valid @RequestBody ActivitySubmissionInDTO dto) {
         activitySubmissionService.create(dto);
         return ResponseEntity.status(200).body(new ApiResponse("ActivitySubmission created successfully"));
     }
 
-    @GetMapping("/activity-submissions")
+    @GetMapping("/activity-submissions/get-all")
     public ResponseEntity<?> getAll() {
         return ResponseEntity.status(200).body(activitySubmissionService.getAll());
     }
 
-    @GetMapping("/activity-submissions/{id}")
-    public ResponseEntity<?> getById(@PathVariable Integer id) {
-        return ResponseEntity.status(200).body(activitySubmissionService.getById(id));
+    @PostMapping("/activity-submissions/get")
+    public ResponseEntity<?> getById(@Valid @RequestBody IdInDTO dto) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getById(dto.getId()));
     }
 
-    @PutMapping("/activity-submissions/{id}")
-    public ResponseEntity<?> update(@PathVariable Integer id, @Valid @RequestBody ActivitySubmissionInDTO dto) {
-        activitySubmissionService.update(id, dto);
+    @PutMapping("/activity-submissions/update")
+    public ResponseEntity<?> update(@Valid @RequestBody ActivitySubmissionInDTO dto) {
+        activitySubmissionService.update(dto.getId(), dto);
         return ResponseEntity.status(200).body(new ApiResponse("ActivitySubmission updated successfully"));
     }
 
-    @DeleteMapping("/activity-submissions/{id}")
-    public ResponseEntity<?> delete(@PathVariable Integer id) {
-        activitySubmissionService.delete(id);
+    @DeleteMapping("/activity-submissions/delete")
+    public ResponseEntity<?> delete(@Valid @RequestBody IdInDTO dto) {
+        activitySubmissionService.delete(dto.getId());
         return ResponseEntity.status(200).body(new ApiResponse("ActivitySubmission deleted successfully"));
     }
 
     // ---------- FLOW: SUBMISSION ----------
 
-    @PostMapping("/activity-assignments/{assignmentId}/start")
-    public ResponseEntity<StudentActivityAttemptOutDTO> startAssignment(
-            @PathVariable Integer assignmentId,
-            @RequestParam Integer studentId) {
-        return ResponseEntity.status(200).body(activitySubmissionService.startAssignment(assignmentId, studentId));
+    // Body-based start: the student is derived from Basic Auth (no studentId). The assignment must be for them.
+    @PostMapping("/activity-assignments/start")
+    public ResponseEntity<StudentActivityAttemptOutDTO> start(@AuthenticationPrincipal User user, @Valid @RequestBody StartAssignmentInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.startAssignment(user, body));
     }
 
-    @GetMapping("/activity-submissions/{submissionId}/current")
-    public ResponseEntity<ActivitySubmissionOutDTO> getCurrentSubmission(@PathVariable Integer submissionId) {
-        return ResponseEntity.status(200).body(activitySubmissionService.getCurrentSubmission(submissionId));
+    // Body-based current-submission view: the student must own the submission.
+    @PostMapping("/activity-submissions/current")
+    public ResponseEntity<ActivitySubmissionOutDTO> getCurrentSubmission(@AuthenticationPrincipal User user, @Valid @RequestBody SubmissionTargetInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getCurrentSubmission(user, body));
     }
 
-    @PostMapping("/activity-submissions/{submissionId}/submit")
-    public ResponseEntity<ActivitySubmissionOutDTO> submitActivity(
-            @PathVariable Integer submissionId,
+    // Body-based submit: the student must own the submission.
+    @PostMapping("/activity-submissions/submit")
+    public ResponseEntity<ActivitySubmissionOutDTO> submit(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody SubmissionTargetInDTO body,
             @RequestParam(defaultValue = "en") String language) {
         // Submit validates all questions are answered, then evaluates automatically -> GRADED with feedback.
-        return ResponseEntity.status(200).body(activitySubmissionService.submitActivity(submissionId, language));
+        return ResponseEntity.status(200).body(activitySubmissionService.submitActivity(user, body, language));
     }
 
-    @GetMapping("/activity-submissions/{submissionId}/result")
-    public ResponseEntity<ActivitySubmissionOutDTO> getSubmissionResult(@PathVariable Integer submissionId) {
-        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionResult(submissionId));
+    // Body-based result.
+    @PostMapping("/activity-submissions/result")
+    public ResponseEntity<ActivitySubmissionOutDTO> result(@AuthenticationPrincipal User user, @Valid @RequestBody SubmissionTargetInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionResult(user, body));
     }
 
-    @GetMapping("/activity-submissions/{submissionId}/feedback")
-    public ResponseEntity<ActivitySubmissionOutDTO> getSubmissionFeedback(@PathVariable Integer submissionId) {
-        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionFeedback(submissionId));
+    // Body-based feedback view: the student must own the submission.
+    @PostMapping("/activity-submissions/feedback")
+    public ResponseEntity<ActivitySubmissionOutDTO> getSubmissionFeedback(@AuthenticationPrincipal User user, @Valid @RequestBody SubmissionTargetInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionFeedback(user, body));
     }
 
     @GetMapping("/students/me/activity-results")
-    public ResponseEntity<List<ActivitySubmissionOutDTO>> getMyActivityResults() {
-        return ResponseEntity.status(200)
-                .body(activitySubmissionService.getStudentActivityResults(security.getCurrentStudentId()));
+    public ResponseEntity<List<ActivitySubmissionOutDTO>> getMyActivityResults(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getMyActivityResults(user));
     }
 
-    @Deprecated // prefer GET /students/me/activity-results
-    @GetMapping("/students/{studentId}/activity-results")
-    public ResponseEntity<List<ActivitySubmissionOutDTO>> getStudentActivityResults(@PathVariable Integer studentId) {
-        security.assertCurrentStudentOrAdmin(studentId);
-        return ResponseEntity.status(200).body(activitySubmissionService.getStudentActivityResults(studentId));
-    }
-
-    @PatchMapping("/activity-submissions/{submissionId}/return-to-student")
+    @PatchMapping("/activity-submissions/return-to-student")
     public ResponseEntity<ApiResponse> returnToStudent(
-            @PathVariable Integer submissionId,
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody ActivitySubmissionReturnInDTO request) {
-        security.assertCurrentTeacherOwnsSubmissionOrAdmin(submissionId);
-        Integer actingTeacherId = security.resolveOwningTeacherId(request.getTeacherId());
-        activitySubmissionService.returnToStudent(submissionId, actingTeacherId, request.getTeacherFeedback());
+        activitySubmissionService.returnToStudent(user, request);
         return ResponseEntity.status(200).body(new ApiResponse("Submission returned to student successfully"));
     }
 
-    @PatchMapping("/activity-submissions/{submissionId}/teacher-feedback")
+    @PatchMapping("/activity-submissions/teacher-feedback")
     public ResponseEntity<ActivitySubmissionOutDTO> addTeacherFeedback(
-            @PathVariable Integer submissionId,
+            @AuthenticationPrincipal User user,
             @Valid @RequestBody TeacherFeedbackInDTO request) {
-        security.assertCurrentTeacherOwnsSubmissionOrAdmin(submissionId);
-        Integer actingTeacherId = security.resolveOwningTeacherId(request.getTeacherId());
-        return ResponseEntity.status(200).body(
-                activitySubmissionService.addTeacherFeedback(submissionId, actingTeacherId, request.getTeacherFeedback()));
+        return ResponseEntity.status(200).body(activitySubmissionService.addTeacherFeedback(user, request));
     }
 
-    @PatchMapping("/activity-submissions/{submissionId}/reopen")
-    public ResponseEntity<StudentActivityAttemptOutDTO> reopenSubmission(@PathVariable Integer submissionId) {
-        security.assertCurrentTeacherOwnsSubmissionOrAdmin(submissionId);
-        return ResponseEntity.status(200).body(activitySubmissionService.reopenSubmission(submissionId));
+    // Body-based reopen: the teacher must own the submission.
+    @PatchMapping("/activity-submissions/reopen")
+    public ResponseEntity<StudentActivityAttemptOutDTO> reopenSubmission(@AuthenticationPrincipal User user, @Valid @RequestBody SubmissionTargetInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.reopenSubmission(user, body));
     }
 
     @GetMapping("/teachers/me/activity-submissions/pending-grading")
-    public ResponseEntity<List<ActivitySubmissionOutDTO>> getMyPendingGradingSubmissions() {
-        return ResponseEntity.status(200)
-                .body(activitySubmissionService.getPendingGradingSubmissions(security.getCurrentTeacherId()));
-    }
-
-    @Deprecated // prefer GET /teachers/me/activity-submissions/pending-grading
-    @GetMapping("/teachers/{teacherId}/activity-submissions/pending-grading")
-    public ResponseEntity<List<ActivitySubmissionOutDTO>> getPendingGradingSubmissions(@PathVariable Integer teacherId) {
-        security.assertCurrentTeacherOrAdmin(teacherId);
-        return ResponseEntity.status(200).body(activitySubmissionService.getPendingGradingSubmissions(teacherId));
+    public ResponseEntity<List<ActivitySubmissionOutDTO>> getMyPendingGradingSubmissions(@AuthenticationPrincipal User user) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getMyPendingGradingSubmissions(user));
     }
 
     // ---------- TEACHER SUBMISSION LISTS / DETAILS ----------
 
-    @GetMapping("/activity-assignments/{assignmentId}/submissions")
-    public ResponseEntity<List<ActivitySubmissionOutDTO>> getSubmissionsByAssignment(@PathVariable Integer assignmentId) {
-        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionsByAssignment(assignmentId));
+    // Body-based: list submissions for an assignment (reuses StartAssignmentInDTO{assignmentId}). Teacher-only view.
+    @PostMapping("/activity-submissions/by-assignment")
+    public ResponseEntity<List<ActivitySubmissionOutDTO>> getSubmissionsByAssignment(
+            @AuthenticationPrincipal User user, @Valid @RequestBody StartAssignmentInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionsByAssignment(user, body));
     }
 
-    @GetMapping("/activities/{activityId}/submissions")
-    public ResponseEntity<List<ActivitySubmissionOutDTO>> getSubmissionsByActivity(@PathVariable Integer activityId) {
-        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionsByActivity(activityId));
+    // Body-based: list submissions for an activity. activityId is a target in the body. This left the
+    // /activities/** (TEACHER) prefix, so the teacher-owns-activity guard is enforced here.
+    @PostMapping("/activity-submissions/by-activity")
+    public ResponseEntity<List<ActivitySubmissionOutDTO>> getSubmissionsByActivity(
+            @AuthenticationPrincipal User user, @Valid @RequestBody IdInDTO dto) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getSubmissionsByActivity(user, dto));
     }
 
     // Teacher-only: includes answers + correct answers. Never exposed to students. Ownership-checked.
-    @GetMapping("/activity-submissions/{submissionId}/teacher-details")
-    public ResponseEntity<ActivitySubmissionTeacherDetailsOutDTO> getTeacherSubmissionDetails(@PathVariable Integer submissionId) {
-        security.assertCurrentTeacherOwnsSubmissionOrAdmin(submissionId);
-        return ResponseEntity.status(200).body(activitySubmissionService.getTeacherSubmissionDetails(submissionId));
+    @PostMapping("/activity-submissions/teacher-details")
+    public ResponseEntity<ActivitySubmissionTeacherDetailsOutDTO> getTeacherSubmissionDetails(@AuthenticationPrincipal User user, @Valid @RequestBody SubmissionTargetInDTO body) {
+        return ResponseEntity.status(200).body(activitySubmissionService.getTeacherSubmissionDetails(user, body));
     }
 }

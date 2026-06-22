@@ -42,5 +42,8 @@ public class ChildCreateInDTO {
     @Size(max = 50, message = "grade must be at most 50 characters")
     private String grade;
 
+    // DEPRECATED: a parent does NOT enroll into a classroom. IGNORED — the child starts with no classroom and a
+    // teacher enrolls them later via POST /api/v1/classrooms/students/enroll.
+    @Deprecated
     private Integer classroomId;
 }

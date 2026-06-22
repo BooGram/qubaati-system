@@ -6,8 +6,11 @@ import com.example.qubaatisystem.DTO.Out.ParentWeeklyReportChildOutDTO;
 import com.example.qubaatisystem.DTO.Out.ParentWeeklyReportOutDTO;
 import com.example.qubaatisystem.DTO.Out.StudentOutDTO;
 import com.example.qubaatisystem.Enum.ReportTriggerType;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
 import com.example.qubaatisystem.Model.Parent;
 import com.example.qubaatisystem.Model.ParentWeeklyReport;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.ParentRepository;
 import com.example.qubaatisystem.Repository.ParentWeeklyReportRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +46,37 @@ public class ParentWeeklyReportService {
     private final N8nWebhookService n8nWebhookService;
     private final ParentWeeklyReportRepository reportRepository;
     private final ObjectMapper objectMapper;
+    private final SecurityOwnershipService security;
+
+    // ── Controller-facing (User, dto) wrappers: own security + actor derivation ───
+
+    /** Single stored report by id — parent (any parent) or admin via assertParent. */
+    public ParentWeeklyReportOutDTO getReportById(User user, IdInDTO dto) {
+        ParentWeeklyReportOutDTO report = getReportById(dto.getId());
+        security.assertParent(user);
+        return report;
+    }
+
+    /** Manual batch trigger for ALL parents — ADMIN only. */
+    public List<ParentWeeklyReportOutDTO> generateAllForAdmin(User user) {
+        security.assertAdmin(user);
+        return generateWeeklyReportsForAllParents(ReportTriggerType.BATCH_MANUAL);
+    }
+
+    /** Generate the report for the current parent (derived from auth). */
+    public ParentWeeklyReportOutDTO generateForCurrentParent(User user) {
+        return generateForParent(security.getCurrentParentId(user), ReportTriggerType.MANUAL);
+    }
+
+    /** List the current parent's reports. */
+    public List<ParentWeeklyReportOutDTO> getReportsForCurrentParent(User user) {
+        return getReportsForParent(security.getCurrentParentId(user));
+    }
+
+    /** Latest report for the current parent. */
+    public ParentWeeklyReportOutDTO getLatestReportForCurrentParent(User user) {
+        return getLatestReport(security.getCurrentParentId(user));
+    }
 
     // ── Generation: single parent (manual demo) ───────────────────────────────
 

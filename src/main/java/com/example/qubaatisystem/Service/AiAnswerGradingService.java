@@ -74,6 +74,33 @@ public class AiAnswerGradingService {
         }
     }
 
+    /**
+     * Generates encouraging, specific feedback for a graded submission via the AI provider. Returns {@code null}
+     * when no provider is configured or the call fails — the caller then uses its deterministic SYSTEM summary and
+     * marks the feedback source accordingly, so a template is never passed off as real AI feedback.
+     */
+    public String generateSubmissionFeedback(String activityTitle, int totalQuestions, int answeredQuestions,
+                                             int correctCount, int score, int maxScore, String language) {
+        boolean arabic = language != null && language.trim().toLowerCase().startsWith("ar");
+        try {
+            String system = "You are an encouraging tutor giving a child concise feedback on a quiz attempt. "
+                    + "Write 3-5 short sentences as plain text (no markdown, no JSON). Respond ONLY in "
+                    + (arabic ? "Arabic." : "English.");
+            String user = "Activity: " + safe(activityTitle) + ". "
+                    + "The student answered " + answeredQuestions + " of " + totalQuestions + " questions, "
+                    + "got " + correctCount + " correct, and scored " + score + " out of " + maxScore + ". "
+                    + "Cover, in this order: a brief performance summary; one specific strength; one area to "
+                    + "improve; and one concrete next step to keep practising. Keep the tone warm and motivating.";
+            String content = chatClient.prompt().system(system).user(user).call().content();
+            if (content == null || content.isBlank()) {
+                return null;
+            }
+            return content.trim();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private String safe(String value) {
         return value == null ? "" : value;
     }

@@ -58,8 +58,10 @@ public class AiActivityService {
     private final ActivitySubmissionService activitySubmissionService;
     private final ActivityService activityService;
     private final TeacherRepository teacherRepository;
+    private final com.example.qubaatisystem.Repository.ActivityAssignmentRepository activityAssignmentRepository;
     private final AiProviderHealthService aiProviderHealthService;
     private final ObjectMapper objectMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     // Spring AI client. The API key and model come from spring.ai.openai.* (OPENAI_API_KEY / OPENAI_MODEL)
     // via Spring AI auto-configuration — exactly like Student 3's AiService. No manual key/model handling.
@@ -72,8 +74,10 @@ public class AiActivityService {
                              ActivitySubmissionService activitySubmissionService,
                              ActivityService activityService,
                              TeacherRepository teacherRepository,
+                             com.example.qubaatisystem.Repository.ActivityAssignmentRepository activityAssignmentRepository,
                              AiProviderHealthService aiProviderHealthService,
                              ObjectMapper objectMapper,
+                             com.example.qubaatisystem.Config.SecurityOwnershipService security,
                              ChatClient.Builder chatClientBuilder) {
         this.activityRepository = activityRepository;
         this.questionRepository = questionRepository;
@@ -82,8 +86,10 @@ public class AiActivityService {
         this.activitySubmissionService = activitySubmissionService;
         this.activityService = activityService;
         this.teacherRepository = teacherRepository;
+        this.activityAssignmentRepository = activityAssignmentRepository;
         this.aiProviderHealthService = aiProviderHealthService;
         this.objectMapper = objectMapper;
+        this.security = security;
         this.chatClient = chatClientBuilder.build();
     }
 
@@ -93,6 +99,15 @@ public class AiActivityService {
      * EXPLICIT AI endpoint: generates a full activity (description + real questions/options) by calling the AI
      * and parsing strict JSON. Fails fast — never returns placeholder/template content.
      */
+    /**
+     * The generated activity's owner is derived from Basic Auth (teacher owns it; admin may pass a teacherId).
+     */
+    public ActivityDetailsOutDTO generateActivity(com.example.qubaatisystem.Model.User user,
+                                                  AiGenerateActivityInDTO dto, String language) {
+        dto.setTeacherId(security.resolveOwningTeacherId(user, dto.getTeacherId()));
+        return generateActivity(dto, language);
+    }
+
     public ActivityDetailsOutDTO generateActivity(AiGenerateActivityInDTO dto, String language) {
         String lang = normalizeLanguage(language);
 
@@ -158,6 +173,16 @@ public class AiActivityService {
         return buildActivityDetailsOutDTO(pendingActivity, lang);
     }
 
+    /**
+     * Body-based refine: activityId is the target in the body; the teacher comes from Basic Auth and must own it.
+     */
+    public ActivityDetailsOutDTO refineActivity(com.example.qubaatisystem.Model.User user,
+                                                com.example.qubaatisystem.DTO.In.AiActivityRefineInDTO body,
+                                                String language) {
+        security.assertTeacherOwnsActivity(user, body.getActivityId());
+        return refineActivity(body.getActivityId(), body.getInstruction(), language);
+    }
+
     /** EXPLICIT AI endpoint: refines the activity description via the AI. Fails fast — no silent fallback. */
     public ActivityDetailsOutDTO refineActivity(Integer activityId, String instruction, String language) {
         String lang = normalizeLanguage(language);
@@ -172,31 +197,107 @@ public class AiActivityService {
             throw new ApiException("Only DRAFT, REJECTED or PENDING_REVIEW activities can be refined");
         }
 
+        // SAFETY: never rewrite questions of an activity that has already been assigned (would corrupt attempts).
+        if (!activityAssignmentRepository.findActivityAssignmentsByActivityId(activityId).isEmpty()) {
+            throw new ApiException("This activity has already been assigned and cannot be refined; "
+                    + "create a new activity instead.");
+        }
+
         String effectiveInstruction = (instruction == null || instruction.isBlank())
                 ? "Improve the clarity and quality of this activity while keeping the same educational level."
                 : instruction;
 
+        // Explicit AI endpoint: require a configured provider, then refine the FULL activity (title, description,
+        // and the questions/options/correctAnswer) — never just the description. No silent fallback.
         aiProviderHealthService.requireConfigured();
         log.info("AI Activity Refinement started. model={} configured=true activityId={}",
                 aiProviderHealthService.getModel(), activityId);
 
-        String englishSystem = "You refine educational activities. Respond in English only. " + PLAIN_TEXT_RULES;
-        String englishUser = "Activity title: " + activity.getTitle()
-                + ". Current description: " + (activity.getDescription() == null ? "" : activity.getDescription())
-                + ". Instruction: " + effectiveInstruction
-                + ". Return only the refined one-paragraph description.";
+        GeneratedActivity refined = refineActivityViaAi(activity, effectiveInstruction);
 
-        String refinedEnglish = cleanPlainText(callOpenAiOrThrow(englishSystem, englishUser, "AI activity refinement"));
-        if (refinedEnglish == null || refinedEnglish.isBlank()) {
-            throw new ApiException("AI activity refinement returned empty content.");
+        // Title + description.
+        if (notBlank(refined.title)) {
+            activity.setTitle(cleanPlainText(refined.title));
+        }
+        if (notBlank(refined.description)) {
+            activity.setDescription(cleanPlainText(refined.description));
         }
 
-        activity.setDescription(refinedEnglish);
+        // Replace the questions/options entirely with the refined set (safe: the activity is unassigned).
+        for (Question oldQuestion : questionRepository.findQuestionsByActivityId(activityId)) {
+            for (Option oldOption : optionRepository.findOptionsByQuestionId(oldQuestion.getId())) {
+                optionRepository.delete(oldOption);
+            }
+            questionRepository.delete(oldQuestion);
+        }
+        int[] questionPoints = distributePoints(activity.getMaxScore(), refined.questions.size());
+        for (int i = 0; i < refined.questions.size(); i++) {
+            GeneratedQuestion gq = refined.questions.get(i);
+            Question question = new Question();
+            question.setContent(cleanPlainText(gq.content));
+            question.setType(QuestionType.MULTIPLE_CHOICE);
+            question.setDifficulty(activity.getDifficulty());
+            question.setPoints(questionPoints[i]);
+            question.setCorrectAnswer(cleanPlainText(gq.correctAnswer));
+            question.setActivity(activity);
+            Question savedQuestion = questionRepository.save(question);
+            for (GeneratedOption opt : gq.options) {
+                Option option = new Option();
+                option.setContent(cleanPlainText(opt.content));
+                option.setIsCorrect(Boolean.TRUE.equals(opt.isCorrect));
+                option.setQuestion(savedQuestion);
+                optionRepository.save(option);
+            }
+        }
+
         activity.setStatus(ActivityStatus.PENDING_REVIEW);
         activityRepository.save(activity);
-        log.info("AI Activity Refinement completed successfully. activityId={}", activityId);
+        log.info("AI Activity Refinement completed successfully. activityId={} questions={}",
+                activityId, refined.questions.size());
 
-        return buildActivityDetailsOutDTO(activity, lang);
+        Activity refreshed = activityRepository.findActivityById(activityId);
+        return buildActivityDetailsOutDTO(refreshed, lang);
+    }
+
+    /**
+     * Calls the AI to refine the FULL activity (incl. questions/options) per the instruction, reusing the same
+     * strict-JSON parse/validate/placeholder-rejection machinery as generation. Retries once, then fails clearly.
+     */
+    private GeneratedActivity refineActivityViaAi(Activity activity, String instruction) {
+        String system = activitySystemPrompt(false);
+        String user = refineUserPrompt(activity, instruction, false);
+        GeneratedActivity parsed = tryParseActivity(callOpenAiOrThrow(system, user, "AI activity refinement"));
+        if (parsed == null) {
+            log.warn("AI Activity Refinement: first response was not valid JSON — retrying with a stricter prompt.");
+            parsed = tryParseActivity(callOpenAiOrThrow(activitySystemPrompt(true),
+                    refineUserPrompt(activity, instruction, true), "AI activity refinement"));
+        }
+        if (parsed == null) {
+            throw new ApiException("AI activity refinement returned invalid JSON.");
+        }
+        validateGenerated(parsed);
+        return parsed;
+    }
+
+    private String refineUserPrompt(Activity activity, String instruction, boolean strict) {
+        StringBuilder existing = new StringBuilder();
+        for (Question q : questionRepository.findQuestionsByActivityId(activity.getId())) {
+            existing.append("- ").append(q.getContent()).append(" ");
+        }
+        return "Refine this existing educational activity by APPLYING the instruction to the whole activity — the "
+                + "title, description, and especially the QUESTIONS, their options and correct answers. "
+                + "Instruction: \"" + instruction + "\". "
+                + "If the instruction changes the topic (e.g. \"make the questions about rockets\"), rewrite every "
+                + "question so its content is genuinely about that topic. "
+                + "Current title: " + activity.getTitle() + ". Current description: "
+                + (activity.getDescription() == null ? "" : activity.getDescription()) + ". "
+                + "Current questions: " + existing + ". "
+                + "Keep it a " + activity.getDifficulty() + " " + activity.getType()
+                + " with the same number of multiple-choice questions (each 3-4 options, exactly one correct). "
+                + (strict ? "CRITICAL: output MUST be exactly one valid JSON object and NOTHING else. " : "")
+                + "Return JSON in this shape: {\"title\":\"...\",\"description\":\"...\",\"questions\":[{\"content\":"
+                + "\"...\",\"correctAnswer\":\"...\",\"options\":[{\"content\":\"...\",\"isCorrect\":true},"
+                + "{\"content\":\"...\",\"isCorrect\":false}]}]}";
     }
 
     /**
@@ -210,6 +311,16 @@ public class AiActivityService {
     }
 
     /**
+     * Body-based evaluate: submissionId is the target in the body; the teacher comes from Basic Auth and must own it.
+     */
+    public ActivitySubmissionOutDTO evaluateSubmission(com.example.qubaatisystem.Model.User user,
+                                                       com.example.qubaatisystem.DTO.In.SubmissionTargetInDTO body,
+                                                       String language) {
+        security.assertTeacherOwnsSubmission(user, body.getSubmissionId());
+        return evaluateSubmission(body.getSubmissionId(), language);
+    }
+
+    /**
      * Teacher/reviewer view: the full activity details INCLUDING correctAnswer and each option's isCorrect.
      * NOT student-safe — only for teacher/reviewer/admin endpoints.
      */
@@ -220,6 +331,16 @@ public class AiActivityService {
             throw new ApiException("Activity with id " + activityId + " not found");
         }
         return buildActivityDetailsOutDTO(activity, lang);
+    }
+
+    /**
+     * Body-based feedback generation: submissionId is the target in the body; the teacher comes from Basic Auth.
+     */
+    public ActivitySubmissionOutDTO generateFeedback(com.example.qubaatisystem.Model.User user,
+                                                     com.example.qubaatisystem.DTO.In.SubmissionTargetInDTO body,
+                                                     String audience, String language) {
+        security.assertTeacherOwnsSubmission(user, body.getSubmissionId());
+        return generateFeedback(body.getSubmissionId(), audience, language);
     }
 
     /** EXPLICIT AI endpoint: generates submission feedback via the AI. Fails fast — no silent fallback. */
@@ -245,6 +366,7 @@ public class AiActivityService {
         }
 
         submission.setAiFeedback(englishFeedback);
+        submission.setFeedbackSource("AI"); // explicit AI endpoint — provider was required above
         activitySubmissionRepository.save(submission);
 
         ActivitySubmissionOutDTO out = activitySubmissionService.getById(submissionId);

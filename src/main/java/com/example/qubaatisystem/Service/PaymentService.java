@@ -44,8 +44,23 @@ public class PaymentService {
     private final SubscriptionService subscriptionService;
     private final MoyasarService moyasarService;
     private final EmailService emailService;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     // ── Checkout ─────────────────────────────────────────────────────────────
+
+    /**
+     * A subscriber may only check out for THEMSELVES (admin may check out for anyone).
+     * Asserts the caller's role matches the subscriber type, then delegates to checkout(dto).
+     */
+    @Transactional
+    public CheckoutOutDTO checkout(com.example.qubaatisystem.Model.User user, CheckoutInDTO dto) {
+        if (dto != null && dto.getSubscriberType() == PlanAudience.TEACHER) {
+            security.assertTeacher(user);
+        } else if (dto != null) {
+            security.assertParent(user);
+        }
+        return checkout(dto);
+    }
 
     /**
      * Creates a PENDING payment record and returns everything the frontend needs

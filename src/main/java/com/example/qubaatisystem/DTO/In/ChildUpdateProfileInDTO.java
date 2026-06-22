@@ -16,6 +16,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ChildUpdateProfileInDTO {
 
+    @NotNull(message = "studentId is required")
+    private Integer studentId;
+
     @NotBlank(message = "fullName is required")
     @Size(max = 120, message = "fullName must be at most 120 characters")
     private String fullName;

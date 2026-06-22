@@ -7,11 +7,13 @@ import com.example.qubaatisystem.DTO.In.StudentAnswerInDTO;
 import com.example.qubaatisystem.DTO.Out.StudentAnswerOutDTO;
 import com.example.qubaatisystem.Enum.AnswerStatus;
 import com.example.qubaatisystem.Enum.ActivitySubmissionStatus;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
 import com.example.qubaatisystem.Model.ActivitySubmission;
 import com.example.qubaatisystem.Model.Option;
 import com.example.qubaatisystem.Model.Question;
 import com.example.qubaatisystem.Model.Student;
 import com.example.qubaatisystem.Model.StudentAnswer;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Repository.ActivitySubmissionRepository;
 import com.example.qubaatisystem.Repository.OptionRepository;
 import com.example.qubaatisystem.Repository.QuestionRepository;
@@ -34,6 +36,7 @@ public class StudentAnswerService {
     private final ActivitySubmissionRepository activitySubmissionRepository;
     private final OptionRepository optionRepository;
     private final ModelMapper modelMapper;
+    private final SecurityOwnershipService security;
 
     public List<StudentAnswerOutDTO> getAll() {
         return studentAnswerRepository.findAll()
@@ -69,6 +72,12 @@ public class StudentAnswerService {
     }
 
     // ====================== FLOW: BATCH ANSWERS ======================
+
+    // User-based thin-controller wrapper: owns the ownership check, then delegates to the existing method.
+    public List<StudentAnswerOutDTO> saveBatchAnswers(User user, BatchStudentAnswerInDTO dto) {
+        security.assertStudentOwnsSubmission(user, dto.getSubmissionId());
+        return saveBatchAnswers(dto.getSubmissionId(), dto);
+    }
 
     public List<StudentAnswerOutDTO> saveBatchAnswers(Integer submissionId, BatchStudentAnswerInDTO dto) {
         ActivitySubmission submission = activitySubmissionRepository.findActivitySubmissionById(submissionId);

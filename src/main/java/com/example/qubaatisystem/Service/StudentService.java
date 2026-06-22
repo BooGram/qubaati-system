@@ -41,8 +41,58 @@ public class StudentService {
     private final CareerWorldRepository careerWorldRepository;
     private final SkillProgressHistoryRepository skillProgressHistoryRepository;
     private final LearningStyleHistoryRepository learningStyleHistoryRepository;
+    private final com.example.qubaatisystem.Repository.LearningStyleRepository learningStyleRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
+
+    // ====================== authenticated wrappers (own security + actor derivation) ======================
+
+    public StudentOutDTO create(User user, StudentInDTO dto) {
+        security.assertAdmin(user);
+        return create(dto);
+    }
+
+    public List<StudentOutDTO> getAll(User user) {
+        security.assertAdmin(user);
+        return getAll();
+    }
+
+    public StudentOutDTO getMe(User user) {
+        return getById(security.getCurrentStudentId(user));
+    }
+
+    public StudentOutDTO update(User user, StudentInDTO dto) {
+        security.assertAdmin(user);
+        return update(dto.getId(), dto);
+    }
+
+    public void delete(User user, com.example.qubaatisystem.DTO.In.IdInDTO dto) {
+        security.assertAdmin(user);
+        delete(dto.getId());
+    }
+
+    public List<CareerWorldOutDTO> getAvailableCareerWorlds(User user, com.example.qubaatisystem.DTO.In.IdInDTO dto) {
+        security.assertAdmin(user);
+        return getAvailableCareerWorlds(dto.getId());
+    }
+
+    public List<SkillProgressHistoryOutDTO> getMySkillHistory(User user) {
+        return getSkillHistory(security.getCurrentStudentId(user));
+    }
+
+    public List<LearningStyleHistoryOutDTO> getMyLearningStyleHistory(User user) {
+        return getLearningStyleHistory(security.getCurrentStudentId(user));
+    }
+
+    public List<LearningStyleHistoryOutDTO> getLearningStyleHistory(User user, com.example.qubaatisystem.DTO.In.IdInDTO dto) {
+        security.assertAdmin(user);
+        return getLearningStyleHistory(dto.getId());
+    }
+
+    public List<CareerWorldOutDTO> getMyAvailableCareerWorlds(User user) {
+        return getAvailableCareerWorlds(security.getCurrentStudentId(user));
+    }
 
     public List<StudentOutDTO> getAll() {
         return studentRepository.findAll()
@@ -151,6 +201,17 @@ public class StudentService {
 
         student.setId(null);
         Student savedStudent = studentRepository.save(student);
+
+        // Initialize an EMPTY learning-style profile (no fake history rows). Real values + history are written
+        // automatically by the analytics services after activity/mission completion — never seeded manually.
+        com.example.qubaatisystem.Model.LearningStyle learningStyle = new com.example.qubaatisystem.Model.LearningStyle();
+        learningStyle.setStudent(savedStudent);
+        learningStyle.setPrimaryStyle(null);
+        learningStyle.setSecondaryStyle(null);
+        learningStyle.setConfidence(0.0);
+        learningStyle.setDetectedAt(java.time.LocalDateTime.now());
+        learningStyleRepository.save(learningStyle);
+
         return mapStudentToOutDTO(savedStudent);
     }
 

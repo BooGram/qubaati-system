@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CareerWorldInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "title is required")
     @Size(max = 120, message = "title must be at most 120 characters")
     private String title;

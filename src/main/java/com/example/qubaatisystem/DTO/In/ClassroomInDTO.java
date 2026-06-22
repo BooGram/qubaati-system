@@ -13,6 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClassroomInDTO {
 
+    // Target id for update operations (body-based, path-variable-free style). Null on create.
+    private Integer id;
+
     @NotBlank(message = "name is required")
     @Size(max = 100, message = "name must be at most 100 characters")
     private String name;

@@ -19,6 +19,12 @@ import com.example.qubaatisystem.Model.ActivitySubmission;
 import com.example.qubaatisystem.Model.Classroom;
 import com.example.qubaatisystem.Model.Student;
 import com.example.qubaatisystem.Model.Teacher;
+import com.example.qubaatisystem.Model.User;
+import com.example.qubaatisystem.DTO.In.AssignStudentInDTO;
+import com.example.qubaatisystem.DTO.In.AssignClassroomInDTO;
+import com.example.qubaatisystem.DTO.In.IdInDTO;
+import com.example.qubaatisystem.DTO.In.StartAssignmentInDTO;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
 import com.example.qubaatisystem.Repository.ActivityAssignmentRepository;
 import com.example.qubaatisystem.Repository.ActivityRepository;
 import com.example.qubaatisystem.Repository.ActivitySubmissionRepository;
@@ -46,6 +52,7 @@ public class ActivityAssignmentService {
     private final ActivitySubmissionRepository activitySubmissionRepository;
     private final NotificationService notificationService;
     private final ModelMapper modelMapper;
+    private final SecurityOwnershipService security;
 
     private static final int MAX_DUE_SOON_HOURS = 24 * 30; // 30 days
 
@@ -62,6 +69,17 @@ public class ActivityAssignmentService {
             throw new ApiException("ActivityAssignment with id " + id + " not found");
         }
         return toOut(activityAssignment);
+    }
+
+    public void create(User user, ActivityAssignmentInDTO dto) {
+        dto.setAssignedByTeacherId(security.resolveOwningTeacherId(user, dto.getAssignedByTeacherId()));
+        if (dto.getActivityId() != null) {
+            security.assertTeacherOwnsActivity(user, dto.getActivityId());
+        }
+        if (dto.getStudentId() != null) {
+            security.assertTeacherCanAssignToStudent(user, dto.getStudentId());
+        }
+        create(dto);
     }
 
     public void create(ActivityAssignmentInDTO dto) {
@@ -105,6 +123,15 @@ public class ActivityAssignmentService {
 
     // ====================== FLOW: ASSIGNMENT ======================
 
+    public ActivityAssignmentOutDTO assignStudent(User user, AssignStudentInDTO body) {
+        security.assertTeacherOwnsActivity(user, body.getActivityId());
+        security.assertTeacherCanAssignToStudent(user, body.getStudentId());
+        ActivityAssignInDTO dto = new ActivityAssignInDTO();
+        dto.setDueDate(body.getDueDate());
+        dto.setAssignedByTeacherId(security.resolveOwningTeacherId(user, null));
+        return assignToStudent(body.getActivityId(), body.getStudentId(), dto);
+    }
+
     public ActivityAssignmentOutDTO assignToStudent(Integer activityId, Integer studentId, ActivityAssignInDTO dto) {
         Activity activity = requireApprovedActivity(activityId);
         Student student = requireStudent(studentId);
@@ -128,6 +155,15 @@ public class ActivityAssignmentService {
         notifyStudentUser(student, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
                 "You have been assigned a new activity: " + activity.getTitle() + ".");
         return toOut(saved);
+    }
+
+    public ActivityAssignmentOutDTO assignClassroom(User user, AssignClassroomInDTO body) {
+        security.assertTeacherOwnsActivity(user, body.getActivityId());
+        security.assertTeacherOwnsClassroom(user, body.getClassroomId());
+        ActivityAssignInDTO dto = new ActivityAssignInDTO();
+        dto.setDueDate(body.getDueDate());
+        dto.setAssignedByTeacherId(security.resolveOwningTeacherId(user, null));
+        return assignToClassroom(body.getActivityId(), body.getClassroomId(), dto);
     }
 
     public ActivityAssignmentOutDTO assignToClassroom(Integer activityId, Integer classroomId, ActivityAssignInDTO dto) {
@@ -156,6 +192,17 @@ public class ActivityAssignmentService {
                     "Your class was assigned a new activity: " + activity.getTitle() + ".");
         }
         return toOut(saved);
+    }
+
+    public ApiResponse assignToBulkStudents(User user, ActivityAssignmentBulkInDTO dto) {
+        dto.setAssignedByTeacherId(security.resolveOwningTeacherId(user, dto.getAssignedByTeacherId()));
+        security.assertTeacherOwnsActivity(user, dto.getActivityId());
+        if (dto.getStudentIds() != null) {
+            for (Integer sid : dto.getStudentIds()) {
+                security.assertTeacherCanAssignToStudent(user, sid);
+            }
+        }
+        return assignToBulkStudents(dto.getActivityId(), dto);
     }
 
     public ApiResponse assignToBulkStudents(Integer activityId, ActivityAssignmentBulkInDTO dto) {
@@ -197,6 +244,11 @@ public class ActivityAssignmentService {
         return new ApiResponse("Bulk assignment completed. Created: " + created + ", Skipped: " + skipped + ", Failed: " + failed);
     }
 
+    public List<ActivityAssignmentOutDTO> getAssignmentsByActivity(User user, IdInDTO dto) {
+        security.assertTeacherOwnsActivity(user, dto.getId());
+        return getAssignmentsByActivity(dto.getId());
+    }
+
     public List<ActivityAssignmentOutDTO> getAssignmentsByActivity(Integer activityId) {
         if (activityRepository.findActivityById(activityId) == null) {
             throw new ApiException("Activity with id " + activityId + " not found");
@@ -205,6 +257,10 @@ public class ActivityAssignmentService {
                 .stream()
                 .map(this::toOut)
                 .toList();
+    }
+
+    public List<ActivityAssignmentOutDTO> getMyAssignments(User user) {
+        return getAssignmentsByStudent(security.getCurrentStudentId(user));
     }
 
     public List<ActivityAssignmentOutDTO> getAssignmentsByStudent(Integer studentId) {
@@ -221,6 +277,11 @@ public class ActivityAssignmentService {
             }
         }
         return byId.values().stream().map(this::toOut).toList();
+    }
+
+    public void cancelAssignment(User user, StartAssignmentInDTO body) {
+        security.assertTeacher(user);
+        cancelAssignment(body.getAssignmentId());
     }
 
     public void cancelAssignment(Integer assignmentId) {
@@ -240,6 +301,11 @@ public class ActivityAssignmentService {
         }
         assignment.setStatus(ActivityAssignmentStatus.CANCELLED);
         activityAssignmentRepository.save(assignment);
+    }
+
+    public void extendDeadline(User user, ActivityAssignmentDeadlineInDTO dto) {
+        security.assertTeacher(user);
+        extendDeadline(dto.getAssignmentId(), dto);
     }
 
     public void extendDeadline(Integer assignmentId, ActivityAssignmentDeadlineInDTO dto) {
@@ -267,6 +333,11 @@ public class ActivityAssignmentService {
      * Expires every ASSIGNED assignment whose dueDate has already passed (sets status EXPIRED) and notifies the
      * affected student(s). Assignments with no dueDate are never expired. Returns how many were expired.
      */
+    public ExpireOverdueOutDTO expireOverdueAssignments(User user) {
+        security.assertTeacher(user);
+        return expireOverdueAssignments();
+    }
+
     public ExpireOverdueOutDTO expireOverdueAssignments() {
         LocalDateTime now = LocalDateTime.now();
         List<ActivityAssignment> overdue = activityAssignmentRepository
@@ -290,6 +361,11 @@ public class ActivityAssignmentService {
      * <p>Limitation: there is no per-assignment "due-soon already sent" flag (submission history/audit is out
      * of scope), so calling this twice within the window will notify the same students again.
      */
+    public DueSoonNotificationsOutDTO sendDueSoonNotifications(User user, Integer hours) {
+        security.assertTeacher(user);
+        return sendDueSoonNotifications(hours);
+    }
+
     public DueSoonNotificationsOutDTO sendDueSoonNotifications(Integer hours) {
         int window = (hours == null || hours <= 0) ? 24 : hours;
         if (window > MAX_DUE_SOON_HOURS) {

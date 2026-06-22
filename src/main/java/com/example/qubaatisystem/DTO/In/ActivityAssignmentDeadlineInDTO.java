@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ActivityAssignmentDeadlineInDTO {
 
+    // Resource target: the assignment whose deadline is extended. Moved into the body from the former path variable.
+    @NotNull(message = "assignmentId is required")
+    private Integer assignmentId;
+
     @NotNull(message = "dueDate is required")
     @Future(message = "dueDate must be in the future")
     private LocalDateTime dueDate;

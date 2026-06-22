@@ -18,6 +18,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentAnswerManualGradeInDTO {
 
+    // Resource target: the answer to grade. Moved into the body from the former path variable.
+    @NotNull(message = "answerId is required")
+    private Integer answerId;
+
     // DEPRECATED actor id — IGNORED for the authenticated TEACHER (derived from Basic Auth);
     // only an ADMIN may supply it to act on a teacher behalf. Optional; do not send it as a teacher.
     private Integer teacherId;

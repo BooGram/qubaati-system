@@ -16,6 +16,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TeacherFeedbackInDTO {
 
+    // Resource target: the submission to attach feedback to. Moved into the body from the former path variable.
+    @NotNull(message = "submissionId is required")
+    private Integer submissionId;
+
     // DEPRECATED actor id — IGNORED for the authenticated TEACHER (derived from Basic Auth);
     // only an ADMIN may supply it to act on a teacher behalf. Optional; do not send it as a teacher.
     private Integer teacherId;

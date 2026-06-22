@@ -23,6 +23,7 @@ public class StudentSkillService {
     private final StudentRepository studentRepository;
     private final SkillRepository skillRepository;
     private final ModelMapper modelMapper;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     public List<StudentSkillOutDTO> getAll() {
         return studentSkillRepository.findAll()
@@ -110,5 +111,10 @@ public class StudentSkillService {
                 .stream()
                 .map(this::toOut)
                 .toList();
+    }
+
+    /** Current-student wrapper: derives the acting student from Basic Auth, then delegates. */
+    public List<StudentSkillOutDTO> getMySkills(com.example.qubaatisystem.Model.User user) {
+        return getByStudentId(security.getCurrentStudentId(user));
     }
 }

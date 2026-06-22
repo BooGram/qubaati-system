@@ -2,6 +2,9 @@ package com.example.qubaatisystem.Service;
 
 import com.example.qubaatisystem.Api.ApiException;
 import com.example.qubaatisystem.DTO.In.ActivityInDTO;
+import com.example.qubaatisystem.DTO.In.ActivityReviewActionInDTO;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
+import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.DTO.Out.ActivityOutDTO;
 import com.example.qubaatisystem.DTO.Out.ActivityReviewOutDTO;
 import com.example.qubaatisystem.Enum.ActivityReviewDecision;
@@ -33,6 +36,7 @@ public class ActivityService {
     private final QuestionRepository questionRepository;
     private final SkillRepository skillRepository;
     private final ModelMapper modelMapper;
+    private final SecurityOwnershipService security;
 
     public List<ActivityOutDTO> getAll() {
         return activityRepository.findAll()
@@ -47,6 +51,15 @@ public class ActivityService {
             throw new ApiException("Activity with id " + id + " not found");
         }
         return toOut(activity);
+    }
+
+    /**
+     * Owner is derived from Basic Auth: a TEACHER owns the activity (body teacherId ignored); an ADMIN may
+     * supply teacherId to create on a teacher's behalf. PARENT/STUDENT are blocked by the resolver.
+     */
+    public void create(User user, ActivityInDTO dto) {
+        dto.setTeacherId(security.resolveOwningTeacherId(user, dto.getTeacherId()));
+        create(dto);
     }
 
     public void create(ActivityInDTO dto) {
@@ -117,6 +130,11 @@ public class ActivityService {
         return activities.stream().map(this::toOut).toList();
     }
 
+    /** Current-teacher ("me") activities derived from Basic Auth, optionally filtered by status. */
+    public List<ActivityOutDTO> getMyActivities(User user, ActivityStatus status) {
+        return getActivitiesByTeacher(security.getCurrentTeacherId(user), status);
+    }
+
     /** Teacher-owned activities (Student 1 visibility), optionally filtered by status. */
     public List<ActivityOutDTO> getActivitiesByTeacher(Integer teacherId, ActivityStatus status) {
         requireTeacher(teacherId);
@@ -166,6 +184,16 @@ public class ActivityService {
                 .toList();
     }
 
+    /**
+     * Reviewer = the authenticated teacher who owns the activity (body teacherId ignored; admin has no teacher
+     * reviewer so review is teacher-owner-only).
+     */
+    public void approveActivity(User user, ActivityReviewActionInDTO request) {
+        Integer reviewerId = security.getCurrentTeacherId(user);
+        security.assertTeacherOwnsActivity(user, request.getActivityId());
+        approveActivity(request.getActivityId(), reviewerId, request.getReviewComment());
+    }
+
     public void approveActivity(Integer activityId, Integer teacherId, String reviewComment) {
         Activity activity = requireActivity(activityId);
         Teacher teacher = requireTeacher(teacherId);
@@ -178,6 +206,12 @@ public class ActivityService {
         activityRepository.save(activity);
     }
 
+    public void rejectActivity(User user, ActivityReviewActionInDTO request) {
+        Integer reviewerId = security.getCurrentTeacherId(user);
+        security.assertTeacherOwnsActivity(user, request.getActivityId());
+        rejectActivity(request.getActivityId(), reviewerId, request.getReviewComment());
+    }
+
     public void rejectActivity(Integer activityId, Integer teacherId, String reviewComment) {
         Activity activity = requireActivity(activityId);
         Teacher teacher = requireTeacher(teacherId);
@@ -188,6 +222,12 @@ public class ActivityService {
         saveReview(activity, teacher, ActivityReviewDecision.REJECTED, comment);
         activity.setStatus(ActivityStatus.REJECTED);
         activityRepository.save(activity);
+    }
+
+    public void requestRevision(User user, ActivityReviewActionInDTO request) {
+        Integer reviewerId = security.getCurrentTeacherId(user);
+        security.assertTeacherOwnsActivity(user, request.getActivityId());
+        requestRevision(request.getActivityId(), reviewerId, request.getReviewComment());
     }
 
     public void requestRevision(Integer activityId, Integer teacherId, String reviewComment) {

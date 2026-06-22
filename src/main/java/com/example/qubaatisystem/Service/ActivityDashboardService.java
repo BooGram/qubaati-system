@@ -38,6 +38,17 @@ public class ActivityDashboardService {
     private final ActivityAssignmentRepository activityAssignmentRepository;
     private final ActivitySubmissionRepository activitySubmissionRepository;
     private final StudentRepository studentRepository;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
+
+    public StudentActivityDashboardOutDTO getActivityDashboard(com.example.qubaatisystem.Model.User user,
+                                                               com.example.qubaatisystem.DTO.In.IdInDTO dto) {
+        security.assertAdmin(user);
+        return getStudentActivityDashboard(dto.getId());
+    }
+
+    public StudentActivityDashboardOutDTO getMyActivityDashboard(com.example.qubaatisystem.Model.User user) {
+        return getStudentActivityDashboard(security.getCurrentStudentId(user));
+    }
 
     public StudentActivityDashboardOutDTO getStudentActivityDashboard(Integer studentId) {
         Student student = studentRepository.findStudentById(studentId);

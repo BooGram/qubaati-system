@@ -16,6 +16,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ActivityInDTO {
 
+    // Nullable target id used only by the body-based update endpoint (path-variable-free style); ignored on create.
+    private Integer id;
+
     @NotBlank(message = "title is required")
     @Size(max = 150, message = "title must be at most 150 characters")
     private String title;

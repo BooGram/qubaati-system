@@ -16,6 +16,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudentInDTO {
 
+    // Resource target id, used only for body-based update (null on create).
+    private Integer id;
+
     // ----- User account fields (the linked child User is created internally by StudentService) -----
     @NotBlank(message = "username is required")
     @Size(max = 50, message = "username must be at most 50 characters")

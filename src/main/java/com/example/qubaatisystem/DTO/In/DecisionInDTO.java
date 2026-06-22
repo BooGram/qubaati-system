@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DecisionInDTO {
 
+    private Integer id;
+
     @NotBlank(message = "choice is required")
     @Size(max = 255, message = "choice must be at most 255 characters")
     private String choice;

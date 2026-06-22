@@ -16,6 +16,8 @@ public class ActivitySubmissionOutDTO {
     private Integer score;
     private ActivitySubmissionStatus status;
     private String aiFeedback;
+    // "AI" when feedback came from Spring AI; "SYSTEM" when it is the deterministic score summary (no AI provider).
+    private String feedbackSource;
     private String teacherFeedback;
     private Integer activityAssignmentId;
     private Integer activityId;

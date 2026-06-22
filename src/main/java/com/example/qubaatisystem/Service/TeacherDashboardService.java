@@ -10,6 +10,7 @@ import com.example.qubaatisystem.Enum.ActivityAssignmentStatus;
 import com.example.qubaatisystem.Enum.ActivityStatus;
 import com.example.qubaatisystem.Enum.ActivitySubmissionStatus;
 import com.example.qubaatisystem.Enum.MissionSessionStatus;
+import com.example.qubaatisystem.Config.SecurityOwnershipService;
 import com.example.qubaatisystem.Model.Activity;
 import com.example.qubaatisystem.Model.ActivityAssignment;
 import com.example.qubaatisystem.Model.ActivitySubmission;
@@ -63,6 +64,15 @@ public class TeacherDashboardService {
     private final InsightRepository insightRepository;
     private final RecommendationRepository recommendationRepository;
     private final StudentSkillRepository studentSkillRepository;
+    private final SecurityOwnershipService security;
+
+    public List<TeacherDashboardClassroomOutDTO> getMyClassrooms(com.example.qubaatisystem.Model.User user) {
+        return getTeacherClassrooms(security.getCurrentTeacherId(user));
+    }
+
+    public List<TeacherDashboardStudentOutDTO> getMyStudents(com.example.qubaatisystem.Model.User user) {
+        return getTeacherStudents(security.getCurrentTeacherId(user));
+    }
 
     public TeacherDashboardOutDTO getTeacherDashboard(Integer teacherId) {
         Teacher teacher = requireTeacher(teacherId);
