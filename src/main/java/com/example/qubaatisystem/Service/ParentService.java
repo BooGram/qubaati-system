@@ -37,6 +37,7 @@ public class ParentService {
     private final ActivitySubmissionService activitySubmissionService;
     private final MissionSessionService missionSessionService;
     private final StudentPortfolioPdfService studentPortfolioPdfService;
+    private final WhatsAppService whatsAppService;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
@@ -72,6 +73,7 @@ public class ParentService {
 
         parent.setId(null);
         Parent savedParent = parentRepository.save(parent);
+        whatsAppService.sendWelcomeMessage(savedParent.getPhoneNumber(), savedParent.getFullName(), "ولي أمر");
         return mapParentToOutDTO(savedParent);
     }
 

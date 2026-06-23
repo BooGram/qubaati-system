@@ -51,6 +51,7 @@ public class ActivityAssignmentService {
     private final TeacherRepository teacherRepository;
     private final ActivitySubmissionRepository activitySubmissionRepository;
     private final NotificationService notificationService;
+    private final WhatsAppService whatsAppService;
     private final ModelMapper modelMapper;
     private final SecurityOwnershipService security;
 
@@ -154,6 +155,7 @@ public class ActivityAssignmentService {
         ActivityAssignment saved = activityAssignmentRepository.save(assignment);
         notifyStudentUser(student, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
                 "You have been assigned a new activity: " + activity.getTitle() + ".");
+        notifyParentActivityAssigned(student, teacher, activity);
         return toOut(saved);
     }
 
@@ -190,6 +192,7 @@ public class ActivityAssignmentService {
         for (Student s : studentRepository.findByClassroomId(classroom.getId())) {
             notifyStudentUser(s, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
                     "Your class was assigned a new activity: " + activity.getTitle() + ".");
+            notifyParentActivityAssigned(s, teacher, activity);
         }
         return toOut(saved);
     }
@@ -238,6 +241,7 @@ public class ActivityAssignmentService {
             activityAssignmentRepository.save(assignment);
             notifyStudentUser(student, NotificationType.ACTIVITY_ASSIGNED, "New activity assigned",
                     "You have been assigned a new activity: " + activity.getTitle() + ".");
+            notifyParentActivityAssigned(student, teacher, activity);
             created++;
         }
 
@@ -410,6 +414,20 @@ public class ActivityAssignmentService {
         }
         notificationService.notify(student.getUser(), type, title, message);
         return true;
+    }
+
+    private void notifyParentActivityAssigned(Student student, Teacher teacher, Activity activity) {
+        if (student == null || student.getParent() == null) {
+            return;
+        }
+
+        whatsAppService.sendActivityAssignedToParent(
+                student.getParent().getPhoneNumber(),
+                student.getParent().getFullName(),
+                student.getFullName(),
+                teacher != null ? teacher.getFullName() : null,
+                activity != null ? activity.getTitle() : null
+        );
     }
 
     // ====================== helpers ======================
