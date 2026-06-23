@@ -1,0 +1,28 @@
+meta {
+  name: ab - Parent Cannot AI-Summarize Unrelated Child (403)
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/ai/parents/children/summary
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentId":999999}
+}
+
+tests {
+  test('parent AI summary for non-owned child -> 403', () => expect(res.getStatus()).to.eql(403));
+}

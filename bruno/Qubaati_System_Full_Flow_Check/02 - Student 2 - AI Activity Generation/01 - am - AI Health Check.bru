@@ -1,0 +1,26 @@
+meta {
+  name: am - AI Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/ai/health
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('has configured/model/status/provider', () => { expect(json).to.have.property('configured'); expect(json).to.have.property('model'); expect(json).to.have.property('status'); expect(json).to.have.property('provider'); });
+  test('status is a known value', () => expect(json.status).to.be.oneOf(['READY','MISSING_API_KEY','AI_CALL_FAILED']));
+  test('configured flag agrees with status', () => expect(json.configured).to.eql(json.status !== 'MISSING_API_KEY'));
+  bru.setVar('aiConfigured', String(json.configured));
+  if (json.configured === false) { console.log('AI NOT configured (status=' + json.status + '). Explicit AI generate/refine/feedback return a clear 400 (no fabricated fallback). The AI activity-generation chain (folders 02-08) needs OPENAI_API_KEY to run end-to-end; the manual activity flow in folder 09 needs no key.'); }
+}

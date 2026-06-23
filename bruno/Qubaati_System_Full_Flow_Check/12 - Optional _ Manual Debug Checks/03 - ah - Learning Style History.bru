@@ -1,0 +1,23 @@
+meta {
+  name: ah - Learning Style History
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/students/me/learning-style/history
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns an array', () => expect(json).to.be.an('array'));
+  test('any history row is well-formed (changedAt present)', () => { (json || []).forEach(r => expect(r.changedAt, 'changedAt').to.be.a('string').and.not.empty); });
+}

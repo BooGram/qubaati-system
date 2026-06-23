@@ -1,0 +1,26 @@
+meta {
+  name: am - Capture s2ActivityId
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/activities/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  const a = Array.isArray(json) ? json.filter(x => x.title === 'S2 Short Answer Activity').pop() : null;
+  test('activity created', () => expect(a, 'S2 activity').to.not.be.null);
+  // Guard (Issue 3): manual create is PENDING_REVIEW, never APPROVED directly.
+  test('manual create is PENDING_REVIEW (not APPROVED)', () => expect(a.status).to.eql('PENDING_REVIEW'));
+  if (a) bru.setVar('s2ActivityId', a.id);
+}

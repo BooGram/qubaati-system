@@ -1,0 +1,31 @@
+meta {
+  name: am - Assign Approved Activity to Student
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/assign-student
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":{{activityId}},"studentId":{{studentId}},"dueDate":"2027-01-15T10:00:00"}
+}
+
+tests {
+  const json = res.getBody();
+  test('assignment succeeds', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('has assignment id', () => expect(json).to.have.property('id'));
+  if (json && json.id) bru.setVar('assignmentId', json.id);
+}

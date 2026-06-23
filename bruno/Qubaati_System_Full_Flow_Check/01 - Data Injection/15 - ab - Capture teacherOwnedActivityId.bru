@@ -1,0 +1,26 @@
+meta {
+  name: ab - Capture teacherOwnedActivityId
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/activities/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  const a = Array.isArray(json) ? json.filter(x => x.title === 'Teacher Owned Seed Activity').pop() : null;
+  test('teacher-owned activity exists with createdByTeacherId', () => { expect(a).to.not.be.null; expect(a.createdByTeacherId).to.eql(Number(bru.getVar('teacherId'))); });
+  // Guard (Issue 3): a manually created activity must NOT be APPROVED directly — it enters the review queue.
+  test('manual create is PENDING_REVIEW (not APPROVED)', () => expect(a.status).to.eql('PENDING_REVIEW'));
+  if (a) bru.setVar('teacherOwnedActivityId', a.id);
+}

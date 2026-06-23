@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Qubaati_System_Full_Flow_Check",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

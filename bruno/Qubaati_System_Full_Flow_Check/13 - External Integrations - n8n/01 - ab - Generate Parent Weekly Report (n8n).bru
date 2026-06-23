@@ -1,0 +1,31 @@
+meta {
+  name: ab - Generate Parent Weekly Report (n8n)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/parents/me/weekly-report/generate
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  if (res.getStatus() === 200) {
+    test('n8n report generated', () => { expect(j).to.have.property('reportTitle'); expect(j.source).to.eql('n8n'); });
+    test('triggerType is MANUAL', () => expect(j.triggerType).to.eql('MANUAL'));
+    test('report is a structured object, not an escaped string', () => { expect(j.report).to.be.an('object'); expect(j.report).to.not.be.a('string'); });
+    test('report.children is a real array', () => expect(j.report.children).to.be.an('array'));
+    test('no raw reportJson string field', () => { expect(j).to.not.have.property('reportJson'); expect(JSON.stringify(res.getBody())).to.not.include('reportJson'); });
+    if (j && j.id) bru.setVar('weeklyReportId', j.id);
+  } else {
+    test('n8n not configured locally -> clear 400', () => { expect(res.getStatus()).to.eql(400); expect((j && j.message ? j.message : '').toLowerCase()).to.match(/n8n|not configured|webhook|basic auth/); });
+    console.log('n8n not configured: set N8N_PARENT_REPORT_WEBHOOK_URL + Basic Auth env vars to exercise the 200 path.');
+  }
+}

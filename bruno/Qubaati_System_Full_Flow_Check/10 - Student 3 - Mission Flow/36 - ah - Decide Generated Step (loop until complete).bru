@@ -1,0 +1,41 @@
+meta {
+  name: ah - Decide Generated Step (loop until complete)
+  type: http
+  seq: 36
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/decisions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"choiceId": {{genChoiceId}}, "reason": "Working through the generated mission step by step.", "sessionId": {{genSessionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('decision accepted (200)', () => expect(res.getStatus()).to.equal(200));
+  test('response time is backend-calculated', () => expect(json.responseTimeSeconds).to.be.a('number'));
+  let guard = Number(bru.getVar('genGuard') || '0') + 1;
+  bru.setVar('genGuard', String(guard));
+  if (json.missionCompleteReady === true) {
+      test('mission complete-ready after deciding all steps', () => expect(json.missionCompleteReady).to.eql(true));
+  } else if (json.nextStep && json.nextStep.choices && json.nextStep.choices.length && guard < 25) {
+      test('next step hides scoreImpact', () => json.nextStep.choices.forEach(c => expect(c).to.not.have.property('scoreImpact')));
+      bru.setVar('genChoiceId', json.nextStep.choices[0].id);
+      bru.runner.setNextRequest('ah - Decide Generated Step (loop until complete)');
+  } else {
+      test('mission completed within the step guard (no runaway)', () => expect(guard).to.be.below(25));
+  }
+}

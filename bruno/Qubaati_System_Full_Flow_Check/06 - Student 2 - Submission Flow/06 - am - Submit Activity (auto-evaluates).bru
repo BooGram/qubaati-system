@@ -1,0 +1,35 @@
+meta {
+  name: am - Submit Activity (auto-evaluates)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/submit?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":{{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('submission auto-evaluated to GRADED', () => expect(json.status).to.eql('GRADED'));
+  test('score exists', () => expect(json.score).to.not.be.null);
+  test('activityMaxScore exists', () => expect(json.activityMaxScore).to.not.be.null);
+  test('aiFeedback exists', () => expect(json.aiFeedback).to.be.a('string').and.not.empty);
+  test('feedbackSource is AI or SYSTEM', () => expect(json.feedbackSource).to.be.oneOf(['AI','SYSTEM']));
+  test('feedback provenance is honest', () => { if (json.feedbackSource === 'SYSTEM') { expect(json.aiFeedback).to.include('Total questions'); } else { expect(json.aiFeedback).to.not.include('Total questions:'); } });
+}

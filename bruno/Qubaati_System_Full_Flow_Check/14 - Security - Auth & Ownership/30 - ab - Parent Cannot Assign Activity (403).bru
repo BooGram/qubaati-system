@@ -1,0 +1,28 @@
+meta {
+  name: ab - Parent Cannot Assign Activity (403)
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/assign-student
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":1,"studentId":1,"dueDate":"2027-01-15T10:00:00"}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

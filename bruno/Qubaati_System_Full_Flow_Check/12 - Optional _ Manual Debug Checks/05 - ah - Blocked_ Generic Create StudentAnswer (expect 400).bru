@@ -1,0 +1,29 @@
+meta {
+  name: ah - Blocked: Generic Create StudentAnswer (expect 400)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/student-answers/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"answerText": "bypass attempt", "status": "SAVED", "questionId": 1, "studentId": 1, "activitySubmissionId": 1}
+}
+
+tests {
+  test('blocked with 400', () => expect(res.getStatus()).to.equal(400));
+  test('message points to official flow', () => expect((res.getBody().message || '').toLowerCase()).to.include('disabled'));
+}

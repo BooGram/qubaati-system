@@ -1,0 +1,23 @@
+meta {
+  name: ab - Unauthenticated Approve Activity (401)
+  type: http
+  seq: 35
+}
+
+patch {
+  url: {{baseUrl}}/activities/approve
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":1,"reviewComment":"x"}
+}
+
+tests {
+  test('expected 401', () => expect(res.getStatus()).to.eql(401));
+}

@@ -1,0 +1,33 @@
+meta {
+  name: ah - Start Mission 1
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/missions/sessions/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"missionId": {{mission1Id}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('starts on step 1 with choices', () => { expect(json.currentStep.stepOrder).to.eql(1); expect(json.currentStep.choices.length).to.be.above(0); });
+  test('student step never exposes scoreImpact', () => json.currentStep.choices.forEach(c => expect(c).to.not.have.property('scoreImpact')));
+  if (json.sessionId) bru.setVar('sessionId', json.sessionId);
+  if (json.currentStep && json.currentStep.choices[0]) bru.setVar('choiceId', json.currentStep.choices[0].id);
+}

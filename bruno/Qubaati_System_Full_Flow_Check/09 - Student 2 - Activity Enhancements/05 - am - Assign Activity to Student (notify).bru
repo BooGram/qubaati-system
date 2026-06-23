@@ -1,0 +1,31 @@
+meta {
+  name: am - Assign Activity to Student (notify)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/assign-student
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":{{s2ActivityId}},"studentId":{{studentId}},"dueDate":"2027-02-01T10:00:00"}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('assignment created for student', () => { expect(json.id).to.be.a('number'); expect(json.studentId).to.eql(Number(bru.getVar('studentId'))); });
+  if (json.id) bru.setVar('s2AssignmentId', json.id);
+}

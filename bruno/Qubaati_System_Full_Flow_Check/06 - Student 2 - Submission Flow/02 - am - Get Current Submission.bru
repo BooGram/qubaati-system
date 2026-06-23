@@ -1,0 +1,28 @@
+meta {
+  name: am - Get Current Submission
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/current
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId": {{submissionId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

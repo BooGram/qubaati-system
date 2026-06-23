@@ -1,0 +1,22 @@
+meta {
+  name: ab - Teacher AI Dashboard Insight
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/ai/teachers/me/dashboard-insight
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('insight has summary + source (openai or fallback)', () => { expect(json.summary).to.be.a('string').and.not.empty; expect(json.source).to.be.oneOf(['openai','fallback']); });
+}

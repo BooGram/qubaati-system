@@ -1,0 +1,26 @@
+meta {
+  name: ab - Get Teacher Subscription Status
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/subscriptions/teachers/me/status
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('has hasActivePlan field', () => expect(json).to.have.property('hasActivePlan'));
+  test('hasActivePlan is boolean', () => expect(json.hasActivePlan).to.be.a('boolean'));
+  bru.setVar('teacherHasActivePlan', String(json.hasActivePlan));
+  if (json.hasActivePlan === false) { test('teacher is on the FREE plan by default', () => expect(json.hasActivePlan).to.be.false); }
+  else { console.log('Teacher has an ACTIVE paid plan — paid-path test will assert success.'); }
+}

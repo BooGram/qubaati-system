@@ -1,0 +1,21 @@
+meta {
+  name: ah - Available Career Worlds
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/students/me/career-worlds/available
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns career worlds', () => expect(res.getBody()).to.be.an('array'));
+}

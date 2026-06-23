@@ -1,0 +1,20 @@
+meta {
+  name: ab - Teacher Cannot Access Parent Reports (403)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/parents/me/weekly-reports
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  test('teacher role on parent endpoint -> 403 Forbidden', () => expect(res.getStatus()).to.eql(403));
+}

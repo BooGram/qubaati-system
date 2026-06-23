@@ -1,0 +1,30 @@
+meta {
+  name: am - Reopen Submission (notify)
+  type: http
+  seq: 25
+}
+
+patch {
+  url: {{baseUrl}}/activity-submissions/reopen
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId": {{s2SubmissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('reopened to IN_PROGRESS, still student-safe', () => { expect(json.submissionStatus).to.eql('IN_PROGRESS'); json.questions.forEach(q => expect(q).to.not.have.property('correctAnswer')); });
+}

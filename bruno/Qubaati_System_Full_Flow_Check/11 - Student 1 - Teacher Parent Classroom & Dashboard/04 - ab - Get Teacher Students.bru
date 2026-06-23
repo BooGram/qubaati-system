@@ -1,0 +1,21 @@
+meta {
+  name: ab - Get Teacher Students
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/students
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array', () => expect(res.getBody()).to.be.an('array'));
+}

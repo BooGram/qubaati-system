@@ -1,0 +1,28 @@
+meta {
+  name: am - Invalid language fails (AI generate)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/ai/activities/generate?language=fr
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"topic":"Invalid Language Check","type":"QUIZ","difficulty":"EASY","questionCount":1,"maxScore":5}
+}
+
+tests {
+  test('invalid language fails with 400', () => expect(res.getStatus()).to.equal(400));
+}

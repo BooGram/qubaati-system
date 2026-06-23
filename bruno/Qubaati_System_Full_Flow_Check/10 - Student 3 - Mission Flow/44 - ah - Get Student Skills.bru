@@ -1,0 +1,21 @@
+meta {
+  name: ah - Get Student Skills
+  type: http
+  seq: 44
+}
+
+get {
+  url: {{baseUrl}}/students/me/skills
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array', () => expect(res.getBody()).to.be.an('array'));
+}

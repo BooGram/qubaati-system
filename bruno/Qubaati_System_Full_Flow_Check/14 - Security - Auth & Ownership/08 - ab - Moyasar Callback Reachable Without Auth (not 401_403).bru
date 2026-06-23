@@ -1,0 +1,16 @@
+meta {
+  name: ab - Moyasar Callback Reachable Without Auth (not 401/403)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/payments/callback?id=test_unauthenticated_probe
+  body: none
+  auth: none
+}
+
+tests {
+  test('callback is permitAll (reachable without credentials)', () => { expect(res.getStatus()).to.not.eql(401); expect(res.getStatus()).to.not.eql(403); });
+  console.log('callback status ' + res.getStatus() + ' (verification may fail without Moyasar config — that is fine; the point is it was NOT blocked by auth).');
+}

@@ -1,0 +1,31 @@
+meta {
+  name: ah - Get Steps - Mission 1 (read back)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/missions/steps
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"missionId": {{mission1Id}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('steps come back ordered with choices', () => { expect(json.steps).to.have.lengthOf(2); expect(json.steps[0].choices.length).to.be.above(0); });
+  test('admin steps endpoint STILL exposes scoreImpact', () => { const j = res.getBody(); expect(j.steps[0].choices[0]).to.have.property('scoreImpact'); });
+}

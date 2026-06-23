@@ -1,0 +1,28 @@
+meta {
+  name: ah - Create Default Mission 1
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/mission/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"title":"Story Mission 1 - The Rescue","scenario":"A multi-step rescue scenario.","skillType":"PROBLEM_SOLVING","difficulty":"EASY","estimatedMinutes":5,"maxScore":100,"careerWorldId":{{careerWorldId}}}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

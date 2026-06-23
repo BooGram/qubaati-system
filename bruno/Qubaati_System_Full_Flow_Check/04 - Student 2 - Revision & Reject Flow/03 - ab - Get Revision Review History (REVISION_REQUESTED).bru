@@ -1,0 +1,30 @@
+meta {
+  name: ab - Get Revision Review History (REVISION_REQUESTED)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/activities/review-history
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{revisionActivityId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('history contains REVISION_REQUESTED', () => expect(json.some(r => r.decision === 'REVISION_REQUESTED')).to.be.true);
+}

@@ -1,11 +1,13 @@
 package com.example.qubaatisystem.Advice;
 
-import com.example.redthreadgame.Api.ApiException;
-import com.example.redthreadgame.Api.ApiResponse;
+import com.example.qubaatisystem.Api.ApiException;
+import com.example.qubaatisystem.Api.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.hibernate.TypeMismatchException;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -24,10 +27,21 @@ import java.sql.SQLIntegrityConstraintViolationException;
 @RestControllerAdvice
 public class ControllerAdvice {
 
+    private ResponseEntity<ApiResponse> badRequest(String message) {
+        return ResponseEntity.status(400)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ApiResponse(message));
+    }
 
     @ExceptionHandler(value = ApiException.class)
     public ResponseEntity<?> handleApiException(ApiException e) {
-        return ResponseEntity.status(400).body(new ApiResponse(e.getMessage()));
+        return badRequest(e.getMessage());
+    }
+
+    // Ownership / authorization denial thrown from controllers/services -> HTTP 403 (not the generic 400).
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(403).body(new ApiResponse(e.getMessage()));
     }
 
     @ExceptionHandler(value = NoResourceFoundException.class)
@@ -85,7 +99,12 @@ public class ControllerAdvice {
 
     @ExceptionHandler(value = MissingPathVariableException.class)
     public ResponseEntity<?> handleMissingPathVariableException(MissingPathVariableException e) {
-        return ResponseEntity.status(400).body(new ApiResponse("Missing path variable: " + e.getVariableName()));
+        return badRequest("Missing path variable: " + e.getVariableName());
+    }
+
+    @ExceptionHandler(value = MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        return badRequest("Invalid path variable '" + e.getName() + "': expected a number but received '" + e.getValue() + "'");
     }
     @ExceptionHandler(value = TypeMismatchException.class)
     public ResponseEntity<?> handleTypeMismatchException(TypeMismatchException e) {

@@ -1,0 +1,15 @@
+meta {
+  name: ab - Unauthenticated Request Is 401
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/dashboard
+  body: none
+  auth: none
+}
+
+tests {
+  test('no credentials -> 401 Unauthorized', () => expect(res.getStatus()).to.eql(401));
+}

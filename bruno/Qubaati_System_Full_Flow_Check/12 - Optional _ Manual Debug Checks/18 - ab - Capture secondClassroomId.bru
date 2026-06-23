@@ -1,0 +1,25 @@
+meta {
+  name: ab - Capture secondClassroomId
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{baseUrl}}/classrooms/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  const name = 'Second Classroom ' + bru.getVar('runSuffix');
+  const c = Array.isArray(json) ? json.filter(x => x.name === name).pop() : null;
+  test('second classroom exists', () => expect(c, 'second classroom').to.not.be.undefined);
+  if (c) bru.setVar('secondClassroomId', c.id);
+}

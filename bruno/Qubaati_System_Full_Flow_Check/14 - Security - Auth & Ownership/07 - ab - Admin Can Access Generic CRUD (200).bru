@@ -1,0 +1,20 @@
+meta {
+  name: ab - Admin Can Access Generic CRUD (200)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/audit-logs/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+tests {
+  test('admin on generic CRUD -> 200', () => expect(res.getStatus()).to.eql(200));
+}

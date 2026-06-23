@@ -1,0 +1,29 @@
+meta {
+  name: ah - Seed Steps - Mission 4
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/missions/steps/batch
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"steps": [{"stepOrder": 1, "scenario": "Step 1: A tricky problem appears. How do you start?", "choices": [{"content": "Break it into smaller parts", "scoreImpact": 20, "nextStepOrder": 2}, {"content": "Try a random fix", "scoreImpact": 5, "nextStepOrder": 2}]}, {"stepOrder": 2, "scenario": "Step 2: You have a plan. How do you finish?", "choices": [{"content": "Check the result step by step", "scoreImpact": 30, "nextStepOrder": null}, {"content": "Submit without checking", "scoreImpact": 10, "nextStepOrder": null}]}], "missionId": {{mission4Id}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('two steps', () => expect(res.getBody().steps).to.have.lengthOf(2));
+}

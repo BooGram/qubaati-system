@@ -1,0 +1,28 @@
+meta {
+  name: am - Teacher Cannot Start Assignment As Student (403)
+  type: http
+  seq: 39
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"assignmentId":{{assignmentId}}}
+}
+
+tests {
+  test('expected 403 (no student profile)', () => expect(res.getStatus()).to.eql(403));
+}

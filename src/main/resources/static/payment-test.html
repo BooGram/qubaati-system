@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moyasar Sandbox — Local Payment Test</title>
+
+  <!-- Moyasar payment form -->
+  <script src="https://cdn.moyasar.com/mpf/1.14.0/moyasar.js"></script>
+  <link  rel="stylesheet" href="https://cdn.moyasar.com/mpf/1.14.0/moyasar.css" />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 520px;
+      margin: 48px auto;
+      padding: 0 16px;
+      color: #222;
+    }
+    h2 { margin-bottom: 4px; }
+    .note {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    select, input[type="number"], input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 8px 10px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      margin-bottom: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 11px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+    #status {
+      margin-top: 14px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+    .error  { background: #fdecea; color: #c62828; border: 1px solid #ef9a9a; }
+    .info   { background: #e8f0fe; color: #1a237e; border: 1px solid #90caf9; }
+    #form-section { margin-top: 28px; }
+    #checkout-info {
+      background: #f5f5f5;
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    #checkout-info span { font-weight: 600; color: #1a73e8; }
+  </style>
+</head>
+<body>
+
+  <h2>Moyasar Sandbox — Local Test</h2>
+  <p style="color:#666;font-size:13px;margin-top:0">Development only. Uses the real checkout endpoint.</p>
+
+
+  <!-- ── Step 1: checkout form ─────────────────────────────────────── -->
+  <div id="step-checkout">
+    <div class="note">
+      Sign in with your Parent or Teacher account. The subscription plan is selected automatically.
+    </div>
+
+    <label for="authUsername">Username</label>
+    <input type="text" id="authUsername" placeholder="e.g. parent_user" autocomplete="username" />
+
+    <label for="authPassword">Password</label>
+    <input type="password" id="authPassword" autocomplete="current-password" />
+
+    <button id="startBtn" onclick="startCheckout()">Start Subscription Payment</button>
+  </div>
+
+  <div id="status"></div>
+
+  <!-- ── Step 2: Moyasar form (injected after checkout) ────────────── -->
+  <div id="form-section" style="display:none">
+    <div id="checkout-info"></div>
+    <div class="mysr-form"></div>
+  </div>
+
+  <script>
+    function showStatus(msg, type) {
+      var el = document.getElementById('status');
+      el.textContent = msg;
+      el.className = type;
+      el.style.display = 'block';
+    }
+
+    function startCheckout() {
+      var username = document.getElementById('authUsername').value.trim();
+      var password = document.getElementById('authPassword').value;
+
+      if (!username) {
+        showStatus('Please enter your username.', 'error');
+        return;
+      }
+      if (!password) {
+        showStatus('Please enter your password.', 'error');
+        return;
+      }
+
+      var btn = document.getElementById('startBtn');
+      btn.disabled = true;
+      btn.textContent = 'Calling checkout…';
+      showStatus('Contacting backend…', 'info');
+
+      fetch('/api/v1/payments/checkout', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + btoa(username + ':' + password)
+        }
+      })
+      .then(function(res) {
+        if (res.status === 401) { throw new Error('UNAUTHORIZED'); }
+        if (!res.ok) {
+          return res.text().then(function(t) { throw new Error(t || res.status); });
+        }
+        return res.json();
+      })
+      .then(function(data) {
+        // data = { localReference, publishableKey, planName, amount, currency, callbackUrl }
+        document.getElementById('status').style.display = 'none';
+        document.getElementById('step-checkout').style.display = 'none';
+        document.getElementById('form-section').style.display = 'block';
+
+        document.getElementById('checkout-info').innerHTML =
+          'Plan: <span>' + data.planName + '</span> &nbsp;·&nbsp; ' +
+          'Amount: <span>' + (data.amount / 100).toFixed(2) + ' ' + data.currency + '</span> &nbsp;·&nbsp; ' +
+          'Ref: <span>' + data.localReference + '</span>';
+
+        Moyasar.init({
+          element: '.mysr-form',
+          amount: data.amount,
+          currency: data.currency,
+          description: data.planName,
+          publishable_api_key: data.publishableKey,
+          callback_url: data.callbackUrl,
+          metadata: { localReference: data.localReference },
+          methods: ['creditcard']
+        });
+      })
+      .catch(function(err) {
+        btn.disabled = false;
+        btn.textContent = 'Start Subscription Payment';
+        showStatus(
+          err.message === 'UNAUTHORIZED'
+            ? 'Invalid username or password.'
+            : 'Checkout failed: ' + err.message,
+          'error'
+        );
+      });
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+meta {
+  name: ah - Start Mission 3
+  type: http
+  seq: 24
+}
+
+post {
+  url: {{baseUrl}}/missions/sessions/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"missionId": {{mission3Id}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  bru.setVar('sessionId', json.sessionId);
+  bru.setVar('choiceId', json.currentStep.choices[0].id);
+}

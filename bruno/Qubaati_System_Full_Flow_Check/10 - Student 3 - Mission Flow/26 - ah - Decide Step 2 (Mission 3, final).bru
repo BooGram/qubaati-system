@@ -1,0 +1,29 @@
+meta {
+  name: ah - Decide Step 2 (Mission 3, final)
+  type: http
+  seq: 26
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/decisions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"choiceId": {{choiceId2}}, "reason": "Sent a calm reply.", "sessionId": {{sessionId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('complete-ready', () => expect(res.getBody().missionCompleteReady).to.eql(true));
+}

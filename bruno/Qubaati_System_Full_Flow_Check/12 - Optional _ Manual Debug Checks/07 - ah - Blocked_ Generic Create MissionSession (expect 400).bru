@@ -1,0 +1,29 @@
+meta {
+  name: ah - Blocked: Generic Create MissionSession (expect 400)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"startTime": "2026-01-01T00:00:00", "status": "STARTED", "missionId": 1}
+}
+
+tests {
+  test('blocked with 400', () => expect(res.getStatus()).to.equal(400));
+  test('message points to official flow', () => expect((res.getBody().message || '').toLowerCase()).to.include('disabled'));
+}

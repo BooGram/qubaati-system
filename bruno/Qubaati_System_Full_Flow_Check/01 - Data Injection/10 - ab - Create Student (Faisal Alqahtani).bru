@@ -1,0 +1,32 @@
+meta {
+  name: ab - Create Student (Faisal Alqahtani)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"faisal.student{{runSuffix}}","email":"faisal.student{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Faisal Alqahtani","age":12,"grade":"Grade 6"}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('has id', () => expect(json).to.have.property('id'));
+  if (json && json.id) bru.setVar('studentId', json.id);
+  if (json && json.userId) bru.setVar('studentUserId', json.userId);
+}

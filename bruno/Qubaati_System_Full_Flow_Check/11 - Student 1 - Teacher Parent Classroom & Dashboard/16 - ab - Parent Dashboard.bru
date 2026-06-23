@@ -1,0 +1,21 @@
+meta {
+  name: ab - Parent Dashboard
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{baseUrl}}/parents/me/dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('a child shows mission progress (completedMissionsCount + totalPoints > 0)', () => { const j = res.getBody(); expect(j.children.some(c => c.completedMissionsCount > 0)).to.eql(true); expect(j.children.some(c => c.totalPoints > 0)).to.eql(true); });
+}

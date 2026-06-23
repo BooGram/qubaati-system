@@ -1,0 +1,28 @@
+meta {
+  name: ah - Create Skill (Problem Solving)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/skills/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"name": "Problem Solving", "description": "Ability to solve quantitative and logical problems.", "skillType": "PROBLEM_SOLVING"}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

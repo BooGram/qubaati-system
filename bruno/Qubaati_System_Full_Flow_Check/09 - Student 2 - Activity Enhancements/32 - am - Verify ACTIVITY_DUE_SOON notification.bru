@@ -1,0 +1,22 @@
+meta {
+  name: am - Verify ACTIVITY_DUE_SOON notification
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{baseUrl}}/users/me/notifications
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('student got an ACTIVITY_DUE_SOON notification', () => expect(json.some(n => n.type === 'ACTIVITY_DUE_SOON')).to.eql(true));
+}

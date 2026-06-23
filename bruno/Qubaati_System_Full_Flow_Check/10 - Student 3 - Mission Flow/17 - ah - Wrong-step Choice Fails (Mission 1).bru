@@ -1,0 +1,28 @@
+meta {
+  name: ah - Wrong-step Choice Fails (Mission 1)
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/decisions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"choiceId": {{choiceId}}, "reason": "Re-submitting a step-1 choice while on step 2.", "sessionId": {{sessionId}}}
+}
+
+tests {
+  test('a choice from a different step is rejected (400)', () => expect(res.getStatus()).to.equal(400));
+}

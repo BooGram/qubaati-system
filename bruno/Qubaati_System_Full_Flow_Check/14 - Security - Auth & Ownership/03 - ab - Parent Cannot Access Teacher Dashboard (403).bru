@@ -1,0 +1,20 @@
+meta {
+  name: ab - Parent Cannot Access Teacher Dashboard (403)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  test('parent role on teacher endpoint -> 403 Forbidden', () => expect(res.getStatus()).to.eql(403));
+}

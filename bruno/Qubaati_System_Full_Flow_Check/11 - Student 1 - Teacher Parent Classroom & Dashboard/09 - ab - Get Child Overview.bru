@@ -1,0 +1,28 @@
+meta {
+  name: ab - Get Child Overview
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children/overview
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentId": {{studentId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

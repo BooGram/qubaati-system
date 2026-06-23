@@ -1,0 +1,23 @@
+meta {
+  name: ab - Unauthenticated Accept Recommendation (401)
+  type: http
+  seq: 29
+}
+
+patch {
+  url: {{baseUrl}}/recommendations/accept
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id":999999}
+}
+
+tests {
+  test('expected 401', () => expect(res.getStatus()).to.eql(401));
+}

@@ -1,0 +1,21 @@
+meta {
+  name: am - Get Assignments by Student
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/students/me/activity-assignments
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array', () => expect(res.getBody()).to.be.an('array'));
+}

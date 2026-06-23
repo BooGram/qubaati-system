@@ -1,0 +1,28 @@
+meta {
+  name: ab - Student Cannot Accept Non-Owned Recommendation (403)
+  type: http
+  seq: 27
+}
+
+patch {
+  url: {{baseUrl}}/recommendations/accept
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id":999999}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

@@ -1,0 +1,33 @@
+meta {
+  name: ab - Generate All Parent Weekly Reports (batch)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/parents/weekly-reports/generate-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+tests {
+  const arr = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns an array (one result per parent)', () => expect(arr).to.be.an('array'));
+  test('no raw reportJson string field in response', () => expect(JSON.stringify(res.getBody())).to.not.include('reportJson'));
+  if (Array.isArray(arr) && arr.length) {
+    test('each result is BATCH_MANUAL with a structured report field (object on success, null on failure)', () => arr.forEach(r => {
+      expect(r.triggerType).to.eql('BATCH_MANUAL');
+      expect(r).to.not.have.property('reportJson');
+      expect(r).to.have.property('report');
+      if (r.success) { expect(r.report).to.be.an('object'); } else { expect(r.report, 'failed report has null report').to.be.null; expect(r.errorMessage).to.be.a('string'); }
+    }));
+    bru.setVar('weeklyReportId', arr[0].id);
+    console.log('generate-all processed ' + arr.length + ' parent(s); first success=' + arr[0].success);
+  }
+}

@@ -1,0 +1,28 @@
+meta {
+  name: ab - Create Classroom (Grade 6 Physics Explorers)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/classrooms/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"name": "Grade 6 Physics Explorers", "gradeLevel": 6, "section": "A"}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

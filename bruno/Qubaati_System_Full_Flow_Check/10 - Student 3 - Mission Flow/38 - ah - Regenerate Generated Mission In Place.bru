@@ -1,0 +1,31 @@
+meta {
+  name: ah - Regenerate Generated Mission In Place
+  type: http
+  seq: 38
+}
+
+patch {
+  url: {{baseUrl}}/students/me/missions/regenerate
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"reason": "Please make it a bit easier.", "missionId": {{generatedMissionId2}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('regenerated in place (same id)', () => expect(json.id).to.eql(Number(bru.getVar('generatedMissionId2'))));
+  test('still an active AI_GENERATED mission', () => { expect(json.source).to.eql('AI_GENERATED'); expect(json.active).to.eql(true); });
+}

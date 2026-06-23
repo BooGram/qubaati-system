@@ -1,0 +1,28 @@
+meta {
+  name: ab - Student Cannot Create Child (403)
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"rogue.child{{runSuffix}}","email":"rogue.child{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Rogue Child","age":9,"grade":"Grade 4"}
+}
+
+tests {
+  test('student creating a child -> 403', () => expect(res.getStatus()).to.eql(403));
+}

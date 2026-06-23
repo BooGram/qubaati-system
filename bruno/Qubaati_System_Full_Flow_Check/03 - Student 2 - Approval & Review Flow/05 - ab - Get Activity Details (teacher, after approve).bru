@@ -1,0 +1,33 @@
+meta {
+  name: ab - Get Activity Details (teacher, after approve)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/activities/details?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{activityId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('status is APPROVED', () => expect(json.status).to.eql('APPROVED'));
+  test('still has questions and options', () => expect(json.questions[0].options).to.be.an('array').that.is.not.empty);
+  test('teacher view still exposes correctAnswer', () => expect(json.questions[0]).to.have.property('correctAnswer'));
+  test('teacher activity details STILL expose correctAnswer/isCorrect', () => { const j = res.getBody(); expect(j.questions[0]).to.have.property('correctAnswer'); expect(j.questions[0].options[0]).to.have.property('isCorrect'); });
+}

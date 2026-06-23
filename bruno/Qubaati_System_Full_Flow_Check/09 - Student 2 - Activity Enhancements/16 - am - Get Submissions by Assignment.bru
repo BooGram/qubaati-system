@@ -1,0 +1,30 @@
+meta {
+  name: am - Get Submissions by Assignment
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/by-assignment
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"assignmentId": {{s2AssignmentId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns submissions with summary fields (no answers)', () => { expect(json).to.be.an('array').that.is.not.empty; const s = json[0]; expect(s).to.have.property('studentName'); expect(s).to.have.property('activityMaxScore'); expect(s).to.not.have.property('answers'); });
+}

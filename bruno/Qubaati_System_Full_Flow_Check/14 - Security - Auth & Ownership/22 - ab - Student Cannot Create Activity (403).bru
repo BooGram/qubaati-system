@@ -1,0 +1,28 @@
+meta {
+  name: ab - Student Cannot Create Activity (403)
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{baseUrl}}/activities/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"title":"Blocked Activity","description":"x","type":"QUIZ","status":"DRAFT","difficulty":"EASY","maxScore":10}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

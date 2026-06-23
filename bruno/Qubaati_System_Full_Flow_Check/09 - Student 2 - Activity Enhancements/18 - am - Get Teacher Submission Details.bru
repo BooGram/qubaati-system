@@ -1,0 +1,30 @@
+meta {
+  name: am - Get Teacher Submission Details
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/teacher-details
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId": {{s2SubmissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('teacher details include per-answer grading + correct answer', () => { expect(json.answers).to.be.an('array').that.is.not.empty; const a = json.answers[0]; expect(a.earnedPoints).to.eql(7); expect(a.status).to.eql('PARTIAL'); expect(a.correctAnswer).to.be.a('string'); });
+}

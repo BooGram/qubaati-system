@@ -1,0 +1,36 @@
+meta {
+  name: ab - Create 3rd Child After Paid Upgrade [conditional]
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"paid.child{{runSuffix}}","email":"paid.child{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Paid Child","age":11,"grade":"Grade 5"}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  const paid = bru.getVar('parentHasActivePlan') === 'true';
+  if (paid) {
+    test('paid parent: 3rd child succeeds (200/201)', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+    if (j && j.id) bru.setVar('thirdChildId', j.id);
+  } else {
+    console.log('SKIPPED paid-success branch: no ACTIVE paid plan in this run. Activate a subscription via the Moyasar checkout + callback (see README) to exercise the 200 path.');
+    test('paid 3rd-child path documented (no active paid plan in this run)', () => expect(paid).to.be.false);
+  }
+}

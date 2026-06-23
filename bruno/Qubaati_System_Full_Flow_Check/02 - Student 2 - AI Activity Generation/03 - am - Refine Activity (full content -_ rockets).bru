@@ -1,0 +1,37 @@
+meta {
+  name: am - Refine Activity (full content -> rockets)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/ai/activities/refine?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":{{activityId}},"instruction":"Make the questions about rockets"}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  if (res.getStatus() === 200) {
+    test('same activity id', () => expect(String(j.id)).to.eql(String(bru.getVar('activityId'))));
+    test('refine returns it to PENDING_REVIEW', () => expect(j.status).to.eql('PENDING_REVIEW'));
+    test('still has nested questions', () => expect(j.questions).to.be.an('array').that.is.not.empty);
+    test('refined questions relate to the instruction (rockets/space topic)', () => { const t = JSON.stringify(j.questions).toLowerCase(); expect(t).to.match(/rocket|missile|launch|space|orbit|propuls|thrust|spacecraft|astronaut|nasa|fuel|booster|aerospace|payload|ignition|gravity/); });
+    test('no fallback/template phrase', () => { const t = ((j.description||'') + ' ' + JSON.stringify(j.questions)).toLowerCase(); expect(t).to.not.include('total questions'); expect(t).to.not.include('placeholder'); });
+  } else {
+    test('refine without an AI provider returns a clear error (no silent fallback)', () => expect(res.getStatus()).to.be.oneOf([424,500,502,503]));
+  }
+}

@@ -1,0 +1,30 @@
+meta {
+  name: ab - Get Child Activity Results
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children/activity-results
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentId": {{studentId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns an array', () => expect(res.getBody()).to.be.an('array'));
+  test('no correctAnswer leak', () => expect(JSON.stringify(res.getBody())).to.not.include('correctAnswer'));
+}

@@ -1,0 +1,30 @@
+meta {
+  name: am - Get Submission Result
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/result
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":{{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('result includes activityMaxScore', () => expect(json).to.have.property('activityMaxScore'));
+}

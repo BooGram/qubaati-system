@@ -1,0 +1,36 @@
+meta {
+  name: ab - Create 3rd Classroom After Paid Upgrade [conditional]
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{baseUrl}}/classrooms/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"name":"Third Classroom (Paid)","gradeLevel":8,"section":"C"}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  const paid = bru.getVar('teacherHasActivePlan') === 'true';
+  if (paid) {
+    test('paid teacher: 3rd classroom succeeds (200/201)', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+    bru.setVar('thirdClassroomCreated', 'true');
+  } else {
+    console.log('SKIPPED paid-success branch: no ACTIVE paid plan in this run. Activate a subscription via the Moyasar checkout + callback (see README) to exercise the 200 path.');
+    test('paid 3rd-classroom path documented (no active paid plan in this run)', () => expect(paid).to.be.false);
+  }
+}

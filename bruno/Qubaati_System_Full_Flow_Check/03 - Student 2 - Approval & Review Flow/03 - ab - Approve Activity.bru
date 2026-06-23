@@ -1,0 +1,28 @@
+meta {
+  name: ab - Approve Activity
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/activities/approve
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"reviewComment": "Approved for Grade 6 physics practice", "activityId": {{activityId}}}
+}
+
+tests {
+  test('approval succeeds', () => expect(res.getStatus()).to.equal(200));
+}

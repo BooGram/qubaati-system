@@ -1,0 +1,29 @@
+meta {
+  name: ah - Complete Mission 2
+  type: http
+  seq: 23
+}
+
+patch {
+  url: {{baseUrl}}/mission-sessions/complete
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"sessionId": {{sessionId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('still locked after 2 of 4', () => expect(res.getBody().personalizedMissionsUnlocked).to.eql(false));
+}

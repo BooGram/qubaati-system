@@ -1,0 +1,28 @@
+meta {
+  name: ab - Parent Cannot Evaluate Submission (403)
+  type: http
+  seq: 24
+}
+
+post {
+  url: {{baseUrl}}/ai/activity-submissions/evaluate
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":999999}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

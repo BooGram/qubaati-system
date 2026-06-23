@@ -1,0 +1,24 @@
+meta {
+  name: am - Verify Activity Not APPROVED (status guarded)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/activities/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  const title = 'Guard Status Check ' + bru.getVar('runSuffix');
+  const a = Array.isArray(json) ? json.filter(x => x.title === title).pop() : null;
+  test('client-supplied APPROVED was ignored -> PENDING_REVIEW', () => expect(a && a.status).to.eql('PENDING_REVIEW'));
+}

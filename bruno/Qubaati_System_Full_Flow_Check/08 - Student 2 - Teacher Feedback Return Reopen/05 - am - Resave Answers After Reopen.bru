@@ -1,0 +1,30 @@
+meta {
+  name: am - Resave Answers After Reopen
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/answers/batch
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"answers": [{"questionId": {{questionId1}}, "selectedOptionId": {{optionId1}}}, {"questionId": {{questionId2}}, "selectedOptionId": {{optionId2}}}, {"questionId": {{questionId3}}, "selectedOptionId": {{optionId3}}}], "submissionId": {{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('answers saved again as SAVED', () => json.forEach(a => expect(a.status).to.eql('SAVED')));
+}

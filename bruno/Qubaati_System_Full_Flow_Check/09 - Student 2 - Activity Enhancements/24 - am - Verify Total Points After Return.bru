@@ -1,0 +1,22 @@
+meta {
+  name: am - Verify Total Points After Return
+  type: http
+  seq: 24
+}
+
+get {
+  url: {{baseUrl}}/students/me
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returning the submission removed its counted points (back to pre-submit)', () => expect(json.totalPoints).to.eql(Number(bru.getVar('s2PointsPreSubmit'))));
+}

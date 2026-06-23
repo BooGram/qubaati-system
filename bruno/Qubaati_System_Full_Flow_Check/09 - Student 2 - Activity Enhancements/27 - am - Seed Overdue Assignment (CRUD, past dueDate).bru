@@ -1,0 +1,32 @@
+meta {
+  name: am - Seed Overdue Assignment (CRUD, past dueDate)
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"status":"ASSIGNED","activityId":{{activityId}},"studentId":{{studentId}},"dueDate":"2020-01-01T10:00:00"}
+}
+
+script:pre-request {
+  bru.setVar('overdueDate', new Date(Date.now() - 2*3600*1000).toISOString().slice(0,19));
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

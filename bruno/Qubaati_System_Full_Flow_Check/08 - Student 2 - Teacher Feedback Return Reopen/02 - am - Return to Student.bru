@@ -1,0 +1,28 @@
+meta {
+  name: am - Return to Student
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/activity-submissions/return-to-student
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"teacherFeedback": "Please review the formula and try again", "submissionId": {{submissionId}}}
+}
+
+tests {
+  test('return succeeds', () => expect(res.getStatus()).to.equal(200));
+}

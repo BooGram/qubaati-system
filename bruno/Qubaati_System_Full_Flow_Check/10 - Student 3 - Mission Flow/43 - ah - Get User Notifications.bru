@@ -1,0 +1,22 @@
+meta {
+  name: ah - Get User Notifications
+  type: http
+  seq: 43
+}
+
+get {
+  url: {{baseUrl}}/users/me/notifications
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('a MISSION_COMPLETED notification exists', () => expect(json.some(n => n.type === 'MISSION_COMPLETED')).to.eql(true));
+}

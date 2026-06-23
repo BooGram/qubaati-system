@@ -1,0 +1,32 @@
+meta {
+  name: ab - Create Teacher (Noura Alharbi)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/teachers/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"noura.physics{{runSuffix}}","email":"noura.physics{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Noura Alharbi","specialization":"Physics","phoneNumber":"+966500000001"}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('has id', () => expect(json).to.have.property('id'));
+  if (json && json.id) bru.setVar('teacherId', json.id);
+  if (json && json.userId) bru.setVar('teacherUserId', json.userId);
+}

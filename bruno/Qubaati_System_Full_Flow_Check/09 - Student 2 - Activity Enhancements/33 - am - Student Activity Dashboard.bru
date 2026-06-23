@@ -1,0 +1,24 @@
+meta {
+  name: am - Student Activity Dashboard
+  type: http
+  seq: 33
+}
+
+get {
+  url: {{baseUrl}}/students/me/activity-dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('dashboard reports the activity counts', () => { ['assignedCount','inProgressCount','submittedCount','gradedCount','returnedCount','overdueCount','dueSoonCount'].forEach(k => expect(json[k], k).to.be.a('number')); });
+  test('overdue + due-soon are reflected', () => { expect(json.overdueCount).to.be.at.least(1); expect(json.dueSoonCount).to.be.at.least(1); });
+  test('dashboard lists are present and leak no correct answers', () => { expect(json.dueSoonAssignments).to.be.an('array'); expect(json.returnedSubmissions).to.be.an('array'); expect(json.recentGradedSubmissions).to.be.an('array'); expect(JSON.stringify(json)).to.not.contain('correctAnswer'); });
+}

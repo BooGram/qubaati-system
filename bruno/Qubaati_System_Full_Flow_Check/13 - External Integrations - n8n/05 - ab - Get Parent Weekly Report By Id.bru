@@ -1,0 +1,36 @@
+meta {
+  name: ab - Get Parent Weekly Report By Id
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/parents/weekly-reports/get
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{weeklyReportId}}}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  const rid = bru.getVar('weeklyReportId');
+  if (rid) {
+    test('status 200', () => expect(res.getStatus()).to.equal(200));
+    test('report id matches', () => expect(String(j.id)).to.eql(String(rid)));
+    test('report is structured (object or null), no escaped reportJson', () => { expect(j).to.not.have.property('reportJson'); expect(j).to.have.property('report'); if (j.report !== null) expect(j.report).to.be.an('object'); });
+  } else {
+    test('no captured report id (run generate-all first) - skipped', () => expect(!rid).to.be.true);
+  }
+}

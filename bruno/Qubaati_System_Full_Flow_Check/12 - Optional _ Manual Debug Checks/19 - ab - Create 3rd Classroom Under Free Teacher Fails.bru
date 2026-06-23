@@ -1,0 +1,35 @@
+meta {
+  name: ab - Create 3rd Classroom Under Free Teacher Fails
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{baseUrl}}/classrooms/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"name":"Third Classroom","gradeLevel":8,"section":"C"}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  const paid = bru.getVar('teacherHasActivePlan') === 'true';
+  if (paid) {
+    test('teacher has a paid plan — 3rd classroom allowed (200/201)', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  } else {
+    test('free teacher: 3rd classroom blocked with 400', () => expect(res.getStatus()).to.eql(400));
+    test('error mentions the classroom limit / free plan / upgrade', () => expect((j && j.message ? j.message : '').toLowerCase()).to.match(/classroom|free plan|limit|upgrade/));
+  }
+}

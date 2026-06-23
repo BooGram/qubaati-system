@@ -1,0 +1,28 @@
+meta {
+  name: am - Return to Student (notify)
+  type: http
+  seq: 21
+}
+
+patch {
+  url: {{baseUrl}}/activity-submissions/return-to-student
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"teacherFeedback": "Revise your answer and resubmit.", "submissionId": {{s2SubmissionId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

@@ -1,0 +1,28 @@
+meta {
+  name: am - Create Short-Answer Question [ADMIN/DEBUG seed]
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/questions/add
+  body: json
+  auth: basic
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+body:json {
+  {"content": "In one sentence, explain why the sky looks blue.", "type": "SHORT_ANSWER", "points": 10, "difficulty": "EASY", "correctAnswer": "Because sunlight scatters off air molecules and blue light scatters the most (Rayleigh scattering).", "activityId": {{s2ActivityId}}}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

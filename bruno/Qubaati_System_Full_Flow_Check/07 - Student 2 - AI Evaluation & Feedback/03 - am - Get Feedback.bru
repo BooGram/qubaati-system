@@ -1,0 +1,31 @@
+meta {
+  name: am - Get Feedback
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/feedback
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId": {{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('has aiFeedback field', () => expect(json).to.have.property('aiFeedback'));
+  test('has teacherFeedback field', () => expect(json).to.have.property('teacherFeedback'));
+}

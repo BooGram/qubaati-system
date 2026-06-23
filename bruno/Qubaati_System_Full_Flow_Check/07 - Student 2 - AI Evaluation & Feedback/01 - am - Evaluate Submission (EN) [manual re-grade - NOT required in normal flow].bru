@@ -1,0 +1,35 @@
+meta {
+  name: am - Evaluate Submission (EN) [manual re-grade - NOT required in normal flow]
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/ai/activity-submissions/evaluate?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId": {{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('submission is GRADED', () => expect(json.status).to.eql('GRADED'));
+  test('score exists', () => expect(json.score).to.not.be.null);
+  test('activityMaxScore exists', () => expect(json.activityMaxScore).to.not.be.null);
+  test('aiFeedback exists', () => expect(json.aiFeedback).to.be.a('string').and.not.empty);
+      test('aiFeedback is non-empty real AI text', () => expect(json.aiFeedback).to.be.a('string').and.not.empty);
+      test('feedbackSource is AI when provider configured', () => expect(json.feedbackSource).to.be.oneOf(['AI','SYSTEM']));
+}

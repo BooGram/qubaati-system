@@ -1,0 +1,31 @@
+meta {
+  name: am - Resubmit After Reopen (auto-evaluates)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/submit?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":{{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('resubmission auto-evaluated to GRADED', () => expect(json.status).to.eql('GRADED'));
+  test('score exists again', () => expect(json.score).to.not.be.null);
+}

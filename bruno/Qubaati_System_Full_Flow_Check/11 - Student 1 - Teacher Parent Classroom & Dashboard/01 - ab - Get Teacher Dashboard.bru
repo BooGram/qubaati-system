@@ -1,0 +1,23 @@
+meta {
+  name: ab - Get Teacher Dashboard
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('dashboard integrates activity + mission summaries', () => { expect(json).to.have.property('classroomCount'); expect(json).to.have.property('activitySummary'); expect(json).to.have.property('missionSummary'); });
+  test('teacher dashboard shows completed mission sessions after Student 3 flow', () => { const j = res.getBody(); expect(j.missionSummary.completedMissionSessionsCount).to.be.above(0); });
+}

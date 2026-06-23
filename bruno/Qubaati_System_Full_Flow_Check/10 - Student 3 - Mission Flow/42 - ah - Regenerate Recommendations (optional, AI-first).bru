@@ -1,0 +1,21 @@
+meta {
+  name: ah - Regenerate Recommendations (optional, AI-first)
+  type: http
+  seq: 42
+}
+
+post {
+  url: {{baseUrl}}/students/me/recommendations/regenerate
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array', () => expect(res.getBody()).to.be.an('array'));
+}

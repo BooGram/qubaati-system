@@ -1,0 +1,30 @@
+meta {
+  name: ah - Decide Step 2 (Mission 1, final)
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/decisions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"choiceId": {{choiceId2}}, "reason": "I guided them down safely.", "sessionId": {{sessionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('final step: complete-ready, no next step', () => { expect(json.missionCompleteReady).to.eql(true); expect(json.nextStep).to.be.null; });
+}

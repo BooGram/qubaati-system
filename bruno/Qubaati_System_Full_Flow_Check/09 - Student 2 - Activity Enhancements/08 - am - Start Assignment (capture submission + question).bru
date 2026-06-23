@@ -1,0 +1,33 @@
+meta {
+  name: am - Start Assignment (capture submission + question)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"assignmentId":{{s2AssignmentId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('attempt never exposes correct answers', () => json.questions.forEach(q => { expect(q).to.not.have.property('correctAnswer'); (q.options||[]).forEach(o => expect(o).to.not.have.property('isCorrect')); }));
+  bru.setVar('s2SubmissionId', json.submissionId);
+      const _saq = (json.questions||[]).find(q => q.type === 'SHORT_ANSWER') || json.questions[0];
+      bru.setVar('s2QuestionId', _saq.questionId);
+}

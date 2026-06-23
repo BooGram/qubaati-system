@@ -1,0 +1,22 @@
+meta {
+  name: am - Verify TEACHER_FEEDBACK notification
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{baseUrl}}/users/me/notifications
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('student got a TEACHER_FEEDBACK notification', () => expect(json.some(n => n.type === 'TEACHER_FEEDBACK')).to.eql(true));
+}

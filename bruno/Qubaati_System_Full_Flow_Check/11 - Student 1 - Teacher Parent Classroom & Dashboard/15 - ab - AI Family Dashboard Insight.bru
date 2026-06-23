@@ -1,0 +1,20 @@
+meta {
+  name: ab - AI Family Dashboard Insight
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/ai/parents/me/dashboard-insight
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

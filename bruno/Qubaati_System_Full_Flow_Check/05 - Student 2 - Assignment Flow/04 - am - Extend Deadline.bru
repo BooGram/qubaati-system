@@ -1,0 +1,28 @@
+meta {
+  name: am - Extend Deadline
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/activity-assignments/extend-deadline
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"dueDate": "2027-03-15T10:00:00", "assignmentId": {{assignmentId}}}
+}
+
+tests {
+  test('deadline extended', () => expect(res.getStatus()).to.equal(200));
+}
