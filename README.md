@@ -1,6 +1,9 @@
 # 🎓 Qubaati | قبعتي
 
-> منصة تعليمية تفاعلية تساعد الأطفال على اكتشاف مهاراتهم واهتماماتهم المستقبلية من خلال عوالم محاكاة، أنشطة تعليمية، مهام تفاعلية، ولوحات متابعة ذكية للمعلمين وأولياء الأمور.
+<p align="center">
+  <b>AI-powered adaptive learning platform for children</b><br/>
+  <b>منصة تعليمية ذكية وتفاعلية للأطفال مدعومة بالذكاء الاصطناعي</b>
+</p>
 
 ![Java](https://img.shields.io/badge/Java-Spring%20Boot-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-Backend-green)
@@ -8,42 +11,195 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-AI-purple)
 ![Moyasar](https://img.shields.io/badge/Moyasar-Payments-yellow)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-Secured-success)
+![n8n](https://img.shields.io/badge/n8n-Automation-orange)
+![Twilio](https://img.shields.io/badge/Twilio-WhatsApp%20Notifications-red)
+![Gmail](https://img.shields.io/badge/Gmail-Email%20Notifications-EA4335)
 
 ---
 
-# 🇸🇦 نبذة عن المشروع
+## 📌 Project Summary
 
-**قبعتي** هي منصة تعليمية تفاعلية للأطفال تهدف إلى ربط التعلم باكتشاف المهارات والطموحات المستقبلية.
+### العربية
 
-يستطيع الطفل استكشاف عوالم محاكاة مرتبطة بالمهن والاهتمامات، وإكمال أنشطة ومهام تعليمية تساعده على تطوير مهاراته. كما يستطيع المعلم إدارة الفصول ومتابعة تقدم الطلاب، بينما يستطيع ولي الأمر متابعة أبنائه والحصول على ملخصات ذكية عن تقدمهم.
+**قبعتي** هو منصة تعليمية ذكية وتفاعلية للأطفال، تساعد الطلاب على التعلم من خلال عوالم مهنية افتراضية مثل الطب، الهندسة، العلوم، التعليم وغيرها. يدخل الطالب إلى هذه العوالم وينفذ مهام وأنشطة تفاعلية وأسئلة تعليمية مبنية على القرارات.
 
-تدعم المنصة التحليلات التعليمية، والملخصات المدعومة بالذكاء الاصطناعي، ونظام اشتراكات ودفع إلكتروني آمن باستخدام Moyasar Sandbox.
+يقوم النظام بتحليل أداء الطالب وسلوكه التعليمي وسرعة اتخاذ القرار ونقاط القوة والضعف والمهارات ونمط التعلم. يستطيع المعلم إنشاء أنشطة باستخدام الذكاء الاصطناعي، تعديلها، اعتمادها، ثم تعيينها للطلاب أو الفصول. كما يستطيع ولي الأمر متابعة تقدم أبنائه من خلال لوحات تحكم وتقارير أسبوعية يتم إنشاؤها بمساعدة n8n والذكاء الاصطناعي.
 
----
+هدف قبعاتي هو تقديم تجربة تعليمية أعمق من مجرد الدرجات، تساعد الطفل على اكتشاف مهاراته وميوله واهتماماته المستقبلية.
 
-# 🇬🇧 Project Overview
 
-**Qubaati** is an interactive educational platform designed to help children explore their skills, interests, and future career possibilities.
+### English
 
-Students explore simulation worlds, complete learning activities, and progress through missions. Teachers manage classrooms and monitor student performance, while parents follow their children’s progress through dashboards and AI-generated insights.
+**Qubaati System** is an AI-assisted educational platform designed for children, teachers, and parents. Students explore interactive career worlds such as medicine, engineering, science, teaching, and more. Inside each world, they complete missions, activities, questions, and decision-based learning experiences.
 
-The platform also includes secure subscription management, Moyasar Sandbox payment integration, payment receipts, and email payment confirmations.
+The system analyzes student performance, learning behavior, decision speed, strengths, weaknesses, skills, and learning style. Teachers can generate and refine AI-powered activities, assign them to students or classrooms, review progress, and provide feedback. Parents can monitor their children’s progress through dashboards and AI/n8n-generated weekly reports.
 
----
+The goal of Qubaati is to move beyond traditional grades and provide a deeper, personalized learning experience that helps children discover their interests, skills, and future career tendencies.
 
-# 📐 Class Diagram
-
-![Qubaati Class Diagram](docs/class-diagram.png)
 
 ---
 
-# 🎭 Use Case Diagram
+## ✨ Key Features
 
-> The shared team Use Case Diagram will be added here.
+* 👨‍👩‍👧 **Parent flow**
 
-```md
-![Qubaati Use Case Diagram](docs/use-case-diagram.png)
-```
+  * Parent creates child account.
+  * Parent views child progress, activity results, mission history, learning profile, and weekly reports.
+  * Parent receives AI/n8n-generated weekly summaries.
+
+* 👨‍🏫 **Teacher flow**
+
+  * Teacher creates classrooms.
+  * Teacher enrolls students into classrooms.
+  * Teacher generates AI activities.
+  * Teacher refines AI activities.
+  * Teacher approves/rejects activities.
+  * Teacher assigns activities to students or classrooms.
+  * Teacher grades, reviews, reopens, and gives feedback.
+
+* 👧 **Student flow**
+
+  * Student starts assigned activities.
+  * Student submits answers.
+  * Student receives AI/system feedback.
+  * Student plays missions inside career worlds.
+  * Student receives recommendations.
+  * Student skills and learning style are updated automatically.
+
+* 🤖 **AI-powered learning**
+
+  * AI activity generation.
+  * AI activity refinement.
+  * AI submission feedback.
+  * AI answer grading.
+  * AI teacher dashboard insight.
+  * AI parent dashboard insight.
+  * AI classroom summaries.
+  * AI learning analysis.
+
+* 💳 **Subscription and payments**
+
+  * Moyasar checkout.
+  * Parent and teacher subscriptions.
+  * Subscription plans.
+  * Payment callback, status, and receipt.
+
+* 🔐 **Security**
+
+  * HTTP Basic Auth.
+  * `@AuthenticationPrincipal User user`.
+  * Role-based authorization.
+  * Service-layer ownership checks.
+  * No path-variable IDs.
+  * Body-based target IDs.
+  * Thin controllers.
+
+---
+
+## 🛠️ Technologies and Tools Used
+
+### Backend
+
+| Technology            | Purpose                          |
+| --------------------- | -------------------------------- |
+| Java 17               | Main programming language        |
+| Spring Boot 4.x       | Backend framework                |
+| Spring Web            | REST API development             |
+| Spring Data JPA       | Database access layer            |
+| Hibernate             | ORM                              |
+| MySQL                 | Relational database              |
+| Spring Security       | Authentication and authorization |
+| Basic Auth            | API authentication style         |
+| BCrypt                | Password hashing                 |
+| Spring Validation     | DTO validation                   |
+| Lombok                | Boilerplate reduction            |
+| ModelMapper           | Entity/DTO mapping               |
+| Jackson               | JSON parsing and serialization   |
+| Maven / Maven Wrapper | Build and dependency management  |
+
+### AI and Automation
+
+| Tool              | Purpose                                    |
+| ----------------- | ------------------------------------------ |
+| Spring AI         | AI integration layer                       |
+| OpenAI ChatClient | AI activity generation/refinement/feedback |
+| n8n               | Parent weekly report automation            |
+| Webhooks          | Integration between Spring Boot and n8n    |
+
+### Payments
+
+| Tool               | Purpose                                         |
+| ------------------ | ----------------------------------------------- |
+| Moyasar            | Payment checkout, status, callback, and receipt |
+| Subscription plans | Parent/teacher subscription management          |
+
+### Development and Testing
+
+| Tool                    | Purpose                       |
+| ----------------------- | ----------------------------- |
+| Postman                 | API testing collection        |
+| Git / GitHub            | Version control               |
+| IntelliJ IDEA           | Development environment       |
+| Mermaid                 | README diagrams               |
+
+---
+
+
+
+
+### Roles
+
+| Role      | Main Capabilities                                                      |
+| --------- | ---------------------------------------------------------------------- |
+| `ADMIN`   | Manage system data, generic CRUD, plans, worlds, missions, skills      |
+| `TEACHER` | Manage classrooms, activities, assignments, grading, dashboards        |
+| `PARENT`  | Create children, view child progress, reports, subscriptions           |
+| `STUDENT` | Start assignments, submit answers, play missions, view recommendations |
+
+---
+
+## 🧩 Class Diagram
+
+![img.png](img.png)
+
+---
+
+## 🎭 Use Case Diagram
+
+![img_3.png](img_3.png)
+---
+
+## 🧠 AI Features
+
+Qubaati uses AI to make learning more personalized.
+
+| AI Feature                | Description                                             |
+| ------------------------- | ------------------------------------------------------- |
+| Activity generation       | Teacher generates activities using AI                   |
+| Activity refinement       | Teacher refines an activity using instructions          |
+| AI feedback               | Student receives personalized feedback after submission |
+| AI grading support        | Free-text answers can be graded with AI support         |
+| Parent dashboard insight  | Parent receives AI-powered child progress analysis      |
+| Teacher dashboard insight | Teacher receives AI-powered classroom insights          |
+| Classroom summary         | AI summarizes classroom performance                     |
+| Mission recommendations   | Student receives learning recommendations               |
+
+AI is implemented using **Spring AI ChatClient**.
+
+---
+
+## 💳 Payment and Subscription
+
+The system integrates with **Moyasar** for payments.
+
+| Feature  | Description                                   |
+| -------- | --------------------------------------------- |
+| Checkout | Authenticated user starts checkout            |
+| Callback | Moyasar redirects/calls backend after payment |
+| Status   | User checks payment status                    |
+| Receipt  | User views payment receipt                    |
+| Plans    | Parent/teacher subscription plans             |
+| Limits   | Free/paid limits for children and classrooms  |
 
 ---
 
