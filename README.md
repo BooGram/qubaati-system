@@ -19,6 +19,15 @@
 
 ## 📌 Project Summary
 
+### العربية
+
+**نظام قبعاتي** هو منصة تعليمية ذكية وتفاعلية للأطفال، تساعد الطلاب على التعلم من خلال عوالم مهنية افتراضية مثل الطب، الهندسة، العلوم، التعليم وغيرها. يدخل الطالب إلى هذه العوالم وينفذ مهام وأنشطة تفاعلية وأسئلة تعليمية مبنية على القرارات.
+
+يقوم النظام بتحليل أداء الطالب وسلوكه التعليمي وسرعة اتخاذ القرار ونقاط القوة والضعف والمهارات ونمط التعلم. يستطيع المعلم إنشاء أنشطة باستخدام الذكاء الاصطناعي، تعديلها، اعتمادها، ثم تعيينها للطلاب أو الفصول. كما يستطيع ولي الأمر متابعة تقدم أبنائه من خلال لوحات تحكم وتقارير أسبوعية يتم إنشاؤها بمساعدة n8n والذكاء الاصطناعي.
+
+هدف قبعاتي هو تقديم تجربة تعليمية أعمق من مجرد الدرجات، تساعد الطفل على اكتشاف مهاراته وميوله واهتماماته المستقبلية.
+
+
 ### English
 
 **Qubaati System** is an AI-assisted educational platform designed for children, teachers, and parents. Students explore interactive career worlds such as medicine, engineering, science, teaching, and more. Inside each world, they complete missions, activities, questions, and decision-based learning experiences.
@@ -27,13 +36,6 @@ The system analyzes student performance, learning behavior, decision speed, stre
 
 The goal of Qubaati is to move beyond traditional grades and provide a deeper, personalized learning experience that helps children discover their interests, skills, and future career tendencies.
 
-### العربية
-
-**نظام قبعاتي** هو منصة تعليمية ذكية وتفاعلية للأطفال، تساعد الطلاب على التعلم من خلال عوالم مهنية افتراضية مثل الطب، الهندسة، العلوم، التعليم وغيرها. يدخل الطالب إلى هذه العوالم وينفذ مهام وأنشطة تفاعلية وأسئلة تعليمية مبنية على القرارات.
-
-يقوم النظام بتحليل أداء الطالب وسلوكه التعليمي وسرعة اتخاذ القرار ونقاط القوة والضعف والمهارات ونمط التعلم. يستطيع المعلم إنشاء أنشطة باستخدام الذكاء الاصطناعي، تعديلها، اعتمادها، ثم تعيينها للطلاب أو الفصول. كما يستطيع ولي الأمر متابعة تقدم أبنائه من خلال لوحات تحكم وتقارير أسبوعية يتم إنشاؤها بمساعدة n8n والذكاء الاصطناعي.
-
-هدف قبعاتي هو تقديم تجربة تعليمية أعمق من مجرد الدرجات، تساعد الطفل على اكتشاف مهاراته وميوله واهتماماته المستقبلية.
 
 ---
 
@@ -158,14 +160,301 @@ The goal of Qubaati is to move beyond traditional grades and provide a deeper, p
 ---
 
 ## 🧩 Class Diagram
+```mermaid
+classDiagram
 
-![img.png](img.png)
+class User {
+    Integer id
+    String username
+    String email
+    String password
+    UserRole role
+    Boolean enabled
+}
+
+class Teacher {
+    Integer id
+    String fullName
+    String specialization
+}
+
+class Parent {
+    Integer id
+    String fullName
+    String phoneNumber
+}
+
+class Student {
+    Integer id
+    String fullName
+    Integer age
+    String grade
+    Integer totalPoints
+    Integer completedMissionsCount
+}
+
+class Classroom {
+    Integer id
+    String name
+    Integer gradeLevel
+    String section
+}
+
+class CareerWorld {
+    Integer id
+    String name
+    String description
+}
+
+class Mission {
+    Integer id
+    String title
+    String description
+    Integer maxScore
+    MissionSource source
+    Boolean active
+}
+
+class MissionStep {
+    Integer id
+    Integer stepOrder
+    String content
+}
+
+class MissionChoice {
+    Integer id
+    String content
+    Boolean correct
+    Integer scoreImpact
+}
+
+class MissionSession {
+    Integer id
+    MissionSessionStatus status
+    Integer score
+    LocalDateTime startedAt
+    LocalDateTime completedAt
+}
+
+class Decision {
+    Integer id
+    Integer responseTimeSeconds
+    Integer scoreImpact
+}
+
+class Activity {
+    Integer id
+    String title
+    String description
+    ActivityStatus status
+    Difficulty difficulty
+    Integer maxScore
+}
+
+class Question {
+    Integer id
+    String content
+    QuestionType type
+    Integer points
+}
+
+class Option {
+    Integer id
+    String content
+    Boolean isCorrect
+}
+
+class ActivityAssignment {
+    Integer id
+    LocalDateTime assignedAt
+    LocalDateTime dueDate
+    AssignmentStatus status
+}
+
+class ActivitySubmission {
+    Integer id
+    LocalDateTime startedAt
+    LocalDateTime submittedAt
+    Integer score
+    SubmissionStatus status
+    String aiFeedback
+    String feedbackSource
+}
+
+class StudentAnswer {
+    Integer id
+    String answerText
+    Boolean correct
+    Integer earnedPoints
+}
+
+class Skill {
+    Integer id
+    String name
+    String description
+}
+
+class StudentSkill {
+    Integer id
+    Double score
+    Integer level
+}
+
+class LearningStyle {
+    Integer id
+    LearningStyleType primaryStyle
+    LearningStyleType secondaryStyle
+    Double confidence
+}
+
+class Recommendation {
+    Integer id
+    String title
+    String description
+    RecommendationStatus status
+}
+
+class Notification {
+    Integer id
+    String title
+    String message
+    Boolean read
+}
+
+class ParentWeeklyReport {
+    Integer id
+    Boolean success
+    String reportType
+    String reportTitle
+    String reportJson
+}
+
+class Payment {
+    Integer id
+    String reference
+    PaymentStatus status
+    Double amount
+}
+
+class Subscription {
+    Integer id
+    SubscriptionStatus status
+    LocalDateTime startsAt
+    LocalDateTime endsAt
+}
+
+class SubscriptionPlan {
+    Integer id
+    String code
+    String name
+    Double price
+    PlanAudience audience
+}
+
+User "1" --> "0..1" Teacher
+User "1" --> "0..1" Parent
+User "1" --> "0..1" Student
+
+Teacher "1" --> "0..*" Classroom
+Classroom "1" --> "0..*" Student
+Parent "1" --> "0..*" Student
+
+CareerWorld "1" --> "0..*" Mission
+Mission "1" --> "0..*" MissionStep
+MissionStep "1" --> "0..*" MissionChoice
+
+Student "1" --> "0..*" MissionSession
+Mission "1" --> "0..*" MissionSession
+MissionSession "1" --> "0..*" Decision
+Decision "*" --> "1" MissionChoice
+
+Teacher "1" --> "0..*" Activity
+Activity "1" --> "0..*" Question
+Question "1" --> "0..*" Option
+
+Activity "1" --> "0..*" ActivityAssignment
+ActivityAssignment "*" --> "1" Student
+ActivityAssignment "*" --> "1" Teacher
+ActivityAssignment "1" --> "0..1" ActivitySubmission
+
+ActivitySubmission "1" --> "0..*" StudentAnswer
+StudentAnswer "*" --> "1" Question
+StudentAnswer "*" --> "0..1" Option
+
+Student "1" --> "0..*" StudentSkill
+Skill "1" --> "0..*" StudentSkill
+Student "1" --> "0..1" LearningStyle
+
+Student "1" --> "0..*" Recommendation
+User "1" --> "0..*" Notification
+Parent "1" --> "0..*" ParentWeeklyReport
+
+User "1" --> "0..*" Payment
+User "1" --> "0..*" Subscription
+Subscription "*" --> "1" SubscriptionPlan
+```
 
 ---
 
 ## 🎭 Use Case Diagram
 
-![img_3.png](img_3.png)
+## 🎭 Use Case Diagram
+
+```mermaid id="use-case-diagram"
+flowchart LR
+
+%% Actors - Left Side
+Parent([Parent])
+Student([Student])
+
+%% System Boundary
+subgraph Qubaati["Qubaati System"]
+    UC1((Manage child profile<br/>and reports))
+    UC2((Manage classrooms<br/>and enrollment))
+    UC3((Generate and refine<br/>AI activities))
+    UC4((Assign, submit,<br/>and grade activities))
+    UC5((Play career-world<br/>missions))
+    UC6((Analyze skills,<br/>learning style, and progress))
+    UC7((Manage payments<br/>and subscriptions))
+    UC8((Manage system data))
+end
+
+%% Actors - Right Side
+Teacher([Teacher])
+Admin([Admin])
+
+%% External Systems
+AI[[AI Provider]]
+N8N[[n8n]]
+Moyasar[[Moyasar]]
+
+%% Parent Use Cases
+Parent --> UC1
+Parent --> UC6
+Parent --> UC7
+
+%% Student Use Cases
+Student --> UC4
+Student --> UC5
+Student --> UC6
+
+%% Teacher Use Cases
+Teacher --> UC2
+Teacher --> UC3
+Teacher --> UC4
+Teacher --> UC6
+
+%% Admin Use Cases
+Admin --> UC8
+Admin --> UC7
+
+%% External Integrations
+AI -.-> UC3
+AI -.-> UC6
+N8N -.-> UC1
+Moyasar -.-> UC7
+```
+
 ---
 
 ## 🧠 AI Features
@@ -591,139 +880,6 @@ Run the Postman collection in this order:
 
 ---
 
-## 🔒 Security Principles
-
-Qubaati follows these security rules:
-
-```text
-1. Actor identity comes from Basic Auth.
-2. Controllers use @AuthenticationPrincipal User user.
-3. Controllers are thin.
-4. Services perform ownership checks.
-5. No path variables.
-6. IDs are sent in request bodies.
-7. No JWT.
-8. No sessions.
-9. Passwords are hashed using BCrypt.
-10. Sensitive answer fields are hidden from student DTOs.
-```
-
----
-
-## 🧪 Example API Requests
-
-### Create child account
-
-```http
-POST /api/v1/parents/me/children
-Authorization: Basic parent_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "username": "faisal.student001",
-  "email": "faisal.student001@example.com",
-  "password": "Pass@12345",
-  "fullName": "Faisal Alqahtani",
-  "age": 12,
-  "grade": "Grade 6"
-}
-```
-
-### Enroll student into classroom
-
-```http
-POST /api/v1/classrooms/students/enroll
-Authorization: Basic teacher_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "classroomId": 1,
-  "studentId": 1
-}
-```
-
-### Generate AI activity
-
-```http
-POST /api/v1/ai/activities/generate?language=en
-Authorization: Basic teacher_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "topic": "Speed, Distance, and Time",
-  "gradeLevel": "Grade 6",
-  "difficulty": "EASY",
-  "questionCount": 3
-}
-```
-
-### Refine AI activity
-
-```http
-POST /api/v1/ai/activities/refine?language=en
-Authorization: Basic teacher_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "activityId": 2,
-  "instruction": "Make the questions about rockets"
-}
-```
-
-### Assign activity to student
-
-```http
-POST /api/v1/activity-assignments/assign-student
-Authorization: Basic teacher_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "activityId": 2,
-  "studentId": 1,
-  "dueDate": "2027-01-15T10:00:00"
-}
-```
-
-### Start assignment
-
-```http
-POST /api/v1/activity-assignments/start
-Authorization: Basic student_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "assignmentId": 1
-}
-```
-
-### Submit activity
-
-```http
-POST /api/v1/activity-submissions/submit?language=en
-Authorization: Basic student_credentials
-Content-Type: application/json
-```
-
-```json
-{
-  "submissionId": 1
-}
-```
-
----
-
 ## 🧭 Main Business Flow
 
 ```mermaid
@@ -755,63 +911,6 @@ sequenceDiagram
     Backend->>n8n: Send report payload
     n8n-->>Backend: Weekly report
     Parent->>Moyasar: Subscribe / Pay
-```
-
----
-
-## 📊 Project Status
-
-Current completed areas:
-
-* Backend CRUD modules.
-* Basic Auth security.
-* Thin controllers.
-* Service-layer ownership checks.
-* Body-based IDs.
-* No path variables.
-* AI activity generation.
-* AI activity refinement.
-* AI feedback source tracking.
-* Activity assignment/submission/grading.
-* Mission flow.
-* Student recommendation flow.
-* Parent weekly reports using n8n.
-* Moyasar payment/subscription flow.
-* Postman collection with security negative tests.
-
----
-
-## ⚠️ Known Notes / Future Improvements
-
-* Run full live Postman testing against a running MySQL database.
-* Some generic admin/debug CRUD endpoints may need further hardening before production.
-* Some lower-level service methods are public but should be treated as internal.
-* AI features require a valid OpenAI API key.
-* n8n weekly reports require a configured webhook.
-* Moyasar payment requires valid test/live credentials.
-* Frontend must follow the body-based ID API style.
-
----
-
-## 👥 Team Modules
-
-| Area      | Responsibility                                          |
-| --------- | ------------------------------------------------------- |
-| Student 1 | Parent, teacher, classroom, dashboard, n8n reports      |
-| Student 2 | Activities, assignments, submissions, grading, feedback |
-| Student 3 | Missions, career worlds, decisions, recommendations     |
-| Shared    | Security, AI, payments, Postman, architecture cleanup   |
-
----
-
-## 📄 License
-
-This project was developed for academic purposes.
-
-You may update this section with your preferred license:
-
-```text
-MIT License
 ```
 
 ---
