@@ -1,0 +1,33 @@
+meta {
+  name: ah - Decide Step 1 (Mission 1)
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/decisions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"choiceId": {{choiceId}}, "reason": "I assessed the situation first.", "sessionId": {{sessionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('response time is backend-calculated', () => expect(json.responseTimeSeconds).to.be.a('number'));
+  test('not complete yet; next step returned', () => { expect(json.missionCompleteReady).to.eql(false); expect(json.nextStep.stepOrder).to.eql(2); });
+  test('next step choices hide scoreImpact', () => json.nextStep.choices.forEach(c => expect(c).to.not.have.property('scoreImpact')));
+  if (json.nextStep && json.nextStep.choices[0]) bru.setVar('choiceId2', json.nextStep.choices[0].id);
+}

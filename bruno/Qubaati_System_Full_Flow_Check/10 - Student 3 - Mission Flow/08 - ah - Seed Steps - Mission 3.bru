@@ -1,0 +1,29 @@
+meta {
+  name: ah - Seed Steps - Mission 3
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/missions/steps/batch
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"steps": [{"stepOrder": 1, "scenario": "Step 1: A faint signal appears. What is your first move?", "choices": [{"content": "Triangulate the signal source", "scoreImpact": 20, "nextStepOrder": 2}, {"content": "Ignore it for now", "scoreImpact": 5, "nextStepOrder": 2}]}, {"stepOrder": 2, "scenario": "Step 2: You found the source. How do you respond?", "choices": [{"content": "Send a clear, calm reply", "scoreImpact": 30, "nextStepOrder": null}, {"content": "Send a confusing burst", "scoreImpact": 10, "nextStepOrder": null}]}], "missionId": {{mission3Id}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('two steps', () => expect(res.getBody().steps).to.have.lengthOf(2));
+}

@@ -1,0 +1,28 @@
+meta {
+  name: ab - AI Child Summary (parent)
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/ai/parents/children/summary
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentId": {{studentId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

@@ -1,0 +1,30 @@
+meta {
+  name: ah - Decide Step 1 (Mission 3)
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{baseUrl}}/mission-sessions/decisions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"choiceId": {{choiceId}}, "reason": "Triangulated the source.", "sessionId": {{sessionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  bru.setVar('choiceId2', json.nextStep.choices[0].id);
+}

@@ -1,0 +1,22 @@
+meta {
+  name: ab - Get Activities Review Queue (status filter)
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/activities/get-all?status=PENDING_REVIEW
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('all returned are PENDING_REVIEW', () => json.forEach(a => expect(a.status).to.eql('PENDING_REVIEW')));
+}

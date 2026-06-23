@@ -1,0 +1,38 @@
+meta {
+  name: ab - Teacher Checkout (TEACHER_PRO) [needs Moyasar keys]
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{baseUrl}}/payments/checkout
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"planCode":"TEACHER_PRO","subscriberType":"TEACHER","subscriberId":{{teacherId}}}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  if (res.getStatus() === 200 || res.getStatus() === 201) {
+    test('checkout returned localReference + publishableKey', () => { expect(j).to.have.property('localReference'); expect(j).to.have.property('publishableKey'); });
+    if (j && j.localReference) bru.setVar('teacherPaymentRef', j.localReference);
+    console.log('Teacher checkout created. Complete payment in the Moyasar form so the callback can activate the plan.');
+  } else {
+    test('checkout blocked locally (gateway not configured) — acceptable without keys', () => {
+      expect(res.getStatus()).to.eql(400);
+      expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|gateway|support/);
+    });
+  }
+}

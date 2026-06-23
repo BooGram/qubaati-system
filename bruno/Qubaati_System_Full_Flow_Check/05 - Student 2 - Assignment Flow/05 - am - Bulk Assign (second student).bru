@@ -1,0 +1,30 @@
+meta {
+  name: am - Bulk Assign (second student)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/assign-bulk-students
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentIds": [{{student2Id}}], "dueDate": "2027-01-20T10:00:00", "activityId": {{activityId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('reports created/skipped/failed counts', () => expect(json.message).to.include('Created'));
+}

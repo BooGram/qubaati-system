@@ -1,0 +1,28 @@
+meta {
+  name: am - Teacher Enrolls Lina Into Classroom
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/classrooms/students/enroll
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"classroomId":{{classroomId}},"studentId":{{student2Id}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

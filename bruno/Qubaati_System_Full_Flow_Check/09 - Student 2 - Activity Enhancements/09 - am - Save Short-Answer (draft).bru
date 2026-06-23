@@ -1,0 +1,31 @@
+meta {
+  name: am - Save Short-Answer (draft)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/answers/batch
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"answers": [{"questionId": {{s2QuestionId}}, "answerText": "The sky looks blue because the air scatters blue light more than the other colors."}], "submissionId": {{s2SubmissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('answer saved (SAVED)', () => { expect(json[0].status).to.eql('SAVED'); expect(json[0]).to.not.have.property('correctAnswer'); });
+  bru.setVar('s2AnswerId', json[0].id);
+}

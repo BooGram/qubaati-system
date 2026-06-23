@@ -1,0 +1,35 @@
+meta {
+  name: am - Generate Second Activity (revisionActivityId)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/ai/activities/generate?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"topic":"Forces and Motion for Grade 6","description":"A short quiz about forces and motion.","type":"QUIZ","difficulty":"EASY","questionCount":3,"maxScore":10}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  if (res.getStatus() === 200) {
+    test('auto-submitted to PENDING_REVIEW', () => expect(j.status).to.eql('PENDING_REVIEW'));
+    test('NO placeholder/template content', () => { const s = JSON.stringify(j).toLowerCase(); expect(s).to.not.include('an accurate statement about'); expect(s).to.not.include('a common misconception about'); expect(s).to.not.include('a statement unrelated to'); });
+    if (j && j.id) bru.setVar('revisionActivityId', j.id);
+  } else {
+    test('AI unavailable -> clear failure (no fallback)', () => { expect(res.getStatus()).to.eql(400); expect((j && j.message ? j.message : '').toLowerCase()).to.match(/not configured|ai provider|generation failed|invalid json/); });
+  }
+}

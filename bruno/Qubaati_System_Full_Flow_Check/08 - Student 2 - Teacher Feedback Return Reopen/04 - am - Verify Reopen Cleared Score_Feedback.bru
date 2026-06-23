@@ -1,0 +1,33 @@
+meta {
+  name: am - Verify Reopen Cleared Score/Feedback
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/result
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":{{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('status IN_PROGRESS', () => expect(json.status).to.eql('IN_PROGRESS'));
+  test('score cleared to null', () => expect(json.score).to.be.null);
+  test('aiFeedback cleared to null', () => expect(json.aiFeedback).to.be.null);
+  test('teacherFeedback kept', () => expect(json.teacherFeedback).to.be.a('string').and.not.empty);
+}

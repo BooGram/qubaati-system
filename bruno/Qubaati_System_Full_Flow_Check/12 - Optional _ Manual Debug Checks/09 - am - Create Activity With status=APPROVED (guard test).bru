@@ -1,0 +1,28 @@
+meta {
+  name: am - Create Activity With status=APPROVED (guard test)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/activities/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"title":"Guard Status Check {{runSuffix}}","description":"Directly-approved activity for testing.","type":"QUIZ","status":"APPROVED","difficulty":"EASY","maxScore":10}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

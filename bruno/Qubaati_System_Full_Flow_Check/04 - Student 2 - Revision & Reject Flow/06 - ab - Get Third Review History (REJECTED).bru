@@ -1,0 +1,30 @@
+meta {
+  name: ab - Get Third Review History (REJECTED)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/activities/review-history
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{thirdActivityId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('history contains REJECTED', () => expect(json.some(r => r.decision === 'REJECTED')).to.be.true);
+}

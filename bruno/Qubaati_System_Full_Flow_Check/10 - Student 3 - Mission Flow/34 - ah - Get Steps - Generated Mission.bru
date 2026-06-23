@@ -1,0 +1,31 @@
+meta {
+  name: ah - Get Steps - Generated Mission
+  type: http
+  seq: 34
+}
+
+post {
+  url: {{baseUrl}}/missions/steps
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"missionId": {{generatedMissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('generated mission is multi-step', () => expect(json.steps.length).to.be.at.least(2));
+  test('last step is final', () => expect(json.steps[json.steps.length-1].finalStep).to.eql(true));
+}

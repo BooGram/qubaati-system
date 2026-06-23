@@ -1,0 +1,21 @@
+meta {
+  name: am - Get Teacher Pending Grading
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/activity-submissions/pending-grading
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array (may be empty after AI grading)', () => expect(res.getBody()).to.be.an('array'));
+}

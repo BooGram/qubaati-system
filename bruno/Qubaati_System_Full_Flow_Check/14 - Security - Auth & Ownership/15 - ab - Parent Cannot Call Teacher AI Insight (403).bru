@@ -1,0 +1,20 @@
+meta {
+  name: ab - Parent Cannot Call Teacher AI Insight (403)
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/ai/teachers/me/dashboard-insight
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  test('parent on teacher AI insight -> 403', () => expect(res.getStatus()).to.eql(403));
+}

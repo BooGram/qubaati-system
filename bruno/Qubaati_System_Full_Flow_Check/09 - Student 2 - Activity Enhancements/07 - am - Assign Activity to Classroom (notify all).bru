@@ -1,0 +1,30 @@
+meta {
+  name: am - Assign Activity to Classroom (notify all)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/assign-classroom
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":{{s2ActivityId}},"classroomId":{{classroomId}},"dueDate":"2027-02-15T10:00:00"}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('assignment targets the classroom', () => expect(json.classroomId).to.eql(Number(bru.getVar('classroomId'))));
+}

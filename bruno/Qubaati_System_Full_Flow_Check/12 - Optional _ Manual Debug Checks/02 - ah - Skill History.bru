@@ -1,0 +1,23 @@
+meta {
+  name: ah - Skill History
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/students/me/skills/history
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns a non-empty list', () => expect(json).to.be.an('array').that.is.not.empty);
+  test('an automatic row exists with server-assigned changedAt', () => { const auto = json.find(r => (r.reason || '').indexOf('automatically') !== -1); expect(auto, 'auto skill-progress row').to.not.be.undefined; expect(auto.changedAt).to.be.a('string').and.not.empty; });
+}

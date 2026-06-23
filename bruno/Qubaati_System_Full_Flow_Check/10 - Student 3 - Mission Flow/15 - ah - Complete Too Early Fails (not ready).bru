@@ -1,0 +1,28 @@
+meta {
+  name: ah - Complete Too Early Fails (not ready)
+  type: http
+  seq: 15
+}
+
+patch {
+  url: {{baseUrl}}/mission-sessions/complete
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"sessionId": {{sessionId}}}
+}
+
+tests {
+  test('completing before the final step is blocked (400)', () => expect(res.getStatus()).to.equal(400));
+}

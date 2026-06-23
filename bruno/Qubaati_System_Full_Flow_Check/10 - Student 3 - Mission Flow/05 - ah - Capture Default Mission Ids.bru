@@ -1,0 +1,32 @@
+meta {
+  name: ah - Capture Default Mission Ids
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/mission/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  const pick = t => { const m = json.find(x => x.title === t); return m ? m.id : null; };
+  const m1 = pick('Story Mission 1 - The Rescue');
+  const m2 = pick('Story Mission 2 - The Bridge');
+  const m3 = pick('Story Mission 3 - The Signal');
+  const m4 = pick('Story Mission 4 - The Solution');
+  test('all four default missions exist', () => { expect(m1).to.not.be.null; expect(m2).to.not.be.null; expect(m3).to.not.be.null; expect(m4).to.not.be.null; });
+  if (m1) bru.setVar('mission1Id', m1);
+  if (m2) bru.setVar('mission2Id', m2);
+  if (m3) bru.setVar('mission3Id', m3);
+  if (m4) bru.setVar('mission4Id', m4);
+  test('generic mission choices hide scoreImpact', () => (json||[]).forEach(m => (m.choices||[]).forEach(c => expect(c).to.not.have.property('scoreImpact'))));
+}

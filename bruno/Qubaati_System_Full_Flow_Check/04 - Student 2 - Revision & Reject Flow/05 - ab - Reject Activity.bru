@@ -1,0 +1,28 @@
+meta {
+  name: ab - Reject Activity
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/activities/reject
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"reviewComment": "The activity does not match the learning objective", "activityId": {{thirdActivityId}}}
+}
+
+tests {
+  test('rejection succeeds', () => expect(res.getStatus()).to.equal(200));
+}

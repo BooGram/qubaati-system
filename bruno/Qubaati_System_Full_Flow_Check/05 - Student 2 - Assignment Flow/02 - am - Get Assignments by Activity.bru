@@ -1,0 +1,29 @@
+meta {
+  name: am - Get Assignments by Activity
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/by-activity
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{activityId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array', () => expect(res.getBody()).to.be.an('array'));
+}

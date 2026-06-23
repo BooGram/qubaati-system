@@ -1,0 +1,23 @@
+meta {
+  name: am - Unauthenticated Enroll Student (401)
+  type: http
+  seq: 38
+}
+
+post {
+  url: {{baseUrl}}/classrooms/students/enroll
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"classroomId":1,"studentId":1}
+}
+
+tests {
+  test('expected 401', () => expect(res.getStatus()).to.eql(401));
+}

@@ -100,21 +100,17 @@ public class ParentController {
         return ResponseEntity.status(200).body(parentService.getChildMissionHistory(user, dto));
     }
 
-    @GetMapping("/{parentId}/children/{studentId}/learning-profile/pdf")
-    public ResponseEntity<byte[]> exportChildLearningProfilePdf(@PathVariable Integer parentId,
-                                                                @PathVariable Integer studentId) {
-        byte[] pdf = parentService.generateChildPortfolioPdf(parentId, studentId);
+    // PDF export of a child's learning profile. studentId is a target in the body; the parent comes from Basic Auth
+    // and must own the child (no parentId/studentId in the path). (updateChildProfile is already served by the
+    // body-based PATCH /me/children/profile above; the merge's path-variable duplicate was removed.)
+    @PostMapping("/me/children/learning-profile/pdf")
+    public ResponseEntity<byte[]> exportMyChildLearningProfilePdf(@AuthenticationPrincipal User user,
+                                                                  @Valid @RequestBody ChildTargetInDTO dto) {
+        byte[] pdf = parentService.generateMyChildPortfolioPdf(user, dto);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"student-" + studentId + "-portfolio.pdf\"")
+                        "attachment; filename=\"student-" + dto.getStudentId() + "-portfolio.pdf\"")
                 .body(pdf);
-    }
-
-    @PatchMapping("/{parentId}/children/{studentId}/profile")
-    public ResponseEntity<?> updateChildProfile(@PathVariable Integer parentId,
-                                                @PathVariable Integer studentId,
-                                                @Valid @RequestBody ChildUpdateProfileInDTO dto) {
-        return ResponseEntity.status(200).body(parentService.updateChildProfile(parentId, studentId, dto));
     }
 }

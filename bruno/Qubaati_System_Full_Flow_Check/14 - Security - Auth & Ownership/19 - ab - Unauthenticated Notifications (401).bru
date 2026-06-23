@@ -1,0 +1,15 @@
+meta {
+  name: ab - Unauthenticated Notifications (401)
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{baseUrl}}/users/me/notifications
+  body: none
+  auth: none
+}
+
+tests {
+  test('no auth on notifications -> 401', () => expect(res.getStatus()).to.eql(401));
+}

@@ -1,0 +1,20 @@
+meta {
+  name: ab - Teacher Owner Can Access Own Dashboard (200)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  test('teacher accessing own dashboard -> 200', () => expect(res.getStatus()).to.eql(200));
+}

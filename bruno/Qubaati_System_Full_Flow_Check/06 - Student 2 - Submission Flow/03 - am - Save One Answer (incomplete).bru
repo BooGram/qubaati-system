@@ -1,0 +1,31 @@
+meta {
+  name: am - Save One Answer (incomplete)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/answers/batch
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"answers": [{"questionId": {{questionId1}}, "selectedOptionId": {{optionId1}}}], "submissionId": {{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('one answer saved', () => expect(json).to.be.an('array').that.is.not.empty);
+  test('saved answer status is SAVED (not SUBMITTED)', () => expect(json[0].status).to.eql('SAVED'));
+}

@@ -1,0 +1,31 @@
+meta {
+  name: am - Submit Incomplete (expect 400)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/submit
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":{{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('incomplete submit fails with 400', () => expect(res.getStatus()).to.equal(400));
+  test('message asks to answer all questions', () => expect(json.message).to.include('answer all questions'));
+  test('message lists missing question ids', () => expect(json.message).to.include('Missing question ids'));
+}

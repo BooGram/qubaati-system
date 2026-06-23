@@ -1,0 +1,28 @@
+meta {
+  name: am - Assign before approval (expect 400)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/assign-student
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":{{activityId}},"studentId":{{studentId}},"dueDate":"2027-01-15T10:00:00"}
+}
+
+tests {
+  test('assigning a non-APPROVED (PENDING_REVIEW) activity fails with 400', () => expect(res.getStatus()).to.equal(400));
+}

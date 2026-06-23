@@ -1,0 +1,28 @@
+meta {
+  name: ab - Approve Teacher-Owned Activity (review flow)
+  type: http
+  seq: 16
+}
+
+patch {
+  url: {{baseUrl}}/activities/approve
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"reviewComment": "Seed approval", "activityId": {{teacherOwnedActivityId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

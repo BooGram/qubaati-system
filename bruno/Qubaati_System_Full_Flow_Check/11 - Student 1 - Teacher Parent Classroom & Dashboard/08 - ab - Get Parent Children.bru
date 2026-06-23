@@ -1,0 +1,21 @@
+meta {
+  name: ab - Get Parent Children
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/parents/me/children
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('is an array', () => expect(res.getBody()).to.be.an('array'));
+}

@@ -1,0 +1,35 @@
+meta {
+  name: ab - Create 3rd Child Under Free Parent Fails
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"limit.child{{runSuffix}}","email":"limit.child{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Limit Child","age":10,"grade":"Grade 4"}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  const paid = bru.getVar('parentHasActivePlan') === 'true';
+  if (paid) {
+    test('parent has a paid plan — 3rd child allowed (200/201)', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  } else {
+    test('free parent: 3rd child blocked with 400', () => expect(res.getStatus()).to.eql(400));
+    test('error mentions the child limit / free plan / upgrade', () => expect((j && j.message ? j.message : '').toLowerCase()).to.match(/child|children|free plan|limit|upgrade/));
+  }
+}

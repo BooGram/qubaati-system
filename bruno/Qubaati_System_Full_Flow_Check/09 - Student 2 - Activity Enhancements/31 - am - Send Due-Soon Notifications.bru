@@ -1,0 +1,22 @@
+meta {
+  name: am - Send Due-Soon Notifications
+  type: http
+  seq: 31
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/due-soon-notifications?hours=24
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('at least one student notified', () => expect(json.notifiedCount).to.be.at.least(1));
+}

@@ -1,0 +1,23 @@
+meta {
+  name: ab - Unauthenticated Create Child (401)
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"rogue.child{{runSuffix}}","email":"rogue.child{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Rogue Child","age":9,"grade":"Grade 4"}
+}
+
+tests {
+  test('no credentials creating a child -> 401', () => expect(res.getStatus()).to.eql(401));
+}

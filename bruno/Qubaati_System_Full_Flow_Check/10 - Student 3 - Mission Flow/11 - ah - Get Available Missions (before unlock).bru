@@ -1,0 +1,29 @@
+meta {
+  name: ah - Get Available Missions (before unlock)
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/students/me/missions/available?careerWorldId={{careerWorldId}}
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('reports per-career-world unlock state', () => {
+    expect(json).to.have.property('completedDefaultMissions');
+    expect(json.personalizedMissionsUnlocked).to.be.a('boolean');
+    expect(json).to.have.property('remainingDefaultMissionsToUnlock');
+    expect(json.missions).to.be.an('array');
+  });
+  test('not unlocked before completing 4 default missions', () => expect(json.personalizedMissionsUnlocked).to.eql(false));
+  test('no grade field is used to filter', () => expect(json).to.not.have.property('grade'));
+}

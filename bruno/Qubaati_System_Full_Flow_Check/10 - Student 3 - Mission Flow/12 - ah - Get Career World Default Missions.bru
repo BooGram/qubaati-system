@@ -1,0 +1,31 @@
+meta {
+  name: ah - Get Career World Default Missions
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{baseUrl}}/career-worlds/missions
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"careerWorldId": {{careerWorldId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns a list (default missions only)', () => expect(json).to.be.an('array'));
+  test('no AI_GENERATED missions leak here', () => json.forEach(m => expect(m.source).to.not.eql('AI_GENERATED')));
+}

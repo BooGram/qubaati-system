@@ -1,0 +1,20 @@
+meta {
+  name: ab - Student Cannot Access Teacher Dashboard (403)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/teachers/me/dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  test('student role on teacher endpoint -> 403 Forbidden', () => expect(res.getStatus()).to.eql(403));
+}

@@ -1,0 +1,31 @@
+meta {
+  name: am - Add Teacher Feedback (no status change)
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{baseUrl}}/activity-submissions/teacher-feedback
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"teacherFeedback": "Great work. Your solution is correct, but remember to show the formula next time.", "submissionId": {{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('teacherFeedback stored', () => expect(json.teacherFeedback).to.include('show the formula'));
+  test('submission status unchanged (still GRADED)', () => expect(json.status).to.eql('GRADED'));
+}

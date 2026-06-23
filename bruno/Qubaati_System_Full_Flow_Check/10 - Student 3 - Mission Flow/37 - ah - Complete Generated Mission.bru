@@ -1,0 +1,30 @@
+meta {
+  name: ah - Complete Generated Mission
+  type: http
+  seq: 37
+}
+
+patch {
+  url: {{baseUrl}}/mission-sessions/complete
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"sessionId": {{genSessionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('completed with insight', () => { expect(json.status).to.eql('COMPLETED'); expect(json.insight).to.not.be.null; });
+}

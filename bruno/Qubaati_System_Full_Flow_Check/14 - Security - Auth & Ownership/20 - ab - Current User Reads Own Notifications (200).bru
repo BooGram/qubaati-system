@@ -1,0 +1,21 @@
+meta {
+  name: ab - Current User Reads Own Notifications (200)
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{baseUrl}}/users/me/notifications
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  test('own notifications -> 200', () => expect(res.getStatus()).to.eql(200));
+  test('returns an array', () => expect(res.getBody()).to.be.an('array'));
+}

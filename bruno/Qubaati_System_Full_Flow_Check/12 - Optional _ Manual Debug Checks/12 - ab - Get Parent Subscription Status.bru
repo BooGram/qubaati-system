@@ -1,0 +1,26 @@
+meta {
+  name: ab - Get Parent Subscription Status
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/subscriptions/parents/me/status
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('has hasActivePlan field', () => expect(json).to.have.property('hasActivePlan'));
+  test('hasActivePlan is boolean', () => expect(json.hasActivePlan).to.be.a('boolean'));
+  bru.setVar('parentHasActivePlan', String(json.hasActivePlan));
+  if (json.hasActivePlan === false) { test('parent is on the FREE plan by default', () => expect(json.hasActivePlan).to.be.false); }
+  else { console.log('Parent has an ACTIVE paid plan — paid-path test will assert success.'); }
+}

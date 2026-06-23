@@ -1,0 +1,34 @@
+meta {
+  name: ah - Start Generated Mission
+  type: http
+  seq: 35
+}
+
+post {
+  url: {{baseUrl}}/missions/sessions/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"missionId": {{generatedMissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('generated mission is owned by this student', () => expect(json.source).to.eql('AI_GENERATED'));
+  test('student step hides scoreImpact', () => json.currentStep.choices.forEach(c => expect(c).to.not.have.property('scoreImpact')));
+  bru.setVar('genSessionId', json.sessionId);
+  bru.setVar('genChoiceId', json.currentStep.choices[0].id);
+  bru.setVar('genGuard', '0');
+}

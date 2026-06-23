@@ -1,0 +1,32 @@
+meta {
+  name: am - Submit (AI-assisted grading or fallback)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/submit?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":{{s2SubmissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('graded with a numeric score and feedback', () => { expect(json.status).to.eql('GRADED'); expect(json.score).to.be.a('number'); expect(json.aiFeedback).to.be.a('string').and.not.empty; });
+  test('no correct answers leak in result', () => expect(json).to.not.have.property('correctAnswer'));
+  test('feedbackSource is AI or SYSTEM (never a faked AI label)', () => expect(json.feedbackSource).to.be.oneOf(['AI','SYSTEM']));
+}

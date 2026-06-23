@@ -275,6 +275,12 @@ public class ParentService {
         return getChildMissionHistory(dto.getStudentId());
     }
 
+    // PDF portfolio: parent from Basic Auth, must own the child (studentId is a target in the body).
+    public byte[] generateMyChildPortfolioPdf(User user, ChildTargetInDTO dto) {
+        security.assertParentOwnsChild(user, dto.getStudentId());
+        return generateChildPortfolioPdf(security.getCurrentParentId(user), dto.getStudentId());
+    }
+
     public List<ActivitySubmissionOutDTO> getChildActivityResults(Integer studentId) {
         return activitySubmissionService.getStudentActivityResults(studentId);
     }

@@ -1,0 +1,30 @@
+meta {
+  name: ab - List Parent Weekly Reports
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/parents/me/weekly-reports
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  const arr = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('reports is an array', () => expect(arr).to.be.an('array'));
+  test('no raw reportJson string field', () => expect(JSON.stringify(res.getBody())).to.not.include('reportJson'));
+  if (Array.isArray(arr) && arr.length) {
+    test('all reports belong to this parent and expose a structured report field', () => arr.forEach(r => {
+      expect(r.parentId).to.eql(Number(bru.getVar('parentId')));
+      expect(r).to.not.have.property('reportJson');
+      expect(r).to.have.property('report');
+    }));
+  }
+}

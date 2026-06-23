@@ -1,0 +1,23 @@
+meta {
+  name: ab - Get Subscription Plans
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/subscriptions/plans
+  body: none
+  auth: none
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('plans is an array', () => expect(json).to.be.an('array'));
+  const parentPlus = Array.isArray(json) ? json.filter(p => p.code === 'PARENT_PLUS').pop() : null;
+  const teacherPro = Array.isArray(json) ? json.filter(p => p.code === 'TEACHER_PRO').pop() : null;
+  test('PARENT_PLUS plan seeded', () => expect(parentPlus, 'PARENT_PLUS').to.not.be.undefined);
+  test('TEACHER_PRO plan seeded', () => expect(teacherPro, 'TEACHER_PRO').to.not.be.undefined);
+  if (parentPlus) bru.setVar('parentPlusPlanCode', parentPlus.code);
+  if (teacherPro) bru.setVar('teacherProPlanCode', teacherPro.code);
+}

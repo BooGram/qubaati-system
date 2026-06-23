@@ -1,0 +1,42 @@
+meta {
+  name: am - Start Assignment
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"assignmentId":{{assignmentId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('submission is IN_PROGRESS', () => expect(json.submissionStatus).to.eql('IN_PROGRESS'));
+  test('has student-safe questions', () => expect(json.questions).to.be.an('array').that.is.not.empty);
+  test('has at least 3 questions', () => expect(json.questions.length).to.be.at.least(3));
+  test('each question has options', () => expect(json.questions[0].options).to.be.an('array').that.is.not.empty);
+  test('does NOT expose correctAnswer', () => { json.questions.forEach(q => expect(q).to.not.have.property('correctAnswer')); });
+  test('does NOT expose isCorrect', () => { json.questions.forEach(q => (q.options || []).forEach(o => expect(o).to.not.have.property('isCorrect'))); });
+  bru.setVar('submissionId', json.submissionId);
+  bru.setVar('questionId1', json.questions[0].questionId);
+  bru.setVar('optionId1', json.questions[0].options[0].optionId);
+  bru.setVar('questionId2', json.questions[1].questionId);
+  bru.setVar('optionId2', json.questions[1].options[0].optionId);
+  bru.setVar('questionId3', json.questions[2].questionId);
+  bru.setVar('optionId3', json.questions[2].options[0].optionId);
+}

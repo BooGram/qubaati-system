@@ -33,6 +33,7 @@ public class StudentPortfolioPdfService {
     private static final String REPORT_STRIP_PATH = "static/images/qubaati-report-strip.png";
 
     private final ChildLearningProfileService childLearningProfileService;
+    private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
 
     public byte[] generateChildPortfolio(Integer parentId, Integer studentId) {
         ChildLearningProfileOutDTO profile = childLearningProfileService.getLearningProfile(parentId, studentId);
@@ -42,6 +43,13 @@ public class StudentPortfolioPdfService {
     public byte[] generateTeacherStudentPortfolio(Integer teacherId, Integer studentId) {
         ChildLearningProfileOutDTO profile = childLearningProfileService.getTeacherLearningProfile(teacherId, studentId);
         return generatePortfolioPdf(profile);
+    }
+
+    // Secure wrapper: teacher from Basic Auth, must own the target student (student in the teacher's classroom).
+    public byte[] generateMyStudentPortfolio(com.example.qubaatisystem.Model.User user,
+                                             com.example.qubaatisystem.DTO.In.StudentTargetInDTO dto) {
+        security.assertTeacherCanAssignToStudent(user, dto.getStudentId());
+        return generateTeacherStudentPortfolio(security.getCurrentTeacherId(user), dto.getStudentId());
     }
 
     public byte[] generatePortfolioPdf(ChildLearningProfileOutDTO profile) {

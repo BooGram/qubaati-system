@@ -1,0 +1,28 @@
+meta {
+  name: ab - Initialize Run Variables
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/activities/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:8080/api/v1
+}
+
+script:pre-request {
+  // runSuffix and role credentials are set by the collection-level pre-request.
+}
+
+tests {
+  test('runSuffix initialized', () => expect(bru.getVar('runSuffix')).to.match(/^[0-9]+$/));
+}

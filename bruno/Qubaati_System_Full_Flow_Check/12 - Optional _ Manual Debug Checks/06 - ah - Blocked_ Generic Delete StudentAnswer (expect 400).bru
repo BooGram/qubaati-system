@@ -1,0 +1,29 @@
+meta {
+  name: ah - Blocked: Generic Delete StudentAnswer (expect 400)
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/student-answers/delete
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id":1}
+}
+
+tests {
+  test('blocked with 400', () => expect(res.getStatus()).to.equal(400));
+  test('message points to official flow', () => expect((res.getBody().message || '').toLowerCase()).to.include('disabled'));
+}

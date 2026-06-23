@@ -1,0 +1,22 @@
+meta {
+  name: am - Generic Options List Is Student-Safe
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/options/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('generic option DTO hides isCorrect', () => json.forEach(o => expect(o).to.not.have.property('isCorrect')));
+}

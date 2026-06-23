@@ -1,0 +1,27 @@
+meta {
+  name: ab - Get Latest Parent Weekly Report
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/parents/me/weekly-reports/latest
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  const j = (() => { try { return res.getBody(); } catch (e) { return null; } })();
+  if (res.getStatus() === 200) {
+    test('latest report returned', () => { expect(j).to.have.property('id'); expect(j).to.have.property('triggerType'); expect(j).to.have.property('generatedAt'); });
+    test('report is structured (object or null), not an escaped string', () => { expect(j).to.not.have.property('reportJson'); expect(j).to.have.property('report'); if (j.report !== null) expect(j.report).to.be.an('object'); });
+    test('no raw reportJson string field', () => expect(JSON.stringify(res.getBody())).to.not.include('reportJson'));
+  } else {
+    test('no report yet -> clear 400', () => expect(res.getStatus()).to.eql(400));
+  }
+}

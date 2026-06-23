@@ -1,0 +1,20 @@
+meta {
+  name: ab - Parent Owner Can Access Own Dashboard (200)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/parents/me/dashboard
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+tests {
+  test('parent accessing own dashboard -> 200', () => expect(res.getStatus()).to.eql(200));
+}

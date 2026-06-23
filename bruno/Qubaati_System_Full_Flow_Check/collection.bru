@@ -1,0 +1,21 @@
+auth {
+  mode: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+script:pre-request {
+  if (!bru.getVar('runSuffix')) { bru.setVar('runSuffix', String(Date.now())); }
+  const sfx = bru.getVar('runSuffix');
+  bru.setVar('adminUsername', 'admin');
+  bru.setVar('adminPassword', 'Admin123!');
+  bru.setVar('teacherUsername', 'noura.physics' + sfx);
+  bru.setVar('teacherPassword', 'Pass@12345');
+  bru.setVar('parentUsername', 'sarah.parent' + sfx);
+  bru.setVar('parentPassword', 'Pass@12345');
+  bru.setVar('studentUsername', 'faisal.student' + sfx);
+  bru.setVar('studentPassword', 'Pass@12345');
+}

@@ -1,0 +1,28 @@
+meta {
+  name: ab - Request Revision
+  type: http
+  seq: 2
+}
+
+patch {
+  url: {{baseUrl}}/activities/request-revision
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"reviewComment": "Please simplify the wording and add clearer options", "activityId": {{revisionActivityId}}}
+}
+
+tests {
+  test('revision request succeeds', () => expect(res.getStatus()).to.equal(200));
+}

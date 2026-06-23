@@ -1,5 +1,6 @@
 package com.example.qubaatisystem.Controller;
 
+import com.example.qubaatisystem.DTO.In.StudentTargetInDTO;
 import com.example.qubaatisystem.DTO.In.TeacherInDTO;
 import com.example.qubaatisystem.DTO.Out.ActivityOutDTO;
 import com.example.qubaatisystem.DTO.Out.TeacherDashboardClassroomOutDTO;
@@ -69,14 +70,16 @@ public class TeacherController {
         return ResponseEntity.status(200).body(activityService.getMyActivities(user, status));
     }
 
-    @GetMapping("/{teacherId}/students/{studentId}/learning-profile/pdf")
-    public ResponseEntity<byte[]> exportStudentLearningProfilePdf(@PathVariable Integer teacherId,
-                                                                  @PathVariable Integer studentId) {
-        byte[] pdf = studentPortfolioPdfService.generateTeacherStudentPortfolio(teacherId, studentId);
+    // PDF export of a student's learning profile. studentId is a target in the body; the teacher comes from Basic
+    // Auth and must own the student (student in the teacher's classroom). No teacherId/studentId in the path.
+    @PostMapping("/me/students/learning-profile/pdf")
+    public ResponseEntity<byte[]> exportMyStudentLearningProfilePdf(@AuthenticationPrincipal User user,
+                                                                    @Valid @RequestBody StudentTargetInDTO dto) {
+        byte[] pdf = studentPortfolioPdfService.generateMyStudentPortfolio(user, dto);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"student-" + studentId + "-portfolio.pdf\"")
+                        "attachment; filename=\"student-" + dto.getStudentId() + "-portfolio.pdf\"")
                 .body(pdf);
     }
 }

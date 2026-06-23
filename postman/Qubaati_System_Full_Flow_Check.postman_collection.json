@@ -308,7 +308,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"username\":\"noura.physics{{runSuffix}}\",\"email\":\"noura.physics{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Noura Alharbi\",\"specialization\":\"Physics\"}",
+              "raw": "{\"username\":\"noura.physics{{runSuffix}}\",\"email\":\"noura.physics{{runSuffix}}@example.com\",\"password\":\"Pass@12345\",\"fullName\":\"Noura Alharbi\",\"specialization\":\"Physics\",\"phoneNumber\":\"+966500000001\"}",
               "options": {
                 "raw": {
                   "language": "json"

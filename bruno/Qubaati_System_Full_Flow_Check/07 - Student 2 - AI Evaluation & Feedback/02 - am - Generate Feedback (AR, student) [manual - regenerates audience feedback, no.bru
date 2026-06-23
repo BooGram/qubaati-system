@@ -1,0 +1,35 @@
+meta {
+  name: am - Generate Feedback (AR, student) [manual - regenerates audience feedback, not required]
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/ai/activity-submissions/generate-feedback?language=ar&audience=teacher
+  body: json
+  auth: basic
+}
+
+params:query {
+  language: ar
+  audience: teacher
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+body:json {
+  {"submissionId": {{submissionId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('aiFeedback returned', () => expect(json.aiFeedback).to.be.a('string').and.not.empty);
+}

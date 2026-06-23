@@ -1,0 +1,33 @@
+meta {
+  name: am - Seed Due-Soon Assignment (CRUD, +12h)
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"status":"ASSIGNED","activityId":{{activityId}},"studentId":{{studentId}},"dueDate":"{{dueSoonDate}}"}
+}
+
+script:pre-request {
+  // Due in ~12h so the due-soon window (?hours=24) catches it.
+  bru.setVar('dueSoonDate', new Date(Date.now()+12*3600*1000).toISOString().slice(0,19));
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

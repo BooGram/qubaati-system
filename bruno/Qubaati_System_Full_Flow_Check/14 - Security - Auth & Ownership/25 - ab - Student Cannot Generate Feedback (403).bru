@@ -1,0 +1,28 @@
+meta {
+  name: ab - Student Cannot Generate Feedback (403)
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{baseUrl}}/ai/activity-submissions/generate-feedback
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"submissionId":999999}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

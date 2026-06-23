@@ -1,0 +1,32 @@
+meta {
+  name: ab - Create Parent (Sarah Alqahtani)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/parents/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"username":"sarah.parent{{runSuffix}}","email":"sarah.parent{{runSuffix}}@example.com","password":"Pass@12345","fullName":"Sarah Alqahtani","phoneNumber":"+966500000000"}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  test('has id', () => expect(json).to.have.property('id'));
+  if (json && json.id) bru.setVar('parentId', json.id);
+  if (json && json.userId) bru.setVar('parentUserId', json.userId);
+}

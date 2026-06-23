@@ -1,0 +1,29 @@
+meta {
+  name: ah - Legacy Generate Blocked Before Unlock (expect 400)
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/mission/generate
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentId": {{studentId}}, "worldId": {{careerWorldId}}}
+}
+
+tests {
+  test('legacy generate is locked before 4 default completions', () => expect(res.getStatus()).to.equal(400));
+  test('error message mentions locked', () => expect((res.getBody().message || '').toLowerCase()).to.include('locked'));
+}

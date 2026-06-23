@@ -1,0 +1,30 @@
+meta {
+  name: am - Teacher Manual Grade Answer (override)
+  type: http
+  seq: 13
+}
+
+patch {
+  url: {{baseUrl}}/student-answers/grade
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"earnedPoints": 7, "status": "PARTIAL", "feedback": "Good idea, but mention Rayleigh scattering.", "answerId": {{s2AnswerId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('submission re-scored from the manual grade', () => { expect(json.status).to.eql('GRADED'); expect(json.score).to.eql(7); });
+}

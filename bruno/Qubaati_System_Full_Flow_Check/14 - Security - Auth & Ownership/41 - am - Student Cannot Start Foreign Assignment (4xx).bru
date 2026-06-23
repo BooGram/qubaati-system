@@ -1,0 +1,28 @@
+meta {
+  name: am - Student Cannot Start Foreign Assignment (4xx)
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{baseUrl}}/activity-assignments/start
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"assignmentId":999999}
+}
+
+tests {
+  test('foreign/nonexistent assignment is rejected', () => expect(res.getStatus()).to.be.oneOf([400,403,404]));
+}

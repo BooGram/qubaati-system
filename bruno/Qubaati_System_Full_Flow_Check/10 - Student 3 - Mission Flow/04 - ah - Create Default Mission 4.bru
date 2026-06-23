@@ -1,0 +1,28 @@
+meta {
+  name: ah - Create Default Mission 4
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/mission/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"title":"Story Mission 4 - The Solution","scenario":"A multi-step problem scenario.","skillType":"PROBLEM_SOLVING","difficulty":"MEDIUM","estimatedMinutes":5,"maxScore":100,"careerWorldId":{{careerWorldId}}}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

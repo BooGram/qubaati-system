@@ -1,0 +1,29 @@
+meta {
+  name: am - Get Submissions by Activity
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/activity-submissions/by-activity
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{s2ActivityId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('returns a non-empty list', () => expect(res.getBody()).to.be.an('array').that.is.not.empty);
+}

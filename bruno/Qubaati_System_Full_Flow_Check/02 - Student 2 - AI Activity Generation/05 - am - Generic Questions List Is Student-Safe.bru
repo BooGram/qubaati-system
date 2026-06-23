@@ -1,0 +1,22 @@
+meta {
+  name: am - Generic Questions List Is Student-Safe
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/questions/get-all
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{adminUsername}}
+  password: {{adminPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('generic question DTO hides correctAnswer', () => json.forEach(q => expect(q).to.not.have.property('correctAnswer')));
+}

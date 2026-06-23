@@ -1,0 +1,28 @@
+meta {
+  name: ab - Parent Cannot Approve Activity (403)
+  type: http
+  seq: 33
+}
+
+patch {
+  url: {{baseUrl}}/activities/approve
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"activityId":1,"reviewComment":"x"}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

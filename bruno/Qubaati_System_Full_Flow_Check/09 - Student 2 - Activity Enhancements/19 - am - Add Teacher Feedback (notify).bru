@@ -1,0 +1,29 @@
+meta {
+  name: am - Add Teacher Feedback (notify)
+  type: http
+  seq: 19
+}
+
+patch {
+  url: {{baseUrl}}/activity-submissions/teacher-feedback
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"teacherFeedback": "Please add the term Rayleigh scattering.", "submissionId": {{s2SubmissionId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('teacherFeedback stored', () => expect(res.getBody().teacherFeedback).to.be.a('string').and.not.empty);
+}

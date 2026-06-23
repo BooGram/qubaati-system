@@ -1,0 +1,28 @@
+meta {
+  name: ah - Get Available Missions (after unlock)
+  type: http
+  seq: 32
+}
+
+get {
+  url: {{baseUrl}}/students/me/missions/available?careerWorldId={{careerWorldId}}
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('now unlocked', () => expect(json.personalizedMissionsUnlocked).to.eql(true));
+  const gen = json.missions.filter(m => m.source === 'AI_GENERATED');
+  test('AI_GENERATED missions are present', () => expect(gen.length).to.be.above(0));
+  test('never more than 2 active generated missions', () => { const active = gen.filter(m => m.active && !m.completed); expect(active.length).to.be.at.most(2); });
+  const playable = gen.filter(m => m.active && !m.completed);
+  if (playable[0]) bru.setVar('generatedMissionId', playable[0].id);
+  if (playable[1]) bru.setVar('generatedMissionId2', playable[1].id);
+}

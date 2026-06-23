@@ -1,0 +1,29 @@
+meta {
+  name: ab - Create 2nd Classroom Under Free Teacher Succeeds
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/classrooms/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"name":"Second Classroom {{runSuffix}}","gradeLevel":7,"section":"B"}
+}
+
+tests {
+  test('2nd classroom created (200/201)', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+  // Assumes a fresh DB (ddl-auto=create-drop default): the teacher has exactly 1 classroom before this runs.
+}

@@ -1,0 +1,28 @@
+meta {
+  name: ab - Parent Cannot Create Classroom (403)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/classrooms/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"name":"Blocked Classroom","gradeLevel":6,"section":"A"}
+}
+
+tests {
+  test('parent creating a classroom -> 403', () => expect(res.getStatus()).to.eql(403));
+}

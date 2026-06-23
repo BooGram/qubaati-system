@@ -1,0 +1,22 @@
+meta {
+  name: am - Verify Total Points After Manual Grade
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/students/me
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: {{studentUsername}}
+  password: {{studentPassword}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('totalPoints rose by the final score (7) via delta accounting (no double-count)', () => expect(json.totalPoints).to.eql(Number(bru.getVar('s2PointsPreSubmit')) + 7));
+}

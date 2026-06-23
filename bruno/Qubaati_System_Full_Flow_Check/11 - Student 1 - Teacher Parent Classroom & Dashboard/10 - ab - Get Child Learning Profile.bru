@@ -1,0 +1,32 @@
+meta {
+  name: ab - Get Child Learning Profile
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/parents/me/children/learning-profile
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{parentUsername}}
+  password: {{parentPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"studentId": {{studentId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('learning profile combines skills + learning style + missions', () => { expect(json).to.have.property('skills'); expect(json).to.have.property('weakSkills'); expect(json).to.have.property('completedMissionSessionsCount'); });
+  test('no correct answers leak', () => expect(JSON.stringify(json)).to.not.contain('correctAnswer'));
+  test('learning profile reflects completed missions', () => { const j = res.getBody(); expect(j.completedMissionSessionsCount).to.be.above(0); });
+}

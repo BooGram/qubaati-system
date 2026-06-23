@@ -1,0 +1,28 @@
+meta {
+  name: ab - AI Classroom Summary
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/ai/classrooms/summary
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"classroomId": {{classroomId}}}
+}
+
+tests {
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+}

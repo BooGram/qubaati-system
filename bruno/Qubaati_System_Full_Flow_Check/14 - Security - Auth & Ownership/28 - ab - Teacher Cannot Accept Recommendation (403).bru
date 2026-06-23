@@ -1,0 +1,28 @@
+meta {
+  name: ab - Teacher Cannot Accept Recommendation (403)
+  type: http
+  seq: 28
+}
+
+patch {
+  url: {{baseUrl}}/recommendations/accept
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id":999999}
+}
+
+tests {
+  test('expected 403', () => expect(res.getStatus()).to.eql(403));
+}

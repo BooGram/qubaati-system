@@ -1,0 +1,28 @@
+meta {
+  name: ab - Create Teacher-Owned Activity (seed)
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/activities/add
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"title": "Teacher Owned Seed Activity", "description": "Owned by the teacher (Student 1 ownership seed).", "type": "QUIZ", "status": "PENDING_REVIEW", "difficulty": "EASY", "maxScore": 10, "skillId": {{skillId}}}
+}
+
+tests {
+  test('status 200 or 201', () => expect(res.getStatus()).to.be.oneOf([200,201]));
+}

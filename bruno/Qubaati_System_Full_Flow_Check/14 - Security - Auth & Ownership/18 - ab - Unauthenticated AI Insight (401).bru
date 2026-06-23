@@ -1,0 +1,15 @@
+meta {
+  name: ab - Unauthenticated AI Insight (401)
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{baseUrl}}/ai/teachers/me/dashboard-insight
+  body: none
+  auth: none
+}
+
+tests {
+  test('no auth on AI insight -> 401', () => expect(res.getStatus()).to.eql(401));
+}

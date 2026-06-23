@@ -1,0 +1,33 @@
+meta {
+  name: ab - Get Activity Details (teacher, after generate)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/activities/details?language=en
+  body: json
+  auth: basic
+}
+
+auth:basic {
+  username: {{teacherUsername}}
+  password: {{teacherPassword}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"id": {{activityId}}}
+}
+
+tests {
+  const json = res.getBody();
+  test('status 200', () => expect(res.getStatus()).to.equal(200));
+  test('has questions', () => expect(json.questions).to.be.an('array').that.is.not.empty);
+  test('questions have options', () => expect(json.questions[0].options).to.be.an('array').that.is.not.empty);
+  test('teacher view exposes correctAnswer', () => expect(json.questions[0]).to.have.property('correctAnswer'));
+  test('teacher view exposes isCorrect', () => expect(json.questions[0].options[0]).to.have.property('isCorrect'));
+}
