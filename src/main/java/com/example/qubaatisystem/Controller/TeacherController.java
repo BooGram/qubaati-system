@@ -7,10 +7,13 @@ import com.example.qubaatisystem.DTO.Out.TeacherDashboardStudentOutDTO;
 import com.example.qubaatisystem.Enum.ActivityStatus;
 import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Service.ActivityService;
+import com.example.qubaatisystem.Service.StudentPortfolioPdfService;
 import com.example.qubaatisystem.Service.TeacherDashboardService;
 import com.example.qubaatisystem.Service.TeacherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +33,7 @@ public class TeacherController {
     private final TeacherService teacherService;
     private final TeacherDashboardService teacherDashboardService;
     private final ActivityService activityService;
+    private final StudentPortfolioPdfService studentPortfolioPdfService;
 
     // Creating/listing teachers is an admin operation (no public self-registration of teachers).
     @PostMapping("/add")
@@ -63,5 +67,16 @@ public class TeacherController {
     public ResponseEntity<List<ActivityOutDTO>> getMyActivities(@AuthenticationPrincipal User user,
                                                                 @RequestParam(required = false) ActivityStatus status) {
         return ResponseEntity.status(200).body(activityService.getMyActivities(user, status));
+    }
+
+    @GetMapping("/{teacherId}/students/{studentId}/learning-profile/pdf")
+    public ResponseEntity<byte[]> exportStudentLearningProfilePdf(@PathVariable Integer teacherId,
+                                                                  @PathVariable Integer studentId) {
+        byte[] pdf = studentPortfolioPdfService.generateTeacherStudentPortfolio(teacherId, studentId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"student-" + studentId + "-portfolio.pdf\"")
+                .body(pdf);
     }
 }

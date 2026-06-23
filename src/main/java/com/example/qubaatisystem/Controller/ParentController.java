@@ -10,16 +10,11 @@ import com.example.qubaatisystem.Model.User;
 import com.example.qubaatisystem.Service.ParentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/parents")
@@ -103,5 +98,23 @@ public class ParentController {
     public ResponseEntity<?> getMyChildMissionHistory(@AuthenticationPrincipal User user,
                                                       @Valid @RequestBody ChildTargetInDTO dto) {
         return ResponseEntity.status(200).body(parentService.getChildMissionHistory(user, dto));
+    }
+
+    @GetMapping("/{parentId}/children/{studentId}/learning-profile/pdf")
+    public ResponseEntity<byte[]> exportChildLearningProfilePdf(@PathVariable Integer parentId,
+                                                                @PathVariable Integer studentId) {
+        byte[] pdf = parentService.generateChildPortfolioPdf(parentId, studentId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"student-" + studentId + "-portfolio.pdf\"")
+                .body(pdf);
+    }
+
+    @PatchMapping("/{parentId}/children/{studentId}/profile")
+    public ResponseEntity<?> updateChildProfile(@PathVariable Integer parentId,
+                                                @PathVariable Integer studentId,
+                                                @Valid @RequestBody ChildUpdateProfileInDTO dto) {
+        return ResponseEntity.status(200).body(parentService.updateChildProfile(parentId, studentId, dto));
     }
 }

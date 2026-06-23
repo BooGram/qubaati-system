@@ -1,0 +1,931 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <title>قبعتي - تقرير إنجاز الطالب</title>
+    <style>
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+
+        body {
+            background: #F3EDE4;
+            color: #143D4D;
+            font-family: "Tajawal", "Cairo", sans-serif;
+            direction: rtl;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            background: #F3EDE4;
+            position: relative;
+            overflow: hidden;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .page-last {
+            page-break-after: auto;
+            break-after: auto;
+        }
+
+        .page-top { padding-top: 8mm; }
+        .pad { padding: 0 10mm; }
+
+        table { border-collapse: collapse; }
+        tr, td, table, .card, .hero, .band-card, .stats, .skill, .reco {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* ================= FOOTER ================= */
+        .foot {
+            position: absolute;
+            width: 190mm;
+            left: 10mm;
+            bottom: 6mm;
+            padding-top: 2.2mm;
+            border-top: 1px solid #EAE2D6;
+        }
+
+        .foot table { width: 100%; border-collapse: collapse; }
+        .f-note { color: #7397A2; font-size: 8.5px; font-weight: 700; }
+        .f-pg { text-align: left; color: #41707E; font-size: 8.5px; font-weight: 900; }
+
+        /* ================= PAGE 1 / COVER ================= */
+        .confetti-top {
+            width: 210mm;
+            height: 10mm;
+            background-image: url("{{reportStripDataUri}}");
+            background-size: 210mm auto;
+            background-position: center top;
+            background-repeat: no-repeat;
+        }
+
+        .hdr {
+            width: 180mm;
+            margin: 10mm auto 0;
+            border-collapse: collapse;
+            direction: ltr;
+        }
+
+        .hdr td { vertical-align: middle; }
+
+        .h-brand {
+            width: 56mm;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .brand-inner {
+            margin-left: auto;
+            border-collapse: collapse;
+            direction: ltr;
+        }
+
+        .brand-inner td {
+            padding: 0;
+            vertical-align: middle;
+        }
+
+        .brand-logo {
+            width: 20mm;
+            text-align: right;
+        }
+
+        .brand-logo img {
+            width: 18mm;
+            height: auto;
+            vertical-align: middle;
+        }
+
+        .brand-text {
+            padding-right: 2mm;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .brand-text b {
+            display: block;
+            color: #143D4D;
+            font-size: 20px;
+            line-height: 1.05;
+            font-weight: 900;
+        }
+
+        .brand-text span {
+            color: #7397A2;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .h-kick {
+            width: 46mm;
+            text-align: left;
+        }
+
+        .h-kick span {
+            display: inline-block;
+            padding: 3mm 6mm;
+            border-radius: 999px;
+            background: #FEF7DE;
+            color: #143D4D;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .title {
+            width: 132mm;
+            margin: 18mm auto 0;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .title h1 {
+            margin: 0;
+            color: #143D4D;
+            font-size: 34px;
+            line-height: 1.15;
+            font-weight: 900;
+        }
+
+        .uline {
+            width: 24mm;
+            height: 3px;
+            margin: 3mm 0 5mm auto;
+            border-radius: 99px;
+            background: #F5B800;
+        }
+
+        .title p {
+            margin: 0;
+            color: #41707E;
+            font-size: 12.2px;
+            line-height: 1.75;
+            font-weight: 800;
+        }
+
+        .title .date {
+            margin-top: 3mm;
+            color: #7FA1AB;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .hero {
+            width: 180mm;
+            margin: 12mm auto 0;
+            background: #143D4D;
+            border-radius: 14px;
+            border-collapse: separate;
+            direction: rtl;
+        }
+
+        .hero td {
+            vertical-align: middle;
+            padding: 8.5mm 12mm;
+        }
+
+        .he-badge {
+            width: 49mm;
+            text-align: center;
+        }
+
+        .circle {
+            position: relative;
+            display: inline-block;
+            width: 31mm;
+            height: 31mm;
+            border-radius: 50%;
+            background: #FBF8F3;
+            overflow: hidden;
+        }
+
+        .circle img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 22mm;
+            height: auto;
+            transform: translate(-50%, -50%);
+        }
+
+        .he-copy { text-align: center; direction: rtl; }
+
+        .he-ey {
+            margin-bottom: 2mm;
+            color: #F5B800;
+            font-size: 10.8px;
+            font-weight: 900;
+        }
+
+        .he-name {
+            margin: 0 0 2mm;
+            color: #FFFFFF;
+            font-size: 26px;
+            line-height: 1.2;
+            font-weight: 900;
+        }
+
+        .he-grade {
+            margin-bottom: 4mm;
+            color: #CDE0DE;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .he-p {
+            width: 100mm;
+            margin: 0 auto;
+            color: #D7E6E3;
+            font-size: 11.2px;
+            line-height: 1.75;
+            font-weight: 800;
+        }
+
+        .band-card {
+            position: relative;
+            left: 4mm;
+            width: 180mm;
+            margin: 10mm auto 0;
+            padding: 4mm;
+            background: #FFFFFF;
+            border: 1px solid #EAE2D6;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .band-card img {
+            display: block;
+            width: 172mm;
+            height: 72mm;
+            object-fit: contain;
+            border-radius: 9px;
+        }
+
+        .stats {
+            width: 180mm;
+            margin: 10mm auto 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .stats .stat-cell {
+            width: 56mm;
+            height: 27mm;
+            border-radius: 10px;
+            padding: 6mm 4mm;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .stats .s-gap {
+            width: 6mm;
+            padding: 0;
+        }
+
+        .s-val {
+            color: #143D4D;
+            font-size: 24px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .s-val-sm { font-size: 21px; }
+
+        .s-lab {
+            margin-top: 2.3mm;
+            color: #41707E;
+            font-size: 10.6px;
+            font-weight: 900;
+        }
+
+        .st-points { background: #FEF7DE; }
+        .st-missions { background: #F0ECF8; }
+        .st-style { background: #E9F5F1; }
+
+        /* ================= SHARED CARDS ================= */
+        .card {
+            width: 180mm;
+            margin: 0 auto 7mm;
+            padding: 8.5mm 12mm;
+            background: #FFFFFF;
+            border: 1px solid #EAE2D6;
+            border-radius: 11px;
+        }
+
+        .chead {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 10mm;
+            margin-bottom: 8.5mm;
+            border-collapse: collapse;
+            direction: rtl;
+        }
+
+        .chead tbody,
+        .chead tr {
+            display: block;
+            width: 100%;
+            height: 10mm;
+        }
+
+        .chead td { display: block; }
+
+        .c-num {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 9mm;
+            text-align: right;
+        }
+
+        .c-num span {
+            display: inline-block;
+            width: 9mm;
+            height: 9mm;
+            border-radius: 3mm;
+            background: #143D4D;
+            color: #FFFFFF;
+            font-size: 13px;
+            line-height: 9mm;
+            text-align: center;
+            font-weight: 900;
+        }
+
+        .chead h3 {
+            position: absolute;
+            top: 0;
+            right: 13mm;
+            left: 44mm;
+            margin: 0;
+            padding: 0;
+            color: #143D4D;
+            font-size: 24px;
+            line-height: 9mm;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .c-tag {
+            position: absolute;
+            top: 0.5mm;
+            left: 0;
+            width: 40mm;
+            text-align: left;
+        }
+
+        .c-tag span {
+            display: inline-block;
+            min-width: 26mm;
+            padding: 2mm 4.5mm;
+            border-radius: 99px;
+            background: #E7EFF2;
+            color: #41707E;
+            font-size: 10.2px;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        /* ================= PROFILE ================= */
+        .profile-card {
+            position: relative;
+            width: 180mm;
+            height: 88mm;
+            margin: 0 auto 8mm;
+            padding: 0;
+            background: #FFFFFF;
+            border: 1px solid #EAE2D6;
+            border-radius: 11px;
+            overflow: hidden;
+        }
+
+        .profile-head-fixed {
+            position: absolute;
+            top: 10mm;
+            right: 12mm;
+            left: 12mm;
+            height: 10mm;
+        }
+
+        .profile-right {
+            position: absolute;
+            right: 0;
+            top: 0;
+            display: block;
+            white-space: nowrap;
+        }
+
+        .profile-left {
+            position: absolute;
+            left: 0;
+            top: 0.5mm;
+        }
+
+        .profile-num {
+            display: inline-block;
+            width: 9mm;
+            height: 9mm;
+            margin: 0 0 0 4mm;
+            border-radius: 3mm;
+            background: #143D4D;
+            color: #FFFFFF;
+            font-size: 13px;
+            line-height: 9mm;
+            text-align: center;
+            font-weight: 900;
+            vertical-align: middle;
+        }
+
+        .profile-title {
+            display: inline-block;
+            color: #143D4D;
+            font-size: 24px;
+            font-weight: 900;
+            line-height: 9mm;
+            vertical-align: middle;
+        }
+
+        .profile-tag {
+            display: inline-block;
+            min-width: 28mm;
+            padding: 2.3mm 5mm;
+            border-radius: 999px;
+            background: #E7EFF2;
+            color: #41707E;
+            font-size: 11px;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .profile-grid-fixed {
+            position: absolute;
+            top: 26mm;
+            right: 16mm;
+            width: 156mm;
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .profile-grid-fixed td {
+            width: 75mm;
+            height: 22mm;
+            padding: 5mm 8mm;
+            background: #FBF8F3;
+            border: 1px solid #EAE2D6;
+            border-radius: 9px;
+            vertical-align: middle;
+            text-align: right;
+        }
+
+        .profile-grid-fixed .p-gap {
+            width: 6mm;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .profile-grid-fixed .p-v-gap {
+            height: 5mm;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .profile-card .p-k {
+            color: #97B0B7;
+            font-size: 11px;
+            font-weight: 900;
+            margin-bottom: 2mm;
+        }
+
+        .profile-card .p-v {
+            color: #143D4D;
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        /* ================= SKILLS ================= */
+        .skill-card {
+            position: relative;
+            left: 5mm;
+            height: 168mm;
+            padding-bottom: 5mm;
+        }
+
+        .page-last .card,
+        .page-last .reco {
+            position: relative;
+            left: 5mm;
+        }
+
+        .skill {
+            width: 156mm;
+            margin: 0 auto 4.6mm;
+            background: #FBF8F3;
+            border: 1px solid #EAE2D6;
+            border-radius: 9px;
+            border-collapse: separate;
+        }
+
+        .skill td {
+            padding: 6mm 7mm;
+            vertical-align: top;
+        }
+
+        .sk-line {
+            position: relative;
+            width: 100%;
+            min-height: 8mm;
+            margin-bottom: 4.5mm;
+            direction: rtl;
+        }
+
+        .sk-name {
+            display: block;
+            padding-left: 34mm;
+            color: #143D4D;
+            font-size: 15px;
+            line-height: 8mm;
+            font-weight: 900;
+            text-align: right;
+            direction: rtl;
+        }
+
+        .sk-pct {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 28mm;
+            text-align: left;
+            font-size: 17px;
+            line-height: 8mm;
+            font-weight: 900;
+            direction: ltr;
+            white-space: nowrap;
+        }
+
+        .pct-hi { color: #4E9685; }
+        .pct-mid { color: #F5B800; }
+        .pct-low { color: #FF7A59; }
+
+        .barwrap {
+            height: 2.9mm;
+            background: #EAE2D6;
+            border-radius: 99px;
+            overflow: hidden;
+            direction: rtl;
+        }
+
+        .fill {
+            display: block;
+            height: 2.9mm;
+            border-radius: 99px;
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        .fill-hi { background: #6DBAA7; }
+        .fill-mid { background: #F5B800; }
+        .fill-low { background: #FF7A59; }
+
+        .sk-meta {
+            margin-top: 4.5mm;
+            color: #7397A2;
+            font-size: 10.6px;
+            line-height: 1.55;
+            text-align: right;
+        }
+
+        /* ================= HATS ================= */
+        .lead {
+            width: 156mm;
+            margin: 0 auto 9mm;
+            color: #41707E;
+            font-size: 13px;
+            line-height: 1.75;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .hats {
+            width: 156mm;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .hats .hat-cell {
+            width: 48mm;
+            height: 49mm;
+            padding: 8mm 4mm 6mm;
+            text-align: center;
+            vertical-align: middle;
+            background: #FBF8F3;
+            border: 1px solid #EAE2D6;
+            border-radius: 10px;
+        }
+
+        .hats .h-gap {
+            width: 6mm;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .hat-chip {
+            display: inline-block;
+            width: 20mm;
+            height: 20mm;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20mm;
+            margin-bottom: 6mm;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .chip-mist { background: #E7EFF2; color: #143D4D; }
+        .chip-sage { background: #E9F5F1; color: #4E9685; }
+        .chip-lav { background: #F0ECF8; color: #6E5BA6; }
+
+        .hat-name {
+            color: #143D4D;
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .hat-pct {
+            margin-top: 2.2mm;
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .pct-teal { color: #143D4D; }
+        .pct-sage2 { color: #4E9685; }
+        .pct-lav2 { color: #6E5BA6; }
+
+        /* ================= INSIGHTS ================= */
+        .insights {
+            width: 156mm;
+            margin: 0 auto;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .insights .insight-cell {
+            width: 75mm;
+            height: 35mm;
+            padding: 6.5mm 8mm;
+            vertical-align: top;
+            background: #FBF8F3;
+            border: 1px solid #EAE2D6;
+            border-radius: 9px;
+        }
+
+        .insights .i-gap {
+            width: 6mm;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .insights h4 {
+            margin: 0 0 2.8mm;
+            color: #143D4D;
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .insights p {
+            margin: 0;
+            color: #41707E;
+            font-size: 11.2px;
+            line-height: 1.78;
+            font-weight: 700;
+        }
+
+        /* ================= RECOMMENDATIONS ================= */
+        .reco {
+            width: 180mm;
+            height: 73mm;
+            margin: 6mm auto 0;
+            padding: 10mm 13mm;
+            background: #143D4D;
+            border-radius: 10px;
+        }
+
+        .reco h3 {
+            margin: 0 0 6mm;
+            color: #FFFFFF;
+            font-size: 20px;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .reco-list {
+            width: 100%;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .reco-row {
+            position: relative;
+            min-height: 8mm;
+            margin-bottom: 4.4mm;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .reco-dot {
+            position: absolute;
+            top: 2.1mm;
+            right: 0;
+            display: block;
+            width: 3.8mm;
+            height: 3.8mm;
+            border-radius: 50%;
+            background: #F5B800;
+        }
+
+        .reco-text {
+            display: block;
+            margin-right: 8.8mm;
+            color: #E4F0EE;
+            font-size: 13.3px;
+            line-height: 1.7;
+            font-weight: 800;
+            text-align: right;
+            direction: rtl;
+        }
+    </style>
+</head>
+<body>
+
+<section class="page">
+    <div class="confetti-top"></div>
+    <div class="pad">
+        <table class="hdr">
+            <tr>
+                <td class="h-kick"><span>تقرير ذكي</span></td>
+                <td></td>
+                <td class="h-brand">
+                    <table class="brand-inner">
+                        <tr>
+                            <td class="brand-text"><b>قبعتي</b><span>عالم من المهن</span></td>
+                            <td class="brand-logo"><img src="{{markDataUri}}" alt="قبعتي" /></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <div class="title">
+            <h1>ملف إنجاز الطالب</h1>
+            <div class="uline"></div>
+            <p>رحلة مصممة لتلخيص أداء الطالب ومهاراته ونمط تعلّمه، والقبعات المهنية الأقرب لميوله — لمساعدة المعلم وولي الأمر على دعم الخطوة القادمة.</p>
+            <div class="date">تاريخ التقرير: {{reportDate}}</div>
+        </div>
+
+        <table class="hero">
+            <tr>
+                <td class="he-copy">
+                    <div class="he-ey">الطالب</div>
+                    <div class="he-name">{{studentName}}</div>
+                    <div class="he-grade">{{grade}}</div>
+                    <div class="he-p">في قبعتي، كل تجربة تكشف مهارة جديدة وتقرّب الطالب من القبعة التي تناسب شغفه وقدراته.</div>
+                </td>
+                <td class="he-badge"><span class="circle"><img src="{{markDataUri}}" alt="قبعتي" /></span></td>
+            </tr>
+        </table>
+
+        <div class="band-card"><img src="{{reportBannerDataUri}}" alt="كل قبعة تفتح لك فرصة جديدة" /></div>
+
+        <table class="stats">
+            <tr>
+                <td class="stat-cell st-style"><div class="s-val s-val-sm">{{learningStyle}}</div><div class="s-lab">نمط التعلّم</div></td>
+                <td class="s-gap"></td>
+                <td class="stat-cell st-missions"><div class="s-val">{{completedMissions}}</div><div class="s-lab">مهمة مكتملة</div></td>
+                <td class="s-gap"></td>
+                <td class="stat-cell st-points"><div class="s-val">{{totalPoints}}</div><div class="s-lab">نقطة مكتسبة</div></td>
+            </tr>
+        </table>
+
+        <div class="foot"><table><tr><td class="f-note">قبعتي - كل قبعة تفتح لك فرصة جديدة</td><td class="f-pg">1 / 3</td></tr></table></div>
+    </div>
+</section>
+
+<section class="page page-top">
+    <div class="pad">
+        <div class="card profile-card">
+            <div class="profile-head-fixed">
+                <div class="profile-right">
+                    <span class="profile-num">1</span>
+                    <span class="profile-title">الملف الشخصي</span>
+                </div>
+                <div class="profile-left">
+                    <span class="profile-tag">بيانات الطالب</span>
+                </div>
+            </div>
+
+            <table class="pgrid profile-grid-fixed">
+                <tr>
+                    <td><div class="p-k">العمر</div><div class="p-v">{{age}}</div></td>
+                    <td class="p-gap"></td>
+                    <td><div class="p-k">المرحلة</div><div class="p-v">{{grade}}</div></td>
+                </tr>
+                <tr><td class="p-v-gap"></td><td class="p-gap p-v-gap"></td><td class="p-v-gap"></td></tr>
+                <tr>
+                    <td><div class="p-k">جلسات المهام المكتملة</div><div class="p-v">{{completedMissionSessions}}</div></td>
+                    <td class="p-gap"></td>
+                    <td><div class="p-k">متوسط أداء الأنشطة</div><div class="p-v">{{averageActivityScore}}</div></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card skill-card">
+            <table class="chead">
+                <tr>
+                    <td class="c-num"><span>2</span></td>
+                    <td><h3>مؤشرات المهارات</h3></td>
+                    <td class="c-tag"><span>تحليل الأداء</span></td>
+                </tr>
+            </table>
+            {{skillsHtml}}
+        </div>
+
+        <div class="foot"><table><tr><td class="f-note">تم توليد التقرير بناء على تفاعل الطالب داخل عوالم قبعتي</td><td class="f-pg">2 / 3</td></tr></table></div>
+    </div>
+</section>
+
+<section class="page page-top page-last">
+    <div class="pad">
+        <div class="card">
+            <table class="chead">
+                <tr>
+                    <td class="c-num"><span>3</span></td>
+                    <td><h3>القبعات المقترحة</h3></td>
+                    <td class="c-tag"><span>ميول مهنية</span></td>
+                </tr>
+            </table>
+            <p class="lead">هذه القبعات تمثل المجالات الأقرب لأسلوب الطالب الحالي، ويمكن أن تتغير مع استمرار التجربة داخل العوالم المهنية.</p>
+            <table class="hats">
+                <tr>
+                    <td class="hat-cell">
+                        <div class="hat-chip chip-lav">3</div>
+                        <div class="hat-name">التقنية</div>
+                        <div class="hat-pct pct-lav2">74%</div>
+                    </td>
+                    <td class="h-gap"></td>
+                    <td class="hat-cell">
+                        <div class="hat-chip chip-sage">2</div>
+                        <div class="hat-name">الطب</div>
+                        <div class="hat-pct pct-sage2">82%</div>
+                    </td>
+                    <td class="h-gap"></td>
+                    <td class="hat-cell">
+                        <div class="hat-chip chip-mist">1</div>
+                        <div class="hat-name">التعليم</div>
+                        <div class="hat-pct pct-teal">91%</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <table class="chead">
+                <tr>
+                    <td class="c-num"><span>4</span></td>
+                    <td><h3>التحليل الذكي للسلوك</h3></td>
+                    <td class="c-tag"><span>رؤى الذكاء الاصطناعي</span></td>
+                </tr>
+            </table>
+            <table class="insights">
+                <tr>
+                    <td class="insight-cell"><h4>الملخص</h4><p>{{insightSummary}}</p></td>
+                    <td class="i-gap"></td>
+                    <td class="insight-cell"><h4>التوصية</h4><p>{{insightRecommendation}}</p></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="reco">
+            <h3>توصيات قبعتي القادمة</h3>
+            <div class="reco-list">{{recommendationsHtml}}</div>
+        </div>
+
+        <div class="foot"><table><tr><td class="f-note">قبعتي - نساعد الطالب على اكتشاف القبعة التي تناسبه</td><td class="f-pg">3 / 3</td></tr></table></div>
+    </div>
+</section>
+
+</body>
+</html>

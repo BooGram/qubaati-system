@@ -20,6 +20,7 @@ import com.example.qubaatisystem.Repository.MissionSessionRepository;
 import com.example.qubaatisystem.Repository.RecommendationRepository;
 import com.example.qubaatisystem.Repository.StudentRepository;
 import com.example.qubaatisystem.Repository.StudentSkillRepository;
+import com.example.qubaatisystem.Repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,7 @@ public class ChildLearningProfileService {
     private final MissionSessionRepository missionSessionRepository;
     private final InsightRepository insightRepository;
     private final RecommendationRepository recommendationRepository;
+    private final TeacherRepository teacherRepository;
 
     public ChildLearningProfileOutDTO getLearningProfile(Integer parentId, Integer studentId) {
         Student student = studentRepository.findStudentById(studentId);
@@ -55,6 +57,29 @@ public class ChildLearningProfileService {
             throw new ApiException("Student with id " + studentId + " does not belong to parent with id " + parentId);
         }
 
+        return buildLearningProfile(student);
+    }
+
+    public ChildLearningProfileOutDTO getTeacherLearningProfile(Integer teacherId, Integer studentId) {
+        if (teacherRepository.findTeacherById(teacherId) == null) {
+            throw new ApiException("Teacher with id " + teacherId + " not found");
+        }
+
+        Student student = studentRepository.findStudentById(studentId);
+        if (student == null) {
+            throw new ApiException("Student with id " + studentId + " not found");
+        }
+        if (student.getClassroom() == null
+                || student.getClassroom().getTeacher() == null
+                || !student.getClassroom().getTeacher().getId().equals(teacherId)) {
+            throw new ApiException("Student with id " + studentId + " does not belong to teacher with id " + teacherId);
+        }
+
+        return buildLearningProfile(student);
+    }
+
+    private ChildLearningProfileOutDTO buildLearningProfile(Student student) {
+        Integer studentId = student.getId();
         ChildLearningProfileOutDTO out = new ChildLearningProfileOutDTO();
         out.setStudentId(student.getId());
         out.setFullName(student.getFullName());

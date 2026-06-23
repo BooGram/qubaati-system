@@ -36,6 +36,7 @@ public class ParentService {
     private final ChildLearningProfileService childLearningProfileService;
     private final ActivitySubmissionService activitySubmissionService;
     private final MissionSessionService missionSessionService;
+    private final StudentPortfolioPdfService studentPortfolioPdfService;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final com.example.qubaatisystem.Config.SecurityOwnershipService security;
@@ -191,6 +192,13 @@ public class ParentService {
             throw new ApiException("Parent with id " + parentId + " not found");
         }
         return childLearningProfileService.getLearningProfile(parentId, studentId);
+    }
+
+    public byte[] generateChildPortfolioPdf(Integer parentId, Integer studentId) {
+        if (parentRepository.findParentById(parentId) == null) {
+            throw new ApiException("Parent with id " + parentId + " not found");
+        }
+        return studentPortfolioPdfService.generateChildPortfolio(parentId, studentId);
     }
 
     // ========== Security-aware wrapper methods (called by ParentController) ==========
