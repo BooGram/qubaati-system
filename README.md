@@ -294,18 +294,6 @@ The system integrates with **Moyasar** for payments.
 
 ---
 
-# 🧪 Postman Collection Endpoints (`ab`)
-
-> This section lists every unique request whose name starts with `ab -` in the current Postman collection. It documents the full shared collection flow and does not change the Git-based ownership listed above.
-
-**Collection result:** 87 `ab` requests were found, representing **43 unique method-and-route combinations**.
-
-The following three already appear in **Git-Proven Endpoints I Implemented**, so they are not repeated below:
-
-- `GET /api/v1/subscriptions/plans`
-- `POST /api/v1/payments/checkout`
-- `GET /api/v1/payments/callback`
-
 ## ⚙️ Setup & Core Resources
 
 | Method | Endpoint | Description |
