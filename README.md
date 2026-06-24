@@ -225,8 +225,6 @@ The system integrates with **Moyasar** for payments.
 
 # 🔗 Git-Proven Endpoints I Implemented
 
-> The following original profile-ID endpoints were implemented as part of my contribution. Some authenticated `/me` alternatives were added later by another team member.
-
 ## 👨‍👩‍👧 Parent & Child Management
 
 | Method  | Endpoint                                                   | Description                                                  |
