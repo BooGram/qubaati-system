@@ -1,4 +1,6 @@
-# 🎓 Qubaati | قبعتي
+<h1 align="center">
+  🎓 Qubaati | قبعتي
+</h1>
 
 <p align="center">
   <b>AI-powered adaptive learning platform for children</b><br/>
@@ -11,6 +13,7 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-AI-purple)
 ![Moyasar](https://img.shields.io/badge/Moyasar-Payments-yellow)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-Secured-success)
+![OpenHTMLtoPDF](https://img.shields.io/badge/OpenHTMLtoPDF-PDF%20Reports-0B3A3A)
 ![n8n](https://img.shields.io/badge/n8n-Automation-orange)
 ![Twilio](https://img.shields.io/badge/Twilio-WhatsApp%20Notifications-red)
 ![Gmail](https://img.shields.io/badge/Gmail-Email%20Notifications-EA4335)
