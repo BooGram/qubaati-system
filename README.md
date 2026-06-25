@@ -223,6 +223,16 @@ The system integrates with **Moyasar** for payments.
 
 ---
 
+# 📮 Postman API Documentation
+
+Explore the complete interactive API documentation, including request examples, authentication details, and endpoint responses:
+
+[![View in Postman](https://img.shields.io/badge/Postman-View%20API%20Documentation-FF6C37?logo=postman&logoColor=white)](https://documenter.getpostman.com/view/50847933/2sBXwwonzb)
+
+[Open the Qubaati API Documentation](https://documenter.getpostman.com/view/50847933/2sBXwwonzb)
+
+---
+
 # 🔗 Git-Proven Endpoints I Implemented
 
 ## 👨‍👩‍👧 Parent & Child Management
